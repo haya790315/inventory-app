@@ -36,6 +36,8 @@ class ItemServiceTest {
   @InjectMocks
   private ItemService itemService;
 
+  private String categoryNotFoundMsg = "カテゴリーが見つかりません";
+
   private int defaultUserId = 111;
 
   private int defaultSystemUserId = 999;
@@ -91,7 +93,7 @@ class ItemServiceTest {
         .thenReturn(List.of());
 
     Exception ex = assertThrows(IllegalArgumentException.class, () -> itemService.createItem(userId, request));
-    assertEquals("カテゴリーが見つかりません", ex.getMessage());
+    assertEquals(categoryNotFoundMsg, ex.getMessage());
   }
 
   @Test
@@ -137,6 +139,37 @@ class ItemServiceTest {
 
     Item existingItem = new Item();
     existingItem.setName(itemName);
+    existingItem.setDeletedFlag(true);
+
+    category.setItems(new ArrayList<>(List.of(existingItem)));
+
+    ItemRequest request = new ItemRequest();
+    request.setName(itemName);
+    request.setQuantity(5);
+    request.setCategoryName(categoryName);
+
+    when(categoryRepository.findByUserIdInAndName(List.of(userId, systemUserId), categoryName))
+        .thenReturn(List.of(category));
+
+    assertDoesNotThrow(() -> itemService.createItem(userId, request));
+    verify(categoryRepository).save(any(Category.class));
+  }
+
+  @Test
+  @Tag("createItem")
+  @DisplayName("アイテム作成 - 名前が違うアイテムが存在するが削除フラグが立っている場合")
+  void testCreateItemThatHasDeletedFlagButDifferentName() {
+    int userId = defaultUserId;
+    int systemUserId = defaultSystemUserId;
+    String categoryName = "Laptop";
+    String itemName = "Notebook";
+    String differentItemName = "Tablet";
+
+    Category category = new Category(categoryName);
+    category.setUserId(userId);
+
+    Item existingItem = new Item();
+    existingItem.setName(differentItemName);
     existingItem.setDeletedFlag(true);
 
     category.setItems(new ArrayList<>(List.of(existingItem)));
