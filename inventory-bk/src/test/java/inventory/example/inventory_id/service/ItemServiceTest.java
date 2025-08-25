@@ -15,10 +15,12 @@ import java.util.UUID;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
+import org.springframework.dao.DataAccessException;
 import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.web.server.ResponseStatusException;
 
@@ -271,6 +273,7 @@ class ItemServiceTest {
   }
 
   @Test
+  @Tag("deleteItem")
   @DisplayName("アイテム削除成功")
   void testDeleteItemSuccess() {
     int userId = defaultUserId;
@@ -289,6 +292,7 @@ class ItemServiceTest {
   }
 
   @Test
+  @Tag("deleteItem")
   @DisplayName("アイテム削除失敗 - アイテムが見つからない")
   void testDeleteItemNotFound() {
     int userId = defaultUserId;
@@ -297,5 +301,40 @@ class ItemServiceTest {
         .thenReturn(Optional.empty());
     Exception ex = assertThrows(ResponseStatusException.class, () -> itemService.deleteItem(userId, itemId));
     assertEquals("アイテムが見つかりません", ((ResponseStatusException) ex).getReason());
+  }
+
+  @Test
+  @Tag("DB error")
+  @DisplayName("アイテム取得失敗 - DBエラー")
+  void selectItem_dbError() {
+    int userId = defaultUserId;
+    UUID itemId = UUID.randomUUID();
+    Item item = new Item();
+    item.setId(itemId);
+    item.setUserId(userId);
+    when(itemRepository.findByUserIdInAndIdAndDeletedFlagFalse(any(List.class), any(UUID.class)))
+        .thenThrow(new DataAccessException("DB error") {
+        });
+    Exception ex = assertThrows(DataAccessException.class, () -> itemService.deleteItem(userId, itemId));
+    assertEquals("DB error", ex.getMessage());
+  }
+
+  @Test
+  @Tag("DB error")
+  @DisplayName("アイテム保存失敗 - DBエラー")
+  void saveItem_dbError() {
+    int userId = defaultUserId;
+    UUID itemId = UUID.randomUUID();
+    Item item = new Item();
+    item.setId(itemId);
+    item.setUserId(userId);
+
+    when(itemRepository.findByUserIdInAndIdAndDeletedFlagFalse(List.of(userId, defaultSystemUserId), itemId))
+        .thenReturn(Optional.of(item));
+    when(itemRepository.save(any(Item.class))).thenThrow(new DataAccessException("DB エラー") {
+    });
+
+    Exception ex = assertThrows(DataAccessException.class, () -> itemService.deleteItem(userId, itemId));
+    assertEquals("DB エラー", ex.getMessage());
   }
 }
