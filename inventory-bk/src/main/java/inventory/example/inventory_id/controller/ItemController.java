@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.server.ResponseStatusException;
 
@@ -16,7 +17,6 @@ import inventory.example.inventory_id.dto.ItemDto;
 import inventory.example.inventory_id.request.ItemRequest;
 import inventory.example.inventory_id.service.ItemService;
 import jakarta.validation.Valid;
-import jakarta.websocket.server.PathParam;
 
 @RestController
 @RequestMapping("/api/item")
@@ -40,7 +40,7 @@ public class ItemController extends BaseController {
   }
 
   @GetMapping()
-  public ResponseEntity<Object> getItems(@PathParam("category_name") String category_name) {
+  public ResponseEntity<Object> getItems(@RequestParam("category_name") String category_name) {
     try {
       Integer userId = fetchUserIdFromToken();
       List<ItemDto> items = itemService.getItems(userId, category_name);
