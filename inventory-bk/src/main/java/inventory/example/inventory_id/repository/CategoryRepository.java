@@ -13,14 +13,9 @@ import java.util.List;
 public interface CategoryRepository extends JpaRepository<Category, UUID> {
   boolean existsByUserIdAndName(int userId, String name);
 
-  List<Category> findByUserIdIn(List<Integer> userIds);
-
-  Optional<Category> findByUserIdAndName(int userId, String name);
+  List<Category> findByUserIdInAndDeletedFlagFalse(List<Integer> userIds);
 
   Optional<Category> findByUserIdAndId(int userId, UUID id);
 
   List<Category> findByUserIdInAndName(List<Integer> userIds, String name);
-
-  int countByUserIdAndDeletedFlagFalse(int userId);
-
 }

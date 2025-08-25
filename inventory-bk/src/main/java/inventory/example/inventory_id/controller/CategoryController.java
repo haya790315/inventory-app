@@ -21,7 +21,6 @@ import inventory.example.inventory_id.model.Item;
 import inventory.example.inventory_id.request.CategoryRequest;
 import inventory.example.inventory_id.service.CategoryService;
 import jakarta.validation.Valid;
-import jakarta.websocket.server.PathParam;
 
 @RestController
 @RequestMapping("/api/category")
@@ -62,7 +61,7 @@ public class CategoryController extends BaseController {
 
   @PutMapping()
   public ResponseEntity<Object> putMethodName(
-      @PathParam("category_id") UUID category_id,
+      @RequestParam("category_id") UUID category_id,
       @RequestBody CategoryRequest categoryRequest) {
     try {
       Integer userId = fetchUserIdFromToken();
@@ -76,7 +75,7 @@ public class CategoryController extends BaseController {
   }
 
   @DeleteMapping()
-  public ResponseEntity<Object> deleteCategory(@PathParam("category_id") UUID category_id) {
+  public ResponseEntity<Object> deleteCategory(@RequestParam("category_id") UUID category_id) {
     try {
       Integer userId = fetchUserIdFromToken();
       categoryService.deleteCategory(category_id, userId);
