@@ -24,17 +24,17 @@ import org.springframework.web.server.ResponseStatusException;
 import inventory.example.inventory_id.dto.ItemDto;
 import inventory.example.inventory_id.model.Category;
 import inventory.example.inventory_id.model.Item;
-import inventory.example.inventory_id.repository.CategoryRepo;
-import inventory.example.inventory_id.repository.ItemRepo;
+import inventory.example.inventory_id.repository.CategoryRepository;
+import inventory.example.inventory_id.repository.ItemRepositroy;
 import inventory.example.inventory_id.request.ItemRequest;
 
 class ItemServiceTest {
 
   @Mock
-  private CategoryRepo categoryRepository;
+  private CategoryRepository categoryRepository;
 
   @Mock
-  private ItemRepo itemRepository;
+  private ItemRepositroy itemRepository;
 
   @InjectMocks
   private ItemService itemService;

@@ -8,6 +8,6 @@ import org.springframework.stereotype.Repository;
 import inventory.example.inventory_id.model.Item;
 
 @Repository
-public interface ItemRepo extends JpaRepository<Item, UUID> {
+public interface ItemRepositroy extends JpaRepository<Item, UUID> {
 
 }

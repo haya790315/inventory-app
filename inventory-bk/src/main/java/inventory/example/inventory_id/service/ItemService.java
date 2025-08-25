@@ -20,10 +20,10 @@ import inventory.example.inventory_id.request.ItemRequest;
 @Service
 public class ItemService {
   @Autowired
-  private ItemRepo itemRepository;
+  private ItemRepositroy itemRepository;
 
   @Autowired
-  private CategoryRepo categoryRepository;
+  private CategoryRepository categoryRepository;
 
   @Value("${system.userid}")
   private int systemUserId;

@@ -22,14 +22,14 @@ import org.springframework.web.server.ResponseStatusException;
 
 import inventory.example.inventory_id.model.Category;
 import inventory.example.inventory_id.model.Item;
-import inventory.example.inventory_id.repository.CategoryRepo;
+import inventory.example.inventory_id.repository.CategoryRepository;
 import inventory.example.inventory_id.request.CategoryRequest;
 
 @ExtendWith(MockitoExtension.class)
 public class CategoryServiceTest {
 
   @Mock
-  private CategoryRepo categoryRepo;
+  private CategoryRepository categoryRepository;
 
   @InjectMocks
   private CategoryService categoryService;
@@ -41,13 +41,13 @@ public class CategoryServiceTest {
     request.setName("TestCategory");
     int userId = 1;
 
-    when(categoryRepo.existsByUserIdAndName(userId, "TestCategory")).thenReturn(false);
+    when(categoryRepository.existsByUserIdAndName(userId, "TestCategory")).thenReturn(false);
 
     Category savedCategory = new Category();
     savedCategory.setName("TestCategory");
     savedCategory.setUserId(userId);
 
-    when(categoryRepo.save(any(Category.class))).thenReturn(savedCategory);
+    when(categoryRepository.save(any(Category.class))).thenReturn(savedCategory);
 
     Category result = categoryService.createCategory(request, userId);
 
@@ -62,8 +62,8 @@ public class CategoryServiceTest {
     request.setName("TestCategory");
     int userId = 1;
 
-    when(categoryRepo.existsByUserIdAndName(userId, "TestCategory")).thenReturn(true);
-    when(categoryRepo.findByUserIdAndName(userId, "TestCategory")).thenReturn(Optional.of(new Category()));
+    when(categoryRepository.existsByUserIdAndName(userId, "TestCategory")).thenReturn(true);
+    when(categoryRepository.findByUserIdAndName(userId, "TestCategory")).thenReturn(Optional.of(new Category()));
 
     Exception exception = assertThrows(ResponseStatusException.class, () -> {
       categoryService.createCategory(request, userId);
@@ -79,11 +79,11 @@ public class CategoryServiceTest {
     request.setName("TestCategory");
     int userId = 1;
 
-    when(categoryRepo.existsByUserIdAndName(userId, "TestCategory")).thenReturn(true);
+    when(categoryRepository.existsByUserIdAndName(userId, "TestCategory")).thenReturn(true);
     Category existingCategory = new Category("TestCategory");
     existingCategory.setDeletedFlag(true);
-    when(categoryRepo.findByUserIdAndName(userId, "TestCategory")).thenReturn(Optional.of(existingCategory));
-    when(categoryRepo.save(any(Category.class))).thenReturn(existingCategory);
+    when(categoryRepository.findByUserIdAndName(userId, "TestCategory")).thenReturn(Optional.of(existingCategory));
+    when(categoryRepository.save(any(Category.class))).thenReturn(existingCategory);
 
     Category result = categoryService.createCategory(request, userId);
     assertFalse(result.isDeletedFlag());
@@ -96,7 +96,7 @@ public class CategoryServiceTest {
     request.setName("TestCategory");
     int userId = 1;
 
-    when(categoryRepo.countByUserIdAndDeletedFlagFalse(userId)).thenReturn(50);
+    when(categoryRepository.countByUserIdAndDeletedFlagFalse(userId)).thenReturn(50);
 
     Exception exception = assertThrows(ResponseStatusException.class, () -> {
       categoryService.createCategory(request, userId);
@@ -115,8 +115,8 @@ public class CategoryServiceTest {
 
     Category category = new Category("OldName");
     category.setUserId(userId);
-    when(categoryRepo.findByUserIdAndId(userId, categoryId)).thenReturn(Optional.of(category));
-    when(categoryRepo.save(any(Category.class))).thenReturn(category);
+    when(categoryRepository.findByUserIdAndId(userId, categoryId)).thenReturn(Optional.of(category));
+    when(categoryRepository.save(any(Category.class))).thenReturn(category);
 
     Category result = categoryService.updateCategory(categoryId, request, userId);
     assertEquals("UpdatedName", result.getName());
@@ -130,7 +130,7 @@ public class CategoryServiceTest {
     request.setName("UpdatedName");
     int userId = 1;
 
-    when(categoryRepo.findByUserIdAndId(userId, categoryId)).thenReturn(Optional.empty());
+    when(categoryRepository.findByUserIdAndId(userId, categoryId)).thenReturn(Optional.empty());
 
     Exception exception = assertThrows(IllegalArgumentException.class, () -> {
       categoryService.updateCategory(categoryId, request, userId);
@@ -147,8 +147,8 @@ public class CategoryServiceTest {
     Category category = new Category();
     category.setUserId(userId);
     category.setItems(new ArrayList<>());
-    when(categoryRepo.findByUserIdAndId(userId, categoryId)).thenReturn(Optional.of(category));
-    when(categoryRepo.save(any(Category.class))).thenReturn(category);
+    when(categoryRepository.findByUserIdAndId(userId, categoryId)).thenReturn(Optional.of(category));
+    when(categoryRepository.save(any(Category.class))).thenReturn(category);
 
     assertDoesNotThrow(() -> categoryService.deleteCategory(categoryId, userId));
     assertTrue(category.isDeletedFlag());
@@ -164,7 +164,7 @@ public class CategoryServiceTest {
     ArrayList<Item> items = new ArrayList<>();
     items.add(new Item());
     category.setItems(items);
-    when(categoryRepo.findByUserIdAndId(userId, categoryId)).thenReturn(Optional.of(category));
+    when(categoryRepository.findByUserIdAndId(userId, categoryId)).thenReturn(Optional.of(category));
 
     Exception exception = assertThrows(IllegalArgumentException.class, () -> {
       categoryService.deleteCategory(categoryId, userId);
