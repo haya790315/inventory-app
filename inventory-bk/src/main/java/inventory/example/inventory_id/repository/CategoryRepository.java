@@ -10,7 +10,7 @@ import org.springframework.stereotype.Repository;
 import java.util.List;
 
 @Repository
-public interface CategoryRepo extends JpaRepository<Category, UUID> {
+public interface CategoryRepository extends JpaRepository<Category, UUID> {
   boolean existsByUserIdAndName(int userId, String name);
 
   List<Category> findByUserIdIn(List<Integer> userIds);
