@@ -22,6 +22,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.dao.DataAccessException;
 import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.web.server.ResponseStatusException;
 
@@ -43,10 +44,54 @@ public class CategoryServiceTest {
 
   private int defaultSystemUserId = 999;
 
+  private String categoryNotFoundMsg = "カテゴリーが見つかりません";
+
   @BeforeEach
   void setup() {
     MockitoAnnotations.openMocks(this);
     ReflectionTestUtils.setField(categoryService, "systemUserId", defaultSystemUserId);
+  }
+
+  @Test
+  @Tag("getCategory")
+  @DisplayName("カテゴリー取得- 取得成功")
+  void testGetAllCategoriesSuccess() {
+    int userId = defaultUserId;
+    Category category1 = new Category();
+    category1.setName("CategoryB");
+    category1.setId(UUID.randomUUID());
+    category1.setUserId(userId);
+
+    Category category2 = new Category();
+    category2.setName("CategoryA");
+    category2.setId(UUID.randomUUID());
+    category2.setUserId(userId);
+    when(categoryRepo.findByUserIdInAndDeletedFlagFalse(List.of(userId, defaultSystemUserId)))
+        .thenReturn(List.of(category1, category2));
+
+    List<CategoryDto> result = categoryService.getAllCategories(userId);
+    assertFalse(result.isEmpty());
+    assertEquals(result.size(), 2);
+    assertEquals(result.get(0).getName(), "CategoryA");
+    assertEquals(result.get(1).getName(), "CategoryB");
+  }
+
+  @Test
+  @Tag("getCategory/items")
+  @DisplayName("アイテム取得- アイテムを取得成功")
+  void testGetCategoryItemsSuccess() {
+    UUID categoryId = UUID.randomUUID();
+    int userId = defaultUserId;
+    Category category = new Category();
+    category.setId(categoryId);
+    category.setUserId(userId);
+    category.setItems(List.of(new Item("Item1")));
+    when(categoryRepo.findByUserIdInAndDeletedFlagFalse(List.of(userId, defaultSystemUserId)))
+        .thenReturn(List.of(category));
+
+    List<Item> result = categoryService.getCategoryItems(defaultUserId, categoryId);
+    assertFalse(result.isEmpty());
+    assertEquals(category.getItems(), result);
   }
 
   @Test
@@ -57,7 +102,7 @@ public class CategoryServiceTest {
     request.setName("TestCategory");
     int userId = defaultUserId;
 
-    when(categoryRepo.findByUserIdIn(List.of(userId, defaultSystemUserId))).thenReturn(List.of());
+    when(categoryRepo.findByUserIdInAndDeletedFlagFalse(List.of(userId, defaultSystemUserId))).thenReturn(List.of());
 
     Category savedCategory = new Category();
     savedCategory.setName(request.getName());
@@ -81,7 +126,8 @@ public class CategoryServiceTest {
     Category savedCategory = new Category();
     savedCategory.setName(request.getName());
     savedCategory.setUserId(userId);
-    when(categoryRepo.findByUserIdIn(List.of(userId, defaultSystemUserId))).thenReturn(List.of(savedCategory));
+    when(categoryRepo.findByUserIdInAndDeletedFlagFalse(List.of(userId, defaultSystemUserId)))
+        .thenReturn(List.of(savedCategory));
     Exception exception = assertThrows(ResponseStatusException.class, () -> {
       categoryService.createCategory(request, userId);
     });
@@ -101,7 +147,31 @@ public class CategoryServiceTest {
     existedCategory.setUserId(userId);
     existedCategory.setDeletedFlag(true);
 
-    when(categoryRepo.findByUserIdIn(List.of(userId, defaultSystemUserId))).thenReturn(List.of(existedCategory));
+    when(categoryRepo.findByUserIdInAndDeletedFlagFalse(List.of(userId, defaultSystemUserId)))
+        .thenReturn(List.of());
+
+    Category newCategory = new Category();
+    newCategory.setName(request.getName());
+    newCategory.setUserId(userId);
+    when(categoryRepo.save(any(Category.class))).thenReturn(newCategory);
+    Category result = assertDoesNotThrow(() -> categoryService.createCategory(request, userId));
+    assertFalse(result.isDeletedFlag());
+  }
+
+  @Test
+  @Tag("createCategory")
+  @DisplayName("カテゴリー作成成功- 削除済みカテゴリーと作成したい名前が違う場合")
+  void testCreateCategoryNameNotTheSameAsDeletedCategory() {
+    CategoryRequest request = new CategoryRequest();
+    request.setName("TestCategory");
+    int userId = defaultUserId;
+    Category existedCategory = new Category();
+    existedCategory.setName("existedCategory");
+    existedCategory.setUserId(userId);
+    existedCategory.setDeletedFlag(true);
+
+    when(categoryRepo.findByUserIdInAndDeletedFlagFalse(List.of(userId, defaultSystemUserId)))
+        .thenReturn(List.of(existedCategory));
 
     Category newCategory = new Category();
     newCategory.setName(request.getName());
@@ -128,9 +198,13 @@ public class CategoryServiceTest {
       category.setName("Category" + i);
       existingCategories.add(category);
     }
+    Category defCategory = new Category("DefaultCategory");
+    defCategory.setUserId(defaultSystemUserId);
+    existingCategories.add(defCategory);
 
     // Mock the repository to return the list
-    when(categoryRepo.findByUserIdIn(List.of(userId, defaultSystemUserId))).thenReturn(existingCategories);
+    when(categoryRepo.findByUserIdInAndDeletedFlagFalse(List.of(userId, defaultSystemUserId)))
+        .thenReturn(existingCategories);
 
     Exception exception = assertThrows(ResponseStatusException.class, () -> {
       categoryService.createCategory(request, userId);
@@ -172,7 +246,7 @@ public class CategoryServiceTest {
       categoryService.updateCategory(categoryId, request, userId);
     });
 
-    assertEquals("カテゴリーが見つかりません", exception.getMessage());
+    assertEquals(categoryNotFoundMsg, exception.getMessage());
   }
 
   @Test
@@ -205,7 +279,8 @@ public class CategoryServiceTest {
     category.setId(categoryId);
     category.setUserId(userId);
     category.setItems(new ArrayList<>());
-    when(categoryRepo.findByUserIdIn(List.of(userId, defaultSystemUserId))).thenReturn(List.of(category));
+    when(categoryRepo.findByUserIdInAndDeletedFlagFalse(List.of(userId, defaultSystemUserId)))
+        .thenReturn(List.of(category));
 
     assertDoesNotThrow(() -> categoryService.deleteCategory(categoryId, userId));
     assertTrue(category.isDeletedFlag());
@@ -221,7 +296,8 @@ public class CategoryServiceTest {
     category.setId(categoryId);
     category.setUserId(userId);
     category.setItems(new ArrayList<Item>(List.of(new Item())));
-    when(categoryRepo.findByUserIdIn(List.of(userId, defaultSystemUserId))).thenReturn(List.of(category));
+    when(categoryRepo.findByUserIdInAndDeletedFlagFalse(List.of(userId, defaultSystemUserId)))
+        .thenReturn(List.of(category));
 
     Exception exception = assertThrows(IllegalArgumentException.class, () -> {
       categoryService.deleteCategory(categoryId, userId);
@@ -232,7 +308,7 @@ public class CategoryServiceTest {
 
   @Test
   @Tag("deleteCategory")
-  @DisplayName("カテゴリー削除-　カテゴリーが見つからない場合のエラー")
+  @DisplayName("カテゴリー削除- カテゴリーが見つからない場合のエラー")
   void testDeleteCategoryNotFound() {
     UUID targetCategoryId = UUID.randomUUID();
     int userId = defaultUserId;
@@ -240,18 +316,19 @@ public class CategoryServiceTest {
     exsitedCategory.setId(UUID.randomUUID());
     exsitedCategory.setUserId(userId);
 
-    when(categoryRepo.findByUserIdIn(List.of(userId, defaultSystemUserId))).thenReturn(List.of(exsitedCategory));
+    when(categoryRepo.findByUserIdInAndDeletedFlagFalse(List.of(userId, defaultSystemUserId)))
+        .thenReturn(List.of(exsitedCategory));
 
     Exception ex = assertThrows(ResponseStatusException.class, () -> {
       categoryService.deleteCategory(targetCategoryId, userId);
     });
 
-    assertEquals("カテゴリーが見つかりません", ((ResponseStatusException) ex).getReason());
+    assertEquals(categoryNotFoundMsg, ((ResponseStatusException) ex).getReason());
   }
 
   @Test
   @Tag("deleteCategory")
-  @DisplayName("カテゴリー削除-　　デフォルトカテゴリを削除場合のエラー")
+  @DisplayName("カテゴリー削除- デフォルトカテゴリを削除場合のエラー")
   void testDeleteDefaultCategoryError() {
     UUID categoryId = UUID.randomUUID();
     int userId = defaultUserId; // Default user ID
@@ -259,7 +336,8 @@ public class CategoryServiceTest {
     category.setId(categoryId);
     category.setUserId(defaultSystemUserId);
     category.setItems(new ArrayList<>());
-    when(categoryRepo.findByUserIdIn(List.of(userId, defaultSystemUserId))).thenReturn(List.of(category));
+    when(categoryRepo.findByUserIdInAndDeletedFlagFalse(List.of(userId, defaultSystemUserId)))
+        .thenReturn(List.of(category));
 
     Exception exception = assertThrows(IllegalArgumentException.class, () -> {
       categoryService.deleteCategory(categoryId, userId);
@@ -274,52 +352,49 @@ public class CategoryServiceTest {
   void testDeleteCategoryEmptyList() {
     int userId = defaultUserId;
     UUID categoryId = UUID.randomUUID();
-    when(categoryRepo.findByUserIdIn(List.of(userId, defaultSystemUserId))).thenReturn(List.of());
+    when(categoryRepo.findByUserIdInAndDeletedFlagFalse(List.of(userId, defaultSystemUserId))).thenReturn(List.of());
 
     Exception exception = assertThrows(ResponseStatusException.class, () -> {
       categoryService.deleteCategory(categoryId, userId);
     });
 
-    assertEquals("カテゴリーが見つかりません", ((ResponseStatusException) exception).getReason());
+    assertEquals(categoryNotFoundMsg, ((ResponseStatusException) exception).getReason());
   }
 
   @Test
-  @Tag("getCategory")
-  @DisplayName("カテゴリー取得- 取得成功")
-  void testGetAllCategoriesSuccess() {
+  @Tag("DB Error")
+  @DisplayName("カテゴリー取得失敗 - DBエラー")
+  void testGetAllCategoriesDbError() {
     int userId = defaultUserId;
-    Category category1 = new Category();
-    category1.setName("CategoryB");
-    category1.setId(UUID.randomUUID());
-    category1.setUserId(userId);
+    when(categoryRepo.findByUserIdInAndDeletedFlagFalse(List.of(userId, defaultSystemUserId)))
+        .thenThrow(new DataAccessException("DBエラー") {
+        });
 
-    Category category2 = new Category();
-    category2.setName("CategoryA");
-    category2.setId(UUID.randomUUID());
-    category2.setUserId(userId);
-    when(categoryRepo.findByUserIdIn(List.of(userId, defaultSystemUserId))).thenReturn(List.of(category1, category2));
+    Exception exception = assertThrows(DataAccessException.class, () -> {
+      categoryService.getAllCategories(userId);
+    });
 
-    List<CategoryDto> result = categoryService.getAllCategories(userId);
-    assertFalse(result.isEmpty());
-    assertEquals(result.size(), 2);
-    assertEquals(result.get(0).getName(), "CategoryA");
-    assertEquals(result.get(1).getName(), "CategoryB");
+    assertEquals("DBエラー", exception.getMessage());
   }
 
   @Test
-  @Tag("getCategory/items")
-  @DisplayName("アイテム取得- アイテムを取得成功")
-  void testGetCategoryItemsSuccess() {
+  @Tag("DB Error")
+  @DisplayName("カテゴリー作成失敗 - DBエラー")
+  void testCreateCategoryDbError() {
     UUID categoryId = UUID.randomUUID();
     int userId = defaultUserId;
     Category category = new Category();
     category.setId(categoryId);
     category.setUserId(userId);
-    category.setItems(List.of(new Item("Item1")));
-    when(categoryRepo.findByUserIdIn(List.of(userId, defaultSystemUserId))).thenReturn(List.of(category));
+    category.setItems(new ArrayList<>());
+    when(categoryRepo.findByUserIdInAndDeletedFlagFalse(List.of(userId, defaultSystemUserId)))
+        .thenReturn(List.of(category));
+    when(categoryRepo.save(any(Category.class))).thenThrow(new DataAccessException("DBエラー") {
+    });
 
-    List<Item> result = categoryService.getCategoryItems(defaultUserId, categoryId);
-    assertFalse(result.isEmpty());
-    assertEquals(category.getItems(), result);
+    Exception exception = assertThrows(DataAccessException.class, () -> {
+      categoryService.deleteCategory(categoryId, userId);
+    });
+    assertEquals("DBエラー", exception.getMessage());
   }
 }
