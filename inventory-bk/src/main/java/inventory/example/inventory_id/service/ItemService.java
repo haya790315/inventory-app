@@ -13,8 +13,8 @@ import org.springframework.web.server.ResponseStatusException;
 import inventory.example.inventory_id.dto.ItemDto;
 import inventory.example.inventory_id.model.Category;
 import inventory.example.inventory_id.model.Item;
-import inventory.example.inventory_id.repository.CategoryRepo;
-import inventory.example.inventory_id.repository.ItemRepo;
+import inventory.example.inventory_id.repository.CategoryRepository;
+import inventory.example.inventory_id.repository.ItemRepositroy;
 import inventory.example.inventory_id.request.ItemRequest;
 
 @Service
@@ -27,6 +27,8 @@ public class ItemService {
 
   @Value("${system.userid}")
   private int systemUserId;
+
+  private String categoryNotFoundMsg = "カテゴリーが見つかりません";
 
   public void createItem(Integer userId, ItemRequest itemRequest) {
 
@@ -55,13 +57,15 @@ public class ItemService {
     categoryRepository.save(cate);
   }
 
-  public List<ItemDto> getItems(Integer userId, String categoryName) {
+  public List<ItemDto> getItems(
+      Integer userId,
+      String categoryName) {
     List<Category> categoryList = categoryRepository.findByUserIdInAndName(List.of(userId, systemUserId), categoryName);
     List<Category> notDeletedCategoryList = categoryList.stream()
         .filter(category -> !category.isDeletedFlag())
         .toList();
     if (notDeletedCategoryList.isEmpty()) {
-      throw new IllegalArgumentException("カテゴリーが見つかりません");
+      throw new IllegalArgumentException(categoryNotFoundMsg);
     }
 
     Category category = notDeletedCategoryList.get(0);
