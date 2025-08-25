@@ -14,7 +14,7 @@ import org.springframework.web.server.ResponseStatusException;
 import inventory.example.inventory_id.dto.ItemDto;
 import inventory.example.inventory_id.model.Category;
 import inventory.example.inventory_id.model.Item;
-import inventory.example.inventory_id.repository.CategoryRepo;
+import inventory.example.inventory_id.repository.CategoryRepository;
 import inventory.example.inventory_id.repository.ItemRepository;
 import inventory.example.inventory_id.request.ItemRequest;
 
@@ -24,7 +24,7 @@ public class ItemService {
   private ItemRepository itemRepository;
 
   @Autowired
-  private CategoryRepo categoryRepository;
+  private CategoryRepository categoryRepository;
 
   @Value("${system.userid}")
   private int systemUserId;

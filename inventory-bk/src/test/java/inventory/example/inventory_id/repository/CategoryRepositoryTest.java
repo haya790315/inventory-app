@@ -21,7 +21,7 @@ import inventory.example.inventory_id.model.Category;
 public class CategoryRepositoryTest {
 
   @Autowired
-  private CategoryRepo categoryRepo;
+  private CategoryRepository categoryRepository;
 
   private Category category1;
   private Category category2;
@@ -34,7 +34,7 @@ public class CategoryRepositoryTest {
 
   @BeforeEach
   void setUp() {
-    categoryRepo.deleteAll();
+    categoryRepository.deleteAll();
     Category c1 = new Category();
     c1.setUserId(userId1);
     c1.setName(name1);
@@ -50,7 +50,7 @@ public class CategoryRepositoryTest {
     c3.setName(name3);
     c3.setDeletedFlag(true);
 
-    List<Category> saved = categoryRepo.saveAll(Arrays.asList(c1, c2, c3));
+    List<Category> saved = categoryRepository.saveAll(Arrays.asList(c1, c2, c3));
     category1 = saved.get(0);
     category2 = saved.get(1);
     category3 = saved.get(2);
@@ -59,21 +59,21 @@ public class CategoryRepositoryTest {
   @Test
   @DisplayName("カテゴリーが存在する場合、existsByUserIdAndNameはtrueを返す")
   void testExistsByUserIdAndNameTrue() {
-    boolean exists = categoryRepo.existsByUserIdAndName(userId1, name1);
+    boolean exists = categoryRepository.existsByUserIdAndName(userId1, name1);
     assertThat(exists).isTrue();
   }
 
   @Test
   @DisplayName("カテゴリーが存在しない場合、existsByUserIdAndNameはfalseを返す")
   void testExistsByUserIdAndNameFalse() {
-    boolean exists = categoryRepo.existsByUserIdAndName(userId2, name1);
+    boolean exists = categoryRepository.existsByUserIdAndName(userId2, name1);
     assertThat(exists).isFalse();
   }
 
   @Test
   @DisplayName("findByUserIdInは正しいカテゴリを返す")
   void testFindByUserIdIn() {
-    List<Category> categories = categoryRepo.findByUserIdIn(Arrays.asList(userId1, userId2));
+    List<Category> categories = categoryRepository.findByUserIdIn(Arrays.asList(userId1, userId2));
     assertThat(categories).hasSize(3);
     assertThat(categories).extracting(Category::getName).containsExactlyInAnyOrder(name1, name2, name3);
   }
@@ -81,7 +81,7 @@ public class CategoryRepositoryTest {
   @Test
   @DisplayName("findByUserIdAndNameは正しいカテゴリを返す")
   void testFindByUserIdAndName() {
-    Optional<Category> found = categoryRepo.findByUserIdAndName(userId1, name2);
+    Optional<Category> found = categoryRepository.findByUserIdAndName(userId1, name2);
     assertThat(found).isPresent();
     assertThat(found.get().getName()).isEqualTo(name2);
   }
@@ -89,14 +89,14 @@ public class CategoryRepositoryTest {
   @Test
   @DisplayName("findByUserIdAndNameは存在しない場合、空を返す")
   void testFindByUserIdAndNameNotFound() {
-    Optional<Category> found = categoryRepo.findByUserIdAndName(userId2, name1);
+    Optional<Category> found = categoryRepository.findByUserIdAndName(userId2, name1);
     assertThat(found).isNotPresent();
   }
 
   @Test
   @DisplayName("findByUserIdAndIdは正しいカテゴリを返す")
   void testFindByUserIdAndId() {
-    Optional<Category> found = categoryRepo.findByUserIdAndId(userId1, category1.getId());
+    Optional<Category> found = categoryRepository.findByUserIdAndId(userId1, category1.getId());
     assertThat(found).isPresent();
     assertThat(found.get().getName()).isEqualTo(name1);
   }
@@ -104,28 +104,28 @@ public class CategoryRepositoryTest {
   @Test
   @DisplayName("findByUserIdAndIdは存在しない場合、空を返す")
   void testFindByUserIdAndIdNotFound() {
-    Optional<Category> found = categoryRepo.findByUserIdAndId(userId2, category1.getId());
+    Optional<Category> found = categoryRepository.findByUserIdAndId(userId2, category1.getId());
     assertThat(found).isNotPresent();
   }
 
   @Test
   @DisplayName("countByUserIdAndDeletedFlagFalseは正しいカウントを返す")
   void testCountByUserIdAndDeletedFlagFalse() {
-    int count = categoryRepo.countByUserIdAndDeletedFlagFalse(userId1);
+    int count = categoryRepository.countByUserIdAndDeletedFlagFalse(userId1);
     assertThat(count).isEqualTo(2);
   }
 
   @Test
   @DisplayName("countByUserIdAndDeletedFlagFalseは削除されたカテゴリのみを持つユーザーに対してゼロを返す")
   void testCountByUserIdAndDeletedFlagFalseZero() {
-    int count = categoryRepo.countByUserIdAndDeletedFlagFalse(userId2);
+    int count = categoryRepository.countByUserIdAndDeletedFlagFalse(userId2);
     assertThat(count).isEqualTo(0);
   }
 
   @Test
   @DisplayName("findByUserIdInAndNameは正しいカテゴリを返す")
   void testFindByUserIdInAndName() {
-    List<Category> categories = categoryRepo.findByUserIdInAndName(Arrays.asList(userId1, userId2), name1);
+    List<Category> categories = categoryRepository.findByUserIdInAndName(Arrays.asList(userId1, userId2), name1);
     assertThat(categories).hasSize(1);
     assertThat(categories.get(0).getName()).isEqualTo(name1);
   }
