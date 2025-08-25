@@ -131,5 +131,4 @@ public class ItemService {
     item.setDeletedFlag(true);
     itemRepository.save(item);
   }
-
 }

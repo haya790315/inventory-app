@@ -11,7 +11,11 @@ import inventory.example.inventory_id.model.Item;
 
 @Repository
 public interface ItemRepository extends JpaRepository<Item, UUID> {
-  Optional<List<Item>> findByUserIdInAndCategory_Name(List<Integer> userIds, String categoryName);
+  Optional<List<Item>> findByUserIdInAndCategory_Name(
+      List<Integer> userIds,
+      String categoryName);
 
-  Optional<Item> findByUserIdInAndIdAndDeletedFlagFalse(List<Integer> userIds, UUID itemId);
+  Optional<Item> findByUserIdInAndIdAndDeletedFlagFalse(
+      List<Integer> userIds,
+      UUID itemId);
 }
