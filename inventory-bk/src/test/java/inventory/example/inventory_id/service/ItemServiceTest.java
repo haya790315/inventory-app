@@ -39,6 +39,8 @@ class ItemServiceTest {
   @InjectMocks
   private ItemService itemService;
 
+  private String categoryNotFoundMsg = "カテゴリーが見つかりません";
+
   private int defaultUserId = 111;
 
   private int defaultSystemUserId = 999;
@@ -193,6 +195,34 @@ class ItemServiceTest {
 
   @Test
   @Tag("getItem")
+  @DisplayName("アイテム取得失敗- 削除済みカテゴリ場合のエラー")
+  void testGetItemsThatDeletedItemsOnlyExist() {
+    int userId = defaultUserId;
+    int systemUserId = defaultSystemUserId;
+    String categoryName = "Laptop";
+
+    Category category = new Category(categoryName);
+    category.setUserId(userId);
+    category.setDeletedFlag(true);
+
+    Item item1 = new Item();
+    item1.setName("Notebook");
+    item1.setQuantity(5);
+    item1.setUpdatedAt(LocalDateTime.now());
+    item1.setDeletedFlag(false);
+    item1.setCategory(category);
+
+    category.setItems(List.of(item1));
+
+    when(categoryRepository.findByUserIdInAndName(List.of(userId, systemUserId), categoryName))
+        .thenReturn(List.of(category));
+
+    Exception ex = assertThrows(IllegalArgumentException.class, () -> itemService.getItems(userId, categoryName));
+    assertEquals(categoryNotFoundMsg, ex.getMessage());
+  }
+
+  @Test
+  @Tag("getItem")
   @DisplayName("アイテム取得失敗 - カテゴリーが見つからない")
   void testGetItemsCategoryNotFound() {
     int userId = defaultUserId;
@@ -203,7 +233,7 @@ class ItemServiceTest {
         .thenReturn(List.of());
 
     Exception ex = assertThrows(IllegalArgumentException.class, () -> itemService.getItems(userId, categoryName));
-    assertEquals("カテゴリーが見つかりません", ex.getMessage());
+    assertEquals(categoryNotFoundMsg, ex.getMessage());
   }
 
   @Test
