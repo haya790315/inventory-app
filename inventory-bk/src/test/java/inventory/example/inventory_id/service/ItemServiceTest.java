@@ -253,7 +253,7 @@ class ItemServiceTest {
         .thenReturn(items);
 
     Exception ex = assertThrows(IllegalArgumentException.class, () -> itemService.updateItem(userId, itemId, request));
-    assertEquals("そのアイテム名は既に登録されています", ex.getMessage());
+    assertEquals("アイテム名は既に登録されています", ex.getMessage());
   }
 
   @Test

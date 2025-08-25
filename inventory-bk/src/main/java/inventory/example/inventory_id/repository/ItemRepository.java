@@ -13,5 +13,4 @@ public interface ItemRepository extends JpaRepository<Item, UUID> {
   List<Item> findByUserIdInAndCategory_NameAndDeletedFlagFalse(
       List<Integer> userIds,
       String categoryName);
-
 }

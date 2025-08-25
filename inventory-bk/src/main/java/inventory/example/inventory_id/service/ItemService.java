@@ -110,7 +110,7 @@ public class ItemService {
         .filter(i -> i.getName().equals(itemRequest.getName()) && !i.getId().equals(itemId))
         .toList();
     if (!sameNamed.isEmpty()) {
-      throw new IllegalArgumentException("そのアイテム名は既に登録されています");
+      throw new IllegalArgumentException("アイテム名は既に登録されています");
     }
 
     Item item = match.get();
