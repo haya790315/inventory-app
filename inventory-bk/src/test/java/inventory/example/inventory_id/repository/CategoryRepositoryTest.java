@@ -1,4 +1,3 @@
-
 package inventory.example.inventory_id.repository;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -73,7 +72,7 @@ public class CategoryRepositoryTest {
   @Test
   @DisplayName("findByUserIdInは正しいカテゴリを返す")
   void testFindByUserIdIn() {
-    List<Category> categories = categoryRepo.findByUserIdInAndDeletedFlagFalse(Arrays.asList(userId1, userId2));
+    List<Category> categories = categoryRepo.findNotDeleted(Arrays.asList(userId1, userId2));
     assertThat(categories).hasSize(2);
     assertThat(categories).extracting(Category::getName).containsExactlyInAnyOrder(name1, name2);
   }
@@ -81,7 +80,7 @@ public class CategoryRepositoryTest {
   @Test
   @DisplayName("findByUserIdAndIdは正しいカテゴリを返す")
   void testFindByUserIdAndId() {
-    Optional<Category> found = categoryRepo.findByUserIdAndId(userId1, category1.getId());
+    Optional<Category> found = categoryRepo.findUserCategory(userId1, category1.getId());
     assertThat(found).isPresent();
     assertThat(found.get().getName()).isEqualTo(name1);
   }
@@ -89,7 +88,7 @@ public class CategoryRepositoryTest {
   @Test
   @DisplayName("findByUserIdAndIdは存在しない場合、空を返す")
   void testFindByUserIdAndIdNotFound() {
-    Optional<Category> found = categoryRepo.findByUserIdAndId(userId2, category1.getId());
+    Optional<Category> found = categoryRepo.findUserCategory(userId2, category1.getId());
     assertThat(found).isNotPresent();
   }
 

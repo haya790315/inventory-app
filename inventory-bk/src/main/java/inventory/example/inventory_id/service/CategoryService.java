@@ -29,14 +29,14 @@ public class CategoryService {
 
   public List<CategoryDto> getAllCategories(int userId) {
     // ユーザとデフォルトのカテゴリを取得
-    return categoryRepo.findByUserIdInAndDeletedFlagFalse(List.of(userId, systemUserId)).stream()
+    return categoryRepo.findNotDeleted(List.of(userId, systemUserId)).stream()
         .sorted(Comparator.comparing(Category::getName))
         .map(category -> new CategoryDto(category.getName(), category.getItems()))
         .toList();
   }
 
   public List<Item> getCategoryItems(int userId, UUID categoryId) {
-    List<Category> categories = categoryRepo.findByUserIdInAndDeletedFlagFalse(List.of(userId, systemUserId));
+    List<Category> categories = categoryRepo.findNotDeleted(List.of(userId, systemUserId));
     return categories.stream()
         .filter(category -> category.getId().equals(categoryId))
         .findFirst()
@@ -46,7 +46,7 @@ public class CategoryService {
 
   public Category createCategory(CategoryRequest categoryRequest, int userId) {
 
-    List<Category> categoryList = categoryRepo.findByUserIdInAndDeletedFlagFalse(List.of(userId, systemUserId));
+    List<Category> categoryList = categoryRepo.findNotDeleted(List.of(userId, systemUserId));
 
     List<Category> userCategories = categoryList.stream()
         .filter(category -> category.getUserId() == userId)
@@ -69,7 +69,7 @@ public class CategoryService {
   }
 
   public Category updateCategory(UUID categoryId, CategoryRequest categoryRequest, int userId) {
-    Optional<Category> categoryOpt = categoryRepo.findByUserIdAndId(userId, categoryId);
+    Optional<Category> categoryOpt = categoryRepo.findUserCategory(userId, categoryId);
     if (!categoryOpt.isPresent()) {
       throw new IllegalArgumentException(categoryNotFoundMsg);
     }
@@ -82,7 +82,7 @@ public class CategoryService {
   }
 
   public void deleteCategory(UUID id, int userId) {
-    List<Category> categoryList = categoryRepo.findByUserIdInAndDeletedFlagFalse(List.of(userId, systemUserId));
+    List<Category> categoryList = categoryRepo.findNotDeleted(List.of(userId, systemUserId));
     if (categoryList.isEmpty()) {
       throw new ResponseStatusException(HttpStatus.NOT_FOUND, categoryNotFoundMsg);
     }
