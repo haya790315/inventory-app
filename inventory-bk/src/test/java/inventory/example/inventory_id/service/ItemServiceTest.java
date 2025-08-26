@@ -350,7 +350,7 @@ class ItemServiceTest {
     List<Item> items = new ArrayList<>();
     items.add(existingItem);
 
-    when(itemRepository.findByUserIdInAndCategory_NameAndDeletedFlagFalse(List.of(userId, systemUserId), categoryName))
+    when(itemRepository.findUserActiveItemWithCategory(List.of(userId, systemUserId), categoryName))
         .thenReturn(items);
     when(itemRepository.save(any(Item.class))).thenReturn(existingItem);
 
@@ -383,7 +383,7 @@ class ItemServiceTest {
     request.setCategoryName(categoryName);
 
     List<Item> items = List.of(item1, item2);
-    when(itemRepository.findByUserIdInAndCategory_NameAndDeletedFlagFalse(List.of(userId, systemUserId), categoryName))
+    when(itemRepository.findUserActiveItemWithCategory(List.of(userId, systemUserId), categoryName))
         .thenReturn(items);
 
     Exception ex = assertThrows(IllegalArgumentException.class, () -> itemService.updateItem(userId, itemId, request));
@@ -404,7 +404,7 @@ class ItemServiceTest {
     request.setQuantity(10);
     request.setCategoryName(categoryName);
 
-    when(itemRepository.findByUserIdInAndCategory_NameAndDeletedFlagFalse(List.of(userId, systemUserId), categoryName))
+    when(itemRepository.findUserActiveItemWithCategory(List.of(userId, systemUserId), categoryName))
         .thenReturn(List.of());
 
     Exception ex = assertThrows(ResponseStatusException.class, () -> itemService.updateItem(userId, itemId, request));
@@ -430,7 +430,7 @@ class ItemServiceTest {
     existingItem.setName("Notebook");
     existingItem.setQuantity(5);
 
-    when(itemRepository.findByUserIdInAndCategory_NameAndDeletedFlagFalse(List.of(userId, systemUserId), categoryName))
+    when(itemRepository.findUserActiveItemWithCategory(List.of(userId, systemUserId), categoryName))
         .thenReturn(List.of(existingItem));
 
     Exception ex = assertThrows(ResponseStatusException.class, () -> itemService.updateItem(userId, itemId, request));
@@ -447,7 +447,7 @@ class ItemServiceTest {
     item.setId(itemId);
     item.setUserId(userId);
 
-    when(itemRepository.findByUserIdInAndIdAndDeletedFlagFalse(List.of(userId, defaultSystemUserId), itemId))
+    when(itemRepository.findUserActiveItem(List.of(userId, defaultSystemUserId), itemId))
         .thenReturn(Optional.of(item));
     when(itemRepository.save(any(Item.class))).thenReturn(item);
 
@@ -462,7 +462,7 @@ class ItemServiceTest {
   void testDeleteItemNotFound() {
     int userId = defaultUserId;
     UUID itemId = UUID.randomUUID();
-    when(itemRepository.findByUserIdInAndIdAndDeletedFlagFalse(List.of(userId, defaultSystemUserId), itemId))
+    when(itemRepository.findUserActiveItem(List.of(userId, defaultSystemUserId), itemId))
         .thenReturn(Optional.empty());
     Exception ex = assertThrows(ResponseStatusException.class, () -> itemService.deleteItem(userId, itemId));
     assertEquals("アイテムが見つかりません", ((ResponseStatusException) ex).getReason());
@@ -477,7 +477,7 @@ class ItemServiceTest {
     Item item = new Item();
     item.setId(itemId);
     item.setUserId(userId);
-    when(itemRepository.findByUserIdInAndIdAndDeletedFlagFalse(any(List.class), any(UUID.class)))
+    when(itemRepository.findUserActiveItem(any(List.class), any(UUID.class)))
         .thenThrow(new DataAccessException("DB error") {
         });
     Exception ex = assertThrows(DataAccessException.class, () -> itemService.deleteItem(userId, itemId));
@@ -494,7 +494,7 @@ class ItemServiceTest {
     item.setId(itemId);
     item.setUserId(userId);
 
-    when(itemRepository.findByUserIdInAndIdAndDeletedFlagFalse(List.of(userId, defaultSystemUserId), itemId))
+    when(itemRepository.findUserActiveItem(List.of(userId, defaultSystemUserId), itemId))
         .thenReturn(Optional.of(item));
     when(itemRepository.save(any(Item.class))).thenThrow(new DataAccessException("DB エラー") {
     });

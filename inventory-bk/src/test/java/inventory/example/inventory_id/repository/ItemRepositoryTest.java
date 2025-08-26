@@ -48,7 +48,7 @@ class ItemRepositoryTest {
     itemRepo.save(deleteditem);
 
     // Test
-    List<Item> result = itemRepo.findByUserIdInAndCategory_NameAndDeletedFlagFalse(List.of(123), "PC");
+    List<Item> result = itemRepo.findUserActiveItemWithCategory(List.of(123), "PC");
     assertThat(result).hasSize(1);
     assertThat(result.get(0).getName()).isEqualTo("Notebook");
     assertThat(result.get(0).getCategoryName()).isEqualTo("PC");
@@ -57,7 +57,7 @@ class ItemRepositoryTest {
   @Test
   @DisplayName("findByUserIdInAndIdAndDeletedFlagFalse 存在しない場合は空")
   void testFindByUserIdInAndIdAndDeletedFlagFalseNotFound() {
-    Optional<Item> result = itemRepo.findByUserIdInAndIdAndDeletedFlagFalse(List.of(999), UUID.randomUUID());
+    Optional<Item> result = itemRepo.findUserActiveItem(List.of(999), UUID.randomUUID());
     assertThat(result).isEmpty();
   }
 }
