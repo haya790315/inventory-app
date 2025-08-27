@@ -155,11 +155,11 @@ public class CategoryServiceTest {
     savedCategory.setUserId(userId);
     when(categoryRepository.findNotDeleted(List.of(userId, defaultSystemUserId)))
         .thenReturn(List.of(savedCategory));
-    Exception exception = assertThrows(ResponseStatusException.class, () -> {
+    ResponseStatusException exception = assertThrows(ResponseStatusException.class, () -> {
       categoryService.createCategory(request, userId);
     });
-
-    assertEquals("カテゴリー名はすでに存在します", ((ResponseStatusException) exception).getReason());
+    assertEquals("カテゴリー名はすでに存在します", exception.getReason());
+    assertEquals(409, exception.getStatusCode().value());
   }
 
   @Test
@@ -321,6 +321,7 @@ public class CategoryServiceTest {
     });
 
     assertEquals("カテゴリー名はすでに存在します", exception.getReason());
+    assertEquals(409, exception.getStatusCode().value());
   }
 
   @Test
@@ -373,11 +374,11 @@ public class CategoryServiceTest {
     when(categoryRepository.findNotDeleted(List.of(userId, defaultSystemUserId)))
         .thenReturn(List.of(exsitedCategory));
 
-    Exception ex = assertThrows(ResponseStatusException.class, () -> {
+    ResponseStatusException ex = assertThrows(ResponseStatusException.class, () -> {
       categoryService.deleteCategory(targetCategoryId, userId);
     });
 
-    assertEquals(categoryNotFoundMsg, ((ResponseStatusException) ex).getReason());
+    assertEquals(categoryNotFoundMsg, ex.getReason());
   }
 
   @Test
@@ -408,11 +409,11 @@ public class CategoryServiceTest {
     UUID categoryId = UUID.randomUUID();
     when(categoryRepository.findNotDeleted(List.of(userId, defaultSystemUserId))).thenReturn(List.of());
 
-    Exception exception = assertThrows(ResponseStatusException.class, () -> {
+    ResponseStatusException exception = assertThrows(ResponseStatusException.class, () -> {
       categoryService.deleteCategory(categoryId, userId);
     });
 
-    assertEquals(categoryNotFoundMsg, ((ResponseStatusException) exception).getReason());
+    assertEquals(categoryNotFoundMsg, exception.getReason());
   }
 
   @Test
