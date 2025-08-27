@@ -31,7 +31,7 @@ public class CategoryService {
     // ユーザとデフォルトのカテゴリを取得
     return categoryRepository.findNotDeleted(List.of(userId, systemUserId)).stream()
         .sorted(Comparator.comparing(Category::getName))
-        .map(category -> new CategoryDto(category.getName(), category.getItems()))
+        .map(category -> new CategoryDto(category.getName()))
         .toList();
   }
 
