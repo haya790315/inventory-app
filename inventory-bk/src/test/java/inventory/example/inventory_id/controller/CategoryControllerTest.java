@@ -56,6 +56,7 @@ class CategoryControllerTest {
 
   private int testUserId = 111;
   private String categoryNotFoundMsg = "カテゴリーが見つかりません";
+  private String serverErrorMsg = "サーバーエラーが発生しました";
 
   @BeforeEach
   void setUp() {
@@ -66,13 +67,24 @@ class CategoryControllerTest {
   @Test
   @Tag("GET: /api/category")
   @DisplayName("カテゴリー一覧取得-200 OK")
-  void getAllCategories_usesStubbedUserId() throws Exception {
+  void fetchAllCategories_ShouldReturn200() throws Exception {
     List<CategoryDto> categories = Arrays.asList(new CategoryDto(), new CategoryDto());
     when(categoryService.getAllCategories(anyInt())).thenReturn(categories);
 
     mockMvc.perform(get("/api/category"))
         .andExpect(status().isOk())
         .andExpect(content().json(objectMapper.writeValueAsString(categories)));
+  }
+
+  @Test
+  @Tag("GET: /api/category")
+  @DisplayName("カテゴリー一覧取得-500 サーバーエラー")
+  void fetchAllCategories_throws500() throws Exception {
+    when(categoryService.getAllCategories(anyInt())).thenThrow(new RuntimeException(serverErrorMsg));
+
+    mockMvc.perform(get("/api/category"))
+        .andExpect(status().isInternalServerError())
+        .andExpect(content().json("{\"message\":\"" + serverErrorMsg + "\"}"));
   }
 
   @Test
@@ -85,6 +97,18 @@ class CategoryControllerTest {
     mockMvc.perform(get("/api/category/items").param("categoryId", categoryId.toString()))
         .andExpect(status().isOk())
         .andExpect(content().json(objectMapper.writeValueAsString(items)));
+  }
+
+  @Test
+  @Tag("GET: /api/category/items")
+  @DisplayName("カテゴリーアイテム取得-500 サーバーエラー")
+  void getCategoryItems_throws500() throws Exception {
+    UUID categoryId = UUID.randomUUID();
+    when(categoryService.getCategoryItems(anyInt(), any(UUID.class)))
+        .thenThrow(new RuntimeException(serverErrorMsg));
+    mockMvc.perform(get("/api/category/items").param("categoryId", categoryId.toString()))
+        .andExpect(status().isInternalServerError())
+        .andExpect(content().json("{\"message\":\"" + serverErrorMsg + "\"}"));
   }
 
   @Test
@@ -111,7 +135,7 @@ class CategoryControllerTest {
     CategoryRequest req = new CategoryRequest();
     req.setName(name);
     when(categoryService.createCategory(any(CategoryRequest.class), anyInt()))
-        .thenThrow(new ResponseStatusException(org.springframework.http.HttpStatus.CONFLICT,
+        .thenThrow(new ResponseStatusException(HttpStatus.CONFLICT,
             "登録できるカテゴリの上限に達しています"));
     mockMvc.perform(post("/api/category")
         .contentType(MediaType.APPLICATION_JSON)
@@ -128,13 +152,29 @@ class CategoryControllerTest {
     CategoryRequest req = new CategoryRequest();
     req.setName(name);
     when(categoryService.createCategory(any(CategoryRequest.class), anyInt()))
-        .thenThrow(new ResponseStatusException(org.springframework.http.HttpStatus.CONFLICT,
+        .thenThrow(new ResponseStatusException(HttpStatus.CONFLICT,
             "カテゴリー名はすでに存在します"));
     mockMvc.perform(post("/api/category")
         .contentType(MediaType.APPLICATION_JSON)
         .content(objectMapper.writeValueAsString(req)))
         .andExpect(status().isConflict())
         .andExpect(content().json("{\"message\":\"カテゴリー名はすでに存在します\"}"));
+  }
+
+  @Test
+  @Tag("POST: /api/category")
+  @DisplayName("カテゴリー作成-失敗 500 サーバーエラー")
+  void createCategory_throws500() throws Exception {
+    String name = "new";
+    CategoryRequest req = new CategoryRequest();
+    req.setName(name);
+    when(categoryService.createCategory(any(CategoryRequest.class), anyInt()))
+        .thenThrow(new RuntimeException(serverErrorMsg));
+    mockMvc.perform(post("/api/category")
+        .contentType(MediaType.APPLICATION_JSON)
+        .content(objectMapper.writeValueAsString(req)))
+        .andExpect(status().isInternalServerError())
+        .andExpect(content().json("{\"message\":\"" + serverErrorMsg + "\"}"));
   }
 
   @Test
@@ -192,6 +232,25 @@ class CategoryControllerTest {
   }
 
   @Test
+  @Tag("PUT: /api/category")
+  @DisplayName("カテゴリー更新-500 サーバーエラー")
+  void updateCategory_throws500() throws Exception {
+    UUID categoryId = UUID.randomUUID();
+    CategoryRequest req = new CategoryRequest();
+    when(categoryService.updateCategory(
+        eq(categoryId),
+        any(CategoryRequest.class),
+        anyInt()))
+        .thenThrow(new RuntimeException(serverErrorMsg));
+    mockMvc.perform(put("/api/category")
+        .param("category_id", categoryId.toString())
+        .contentType(MediaType.APPLICATION_JSON)
+        .content(objectMapper.writeValueAsString(req)))
+        .andExpect(status().isInternalServerError())
+        .andExpect(content().json("{\"message\":\"" + serverErrorMsg + "\"}"));
+  }
+
+  @Test
   @Tag("DELETE: /api/category")
   @DisplayName("カテゴリー削除-200 OK")
   void deleteCategory_success() throws Exception {
@@ -242,5 +301,18 @@ class CategoryControllerTest {
         .param("category_id", categoryId.toString()))
         .andExpect(status().isBadRequest())
         .andExpect(content().json("{\"message\":\"アイテムが存在するため削除できません\"}"));
+  }
+
+  @Test
+  @Tag("DELETE: /api/category")
+  @DisplayName("カテゴリー削除-500 サーバーエラー")
+  void deleteCategory_throws500() throws Exception {
+    UUID categoryId = UUID.randomUUID();
+    doThrow(new RuntimeException(serverErrorMsg))
+        .when(categoryService).deleteCategory(eq(categoryId), anyInt());
+    mockMvc.perform(delete("/api/category")
+        .param("category_id", categoryId.toString()))
+        .andExpect(status().isInternalServerError())
+        .andExpect(content().json("{\"message\":\"" + serverErrorMsg + "\"}"));
   }
 }
