@@ -14,17 +14,29 @@ import java.util.List;
 public interface CategoryRepository extends JpaRepository<Category, UUID> {
   boolean existsByUserIdAndName(int userId, String name);
 
-  @Query(value = "SELECT *\n"
-      + "FROM category\n"
-      + "WHERE user_id IN (:userIds)\n"
-      + "AND deleted_flag = FALSE", nativeQuery = true)
+  @Query(value = """
+      SELECT *
+      FROM category
+      WHERE user_id IN (:userIds)
+      AND deleted_flag = FALSE
+      """, nativeQuery = true)
   List<Category> findNotDeleted(List<Integer> userIds);
 
-  @Query(value = "SELECT *\n"
-      + "FROM category\n"
-      + "WHERE user_id IN (:userId)\n"
-      + "AND id = :id", nativeQuery = true)
-  Optional<Category> findUserCategory(List<Integer> userId, UUID id);
+  @Query(value = """
+      SELECT *
+      FROM category
+      WHERE user_id IN (:userIds)
+      AND id = :id
+      AND deleted_flag = FALSE
+      """, nativeQuery = true)
+  Optional<Category> findUserCategory(List<Integer> userIds, UUID id);
 
-  List<Category> findByUserIdInAndName(List<Integer> userIds, String name);
+  @Query(value = """
+      SELECT *
+      FROM category
+      WHERE user_id IN (:userIds)
+      AND name = :name
+      AND deleted_flag = FALSE
+      """, nativeQuery = true)
+  List<Category> findActiveCateByName(List<Integer> userIds, String name);
 }

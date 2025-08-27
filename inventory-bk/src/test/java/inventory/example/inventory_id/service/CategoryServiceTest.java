@@ -210,7 +210,7 @@ public class CategoryServiceTest {
   }
 
   @Test
-  @Tag("updateCategory")
+  @Tag("createCategory")
   @DisplayName("登録できるカテゴリの上限に達している場合のエラー")
   void testCreateCategoryLimitExceeded() {
     CategoryRequest request = new CategoryRequest();
@@ -313,7 +313,7 @@ public class CategoryServiceTest {
     category.setUserId(userId);
     when(categoryRepository.findUserCategory(List.of(userId, defaultSystemUserId), categoryId))
         .thenReturn(Optional.of(category));
-    when(categoryRepository.findByUserIdInAndName(List.of(userId, defaultSystemUserId), request.getName()))
+    when(categoryRepository.findActiveCateByName(List.of(userId, defaultSystemUserId), request.getName()))
         .thenReturn(List.of(new Category(request.getName())));
 
     ResponseStatusException exception = assertThrows(ResponseStatusException.class, () -> {
