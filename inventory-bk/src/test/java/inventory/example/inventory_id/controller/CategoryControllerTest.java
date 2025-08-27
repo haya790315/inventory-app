@@ -183,6 +183,7 @@ class CategoryControllerTest {
   void updateCategory_success() throws Exception {
     UUID categoryId = UUID.randomUUID();
     CategoryRequest req = new CategoryRequest();
+    req.setName("categoryName");
     Category updated = new Category(req.getName());
     when(categoryService.updateCategory(eq(categoryId), any(CategoryRequest.class), anyInt())).thenReturn(updated);
     mockMvc.perform(put("/api/category")
@@ -199,6 +200,7 @@ class CategoryControllerTest {
   void updateCategory_badRequest() throws Exception {
     UUID categoryId = UUID.randomUUID();
     CategoryRequest req = new CategoryRequest();
+    req.setName("categoryName");
     when(categoryService.updateCategory(
         eq(categoryId),
         any(CategoryRequest.class),
@@ -218,6 +220,7 @@ class CategoryControllerTest {
   void updateCategory_badRequest_edit_default() throws Exception {
     UUID categoryId = UUID.randomUUID();
     CategoryRequest req = new CategoryRequest();
+    req.setName("categoryName");
     when(categoryService.updateCategory(
         eq(categoryId),
         any(CategoryRequest.class),
@@ -237,6 +240,7 @@ class CategoryControllerTest {
   void updateCategory_throws500() throws Exception {
     UUID categoryId = UUID.randomUUID();
     CategoryRequest req = new CategoryRequest();
+    req.setName("categoryName");
     when(categoryService.updateCategory(
         eq(categoryId),
         any(CategoryRequest.class),

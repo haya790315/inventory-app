@@ -66,7 +66,7 @@ public class CategoryController extends BaseController {
   @PutMapping()
   public ResponseEntity<Object> putMethodName(
       @RequestParam UUID category_id,
-      @RequestBody CategoryRequest categoryRequest) {
+      @RequestBody @Valid CategoryRequest categoryRequest) {
     try {
       Integer userId = fetchUserIdFromToken();
       categoryService.updateCategory(category_id, categoryRequest, userId);
