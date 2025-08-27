@@ -29,7 +29,7 @@ public class ItemController extends BaseController {
     } catch (IllegalArgumentException e) {
       return response(HttpStatus.BAD_REQUEST, e.getMessage());
     } catch (Exception e) {
-      return response(HttpStatus.INTERNAL_SERVER_ERROR, "エラーが発生しました");
+      return response(HttpStatus.INTERNAL_SERVER_ERROR, e.getMessage());
     }
   }
 }

@@ -42,6 +42,7 @@ class ItemControllerTest {
 
   private int testUserId = 111;
   private String categoryNotFoundMsg = "カテゴリーが見つかりません";
+  private String serverErrorMsg = "サーバーエラーが発生しました";
 
   @BeforeEach
   void setUp() {
@@ -99,5 +100,24 @@ class ItemControllerTest {
         .content(objectMapper.writeValueAsString(req)))
         .andExpect(status().isBadRequest())
         .andExpect(content().json("{\"message\":\"" + String.format("アイテム名 '%s' は既に存在します", req.getName()) + "\"}"));
+  }
+
+  @Test
+  @Tag("POST: /api/item")
+  @DisplayName("アイテム作成-500 サーバーエラー")
+  void createItem_throws500() throws Exception {
+    ItemRequest req = new ItemRequest();
+    req.setName("itemName");
+    req.setCategoryName("category");
+    doThrow(new RuntimeException(
+        serverErrorMsg))
+        .when(itemService)
+        .createItem(anyInt(),
+            any(ItemRequest.class));
+    mockMvc.perform(post("/api/item")
+        .contentType(MediaType.APPLICATION_JSON)
+        .content(objectMapper.writeValueAsString(req)))
+        .andExpect(status().isInternalServerError())
+        .andExpect(content().json("{\"message\":\"" + serverErrorMsg + "\"}"));
   }
 }
