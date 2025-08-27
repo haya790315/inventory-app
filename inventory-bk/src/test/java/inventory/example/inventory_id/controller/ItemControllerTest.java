@@ -3,7 +3,6 @@ package inventory.example.inventory_id.controller;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.Mockito.doNothing;
-import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.doThrow;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
@@ -16,6 +15,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Mockito;
 import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpStatus;
@@ -26,6 +26,7 @@ import org.springframework.web.server.ResponseStatusException;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import inventory.example.inventory_id.exception.ValidationException;
 import inventory.example.inventory_id.request.ItemRequest;
 import inventory.example.inventory_id.service.ItemService;
 
@@ -48,8 +49,10 @@ class ItemControllerTest {
 
   @BeforeEach
   void setUp() {
-    doReturn(testUserId).when(itemController).fetchUserIdFromToken();
-    mockMvc = MockMvcBuilders.standaloneSetup(itemController).build();
+    Mockito.lenient().doReturn(testUserId).when(itemController).fetchUserIdFromToken();
+    mockMvc = MockMvcBuilders.standaloneSetup(itemController)
+        .setControllerAdvice(new ValidationException())
+        .build();
   }
 
   @Test
@@ -87,8 +90,8 @@ class ItemControllerTest {
 
   @Test
   @Tag("POST: /api/item")
-  @DisplayName("アイテム作成-400 Bad Request アイテム名が重複")
-  void createItem_badRequest_itemNameDuplicate() throws Exception {
+  @DisplayName("アイテム作成-409 Conflict アイテム名が重複")
+  void createItem_conflict_itemNameDuplicate() throws Exception {
     ItemRequest req = new ItemRequest();
     req.setName("itemName");
     req.setCategoryName("category");
@@ -102,6 +105,49 @@ class ItemControllerTest {
         .content(objectMapper.writeValueAsString(req)))
         .andExpect(status().isConflict())
         .andExpect(content().json("{\"message\":\"" + String.format("アイテム名 '%s' は既に存在します", req.getName()) + "\"}"));
+  }
+
+  @Test
+  @Tag("POST: /api/item")
+  @DisplayName("アイテム作成-400 Bad Request アイテム名入力がない")
+  void createItem_badRequest_itemNameMissing() throws Exception {
+    ItemRequest req = new ItemRequest();
+    req.setCategoryName("category");
+    req.setQuantity(1);
+    mockMvc.perform(post("/api/item")
+        .contentType(MediaType.APPLICATION_JSON)
+        .content(objectMapper.writeValueAsString(req)))
+        .andExpect(status().isBadRequest())
+        .andExpect(content().json("{\"error\":\"アイテム名は必須です\"}"));
+  }
+
+  @Test
+  @Tag("POST: /api/item")
+  @DisplayName("アイテム作成-400 Bad Request カテゴリー名入力がない")
+  void createItem_badRequest_categoryNameMissing() throws Exception {
+    ItemRequest req = new ItemRequest();
+    req.setName("itemName");
+    req.setQuantity(1);
+    mockMvc.perform(post("/api/item")
+        .contentType(MediaType.APPLICATION_JSON)
+        .content(objectMapper.writeValueAsString(req)))
+        .andExpect(status().isBadRequest())
+        .andExpect(content().json("{\"error\":\"カテゴリは必須です\"}"));
+  }
+
+  @Test
+  @Tag("POST: /api/item")
+  @DisplayName("アイテム作成-400 Bad Request　数量がマイナス")
+  void createItem_badRequest_quantityNegative() throws Exception {
+    ItemRequest req = new ItemRequest();
+    req.setName("itemName");
+    req.setCategoryName("category");
+    req.setQuantity(-1);
+    mockMvc.perform(post("/api/item")
+        .contentType(MediaType.APPLICATION_JSON)
+        .content(objectMapper.writeValueAsString(req)))
+        .andExpect(status().isBadRequest())
+        .andExpect(content().json("{\"error\":\"数量は0以上の整数で入力してください\"}"));
   }
 
   @Test
