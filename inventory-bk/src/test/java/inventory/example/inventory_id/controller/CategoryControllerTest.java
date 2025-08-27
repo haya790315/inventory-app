@@ -255,6 +255,26 @@ class CategoryControllerTest {
   }
 
   @Test
+  @Tag("PUT: /api/category")
+  @DisplayName("カテゴリー更新-409 Conflict カテゴリー名がすでに存在する")
+  void updateCategory_conflict() throws Exception {
+    UUID categoryId = UUID.randomUUID();
+    CategoryRequest req = new CategoryRequest();
+    req.setName("updateName");
+    when(categoryService.updateCategory(
+        eq(categoryId),
+        any(CategoryRequest.class),
+        anyInt()))
+        .thenThrow(new ResponseStatusException(HttpStatus.CONFLICT, "カテゴリー名はすでに存在します"));
+    mockMvc.perform(put("/api/category")
+        .param("category_id", categoryId.toString())
+        .contentType(MediaType.APPLICATION_JSON)
+        .content(objectMapper.writeValueAsString(req)))
+        .andExpect(status().isConflict())
+        .andExpect(content().json("{\"message\":\"カテゴリー名はすでに存在します\"}"));
+  }
+
+  @Test
   @Tag("DELETE: /api/category")
   @DisplayName("カテゴリー削除-200 OK")
   void deleteCategory_success() throws Exception {
