@@ -77,6 +77,18 @@ public class CategoryServiceTest {
   }
 
   @Test
+  @Tag("getCategory")
+  @DisplayName("カテゴリー取得- 件数0件の場合")
+  void testGetAllCategoriesNoResults() {
+    int userId = defaultUserId;
+    when(categoryRepo.findNotDeleted(List.of(userId, defaultSystemUserId)))
+        .thenReturn(List.of());
+
+    List<CategoryDto> result = categoryService.getAllCategories(userId);
+    assertTrue(result.isEmpty());
+  }
+
+  @Test
   @Tag("getCategory/items")
   @DisplayName("アイテム取得- アイテムを取得成功")
   void testGetCategoryItemsSuccess() {
@@ -92,6 +104,22 @@ public class CategoryServiceTest {
     List<Item> result = categoryService.getCategoryItems(defaultUserId, categoryId);
     assertFalse(result.isEmpty());
     assertEquals(category.getItems(), result);
+  }
+
+  @Test
+  @Tag("getCategory/items")
+  @DisplayName("アイテム取得- アイテムが空の場合")
+  void testGetCategoryItemsEmpty() {
+    UUID categoryId = UUID.randomUUID();
+    int userId = defaultUserId;
+    Category category = new Category();
+    category.setId(categoryId);
+    category.setUserId(userId);
+    when(categoryRepo.findNotDeleted(List.of(userId, defaultSystemUserId)))
+        .thenReturn(List.of(category));
+
+    List<Item> result = categoryService.getCategoryItems(defaultUserId, categoryId);
+    assertTrue(result.isEmpty());
   }
 
   @Test
