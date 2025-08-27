@@ -18,6 +18,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.springframework.test.util.ReflectionTestUtils;
+import org.springframework.web.server.ResponseStatusException;
 
 import inventory.example.inventory_id.model.Category;
 import inventory.example.inventory_id.model.Item;
@@ -121,8 +122,9 @@ class ItemServiceTest {
     when(categoryRepository.findByUserIdInAndName(List.of(userId, systemUserId), categoryName))
         .thenReturn(List.of(category));
 
-    Exception ex = assertThrows(IllegalArgumentException.class, () -> itemService.createItem(userId, request));
-    assertEquals(String.format("アイテム名 '%s' は既に存在します", itemName), ex.getMessage());
+    ResponseStatusException ex = assertThrows(ResponseStatusException.class,
+        () -> itemService.createItem(userId, request));
+    assertEquals(String.format("アイテム名 '%s' は既に存在します", itemName), ex.getReason());
   }
 
   @Test

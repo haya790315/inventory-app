@@ -4,7 +4,9 @@ import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
 
 import inventory.example.inventory_id.model.Category;
 import inventory.example.inventory_id.model.Item;
@@ -42,7 +44,8 @@ public class ItemService {
         .filter(i -> i.getName().equals(itemRequest.getName()) && !i.isDeletedFlag())
         .findAny()
         .ifPresent(i -> {
-          throw new IllegalArgumentException(String.format("アイテム名 '%s' は既に存在します", itemRequest.getName()));
+          throw new ResponseStatusException(HttpStatus.CONFLICT,
+              String.format("アイテム名 '%s' は既に存在します", itemRequest.getName()));
         });
 
     Item item = new Item();

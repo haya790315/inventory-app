@@ -18,9 +18,11 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
+import org.springframework.web.server.ResponseStatusException;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -91,14 +93,14 @@ class ItemControllerTest {
     req.setName("itemName");
     req.setCategoryName("category");
     req.setQuantity(1);
-    doThrow(new IllegalArgumentException(String.format("アイテム名 '%s' は既に存在します", req.getName())))
+    doThrow(new ResponseStatusException(HttpStatus.CONFLICT, String.format("アイテム名 '%s' は既に存在します", req.getName())))
         .when(itemService)
         .createItem(anyInt(),
             any(ItemRequest.class));
     mockMvc.perform(post("/api/item")
         .contentType(MediaType.APPLICATION_JSON)
         .content(objectMapper.writeValueAsString(req)))
-        .andExpect(status().isBadRequest())
+        .andExpect(status().isConflict())
         .andExpect(content().json("{\"message\":\"" + String.format("アイテム名 '%s' は既に存在します", req.getName()) + "\"}"));
   }
 

@@ -15,6 +15,6 @@ public class ItemRequest {
   @PositiveOrZero(message = "数量は0以上の整数で入力してください")
   private int quantity = 0;
 
-  @NotNull(message = "カテゴリは必須です")
+  @NotBlank(message = "カテゴリは必須です")
   private String categoryName;
 }
