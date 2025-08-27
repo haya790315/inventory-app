@@ -77,6 +77,13 @@ public class CategoryService {
     if (category.getUserId() != userId) {
       throw new IllegalArgumentException("デフォルトカテゴリは編集できません");
     }
+    List<Category> exsitCategory = categoryRepository
+        .findByUserIdInAndName(List.of(userId, systemUserId), categoryRequest.getName());
+
+    if (!exsitCategory.isEmpty()) {
+      throw new ResponseStatusException(HttpStatus.CONFLICT, "カテゴリー名はすでに存在します");
+    }
+
     category.setName(categoryRequest.getName());
     return categoryRepository.save(category);
   }

@@ -233,11 +233,11 @@ public class CategoryServiceTest {
     when(categoryRepository.findNotDeleted(List.of(userId, defaultSystemUserId)))
         .thenReturn(existingCategories);
 
-    Exception exception = assertThrows(ResponseStatusException.class, () -> {
+    ResponseStatusException exception = assertThrows(ResponseStatusException.class, () -> {
       categoryService.createCategory(request, userId);
     });
 
-    assertEquals("登録できるカテゴリの上限に達しています", ((ResponseStatusException) exception).getReason());
+    assertEquals("登録できるカテゴリの上限に達しています", exception.getReason());
   }
 
   @Test
@@ -297,6 +297,30 @@ public class CategoryServiceTest {
     });
 
     assertEquals("デフォルトカテゴリは編集できません", exception.getMessage());
+  }
+
+  @Test
+  @Tag("updateCategory")
+  @DisplayName("カテゴリー名がすでに存在する場合のエラー")
+  void testUpdateCategoryNameExistsError() {
+    UUID categoryId = UUID.randomUUID();
+    CategoryRequest request = new CategoryRequest();
+    request.setName("Update");
+    int userId = defaultUserId; // Default user ID
+
+    Category category = new Category("target");
+    category.setUserId(defaultSystemUserId);
+    category.setUserId(userId);
+    when(categoryRepository.findUserCategory(List.of(userId, defaultSystemUserId), categoryId))
+        .thenReturn(Optional.of(category));
+    when(categoryRepository.findByUserIdInAndName(List.of(userId, defaultSystemUserId), request.getName()))
+        .thenReturn(List.of(new Category(request.getName())));
+
+    ResponseStatusException exception = assertThrows(ResponseStatusException.class, () -> {
+      categoryService.updateCategory(categoryId, request, userId);
+    });
+
+    assertEquals("カテゴリー名はすでに存在します", exception.getReason());
   }
 
   @Test

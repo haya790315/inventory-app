@@ -71,6 +71,8 @@ public class CategoryController extends BaseController {
       Integer userId = fetchUserIdFromToken();
       categoryService.updateCategory(category_id, categoryRequest, userId);
       return response(HttpStatus.OK, "カスタムカテゴリの更新が完了しました");
+    } catch (ResponseStatusException e) {
+      return response(HttpStatus.valueOf(e.getStatusCode().value()), e.getReason());
     } catch (IllegalArgumentException e) {
       return response(HttpStatus.BAD_REQUEST, e.getMessage());
     } catch (Exception e) {
