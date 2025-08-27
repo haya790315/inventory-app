@@ -40,6 +40,7 @@ public class ItemControllerTest {
   private MockMvc mockMvc;
 
   private int testUserId = 111;
+  private String serverErrorMsg = "サーバーエラーが発生しました";
   private String categoryNotFoundMsg = "カテゴリーが見つかりません";
 
   @BeforeEach
@@ -72,5 +73,19 @@ public class ItemControllerTest {
         .param("item_id", itemId.toString()))
         .andExpect(status().isNotFound())
         .andExpect(content().json("{\"message\":\"" + categoryNotFoundMsg + "\"}"));
+  }
+
+  @Test
+  @Tag("DELETE: /api/item")
+  @DisplayName("アイテム削除-500 サーバーエラー")
+  void deleteItem_throws500() throws Exception {
+    UUID itemId = UUID.randomUUID();
+    doThrow(new RuntimeException(serverErrorMsg)).when(itemService).deleteItem(
+        anyInt(),
+        eq(itemId));
+    mockMvc.perform(delete("/api/item")
+        .param("item_id", itemId.toString()))
+        .andExpect(status().isInternalServerError())
+        .andExpect(content().json("{\"message\":\"" + serverErrorMsg + "\"}"));
   }
 }
