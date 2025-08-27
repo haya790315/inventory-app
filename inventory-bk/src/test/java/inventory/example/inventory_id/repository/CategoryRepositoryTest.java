@@ -20,83 +20,83 @@ import inventory.example.inventory_id.model.Category;
 public class CategoryRepositoryTest {
 
   @Autowired
-  private CategoryRepository categoryRepo;
+  private CategoryRepository categoryRepository;
 
-  private Category category1;
-  private Category category2;
-  private Category category3;
+  private Category existedCategory1;
+  private Category existedCategory2;
+  private Category deletedCategory;
   private int userId1 = 1;
   private int userId2 = 2;
-  private String name1 = "book";
-  private String name2 = "electronics";
-  private String name3 = "groceries";
+  private String book = "book";
+  private String electronics = "electronics";
+  private String groceries = "groceries";
 
   @BeforeEach
   void setUp() {
-    categoryRepo.deleteAll();
-    Category c1 = new Category();
-    c1.setUserId(userId1);
-    c1.setName(name1);
-    c1.setDeletedFlag(false);
+    categoryRepository.deleteAll();
+    Category category1 = new Category();
+    category1.setUserId(userId1);
+    category1.setName(book);
+    category1.setDeletedFlag(false);
 
-    Category c2 = new Category();
-    c2.setUserId(userId1);
-    c2.setName(name2);
-    c2.setDeletedFlag(false);
+    Category category2 = new Category();
+    category2.setUserId(userId1);
+    category2.setName(electronics);
+    category2.setDeletedFlag(false);
 
-    Category c3 = new Category();
-    c3.setUserId(userId2);
-    c3.setName(name3);
-    c3.setDeletedFlag(true);
+    Category category3 = new Category();
+    category3.setUserId(userId2);
+    category3.setName(groceries);
+    category3.setDeletedFlag(true);
 
-    List<Category> saved = categoryRepo.saveAll(Arrays.asList(c1, c2, c3));
-    category1 = saved.get(0);
-    category2 = saved.get(1);
-    category3 = saved.get(2);
+    List<Category> saved = categoryRepository.saveAll(Arrays.asList(category1, category2, category3));
+    existedCategory1 = saved.get(0);
+    existedCategory2 = saved.get(1);
+    deletedCategory = saved.get(2);
   }
 
   @Test
   @DisplayName("カテゴリーが存在する場合、existsByUserIdAndNameはtrueを返す")
   void testExistsByUserIdAndNameTrue() {
-    boolean exists = categoryRepo.existsByUserIdAndName(userId1, name1);
+    boolean exists = categoryRepository.existsByUserIdAndName(userId1, book);
     assertThat(exists).isTrue();
   }
 
   @Test
   @DisplayName("カテゴリーが存在しない場合、existsByUserIdAndNameはfalseを返す")
   void testExistsByUserIdAndNameFalse() {
-    boolean exists = categoryRepo.existsByUserIdAndName(userId2, name1);
+    boolean exists = categoryRepository.existsByUserIdAndName(userId2, book);
     assertThat(exists).isFalse();
   }
 
   @Test
   @DisplayName("findByUserIdInは正しいカテゴリを返す")
   void testFindByUserIdIn() {
-    List<Category> categories = categoryRepo.findNotDeleted(Arrays.asList(userId1, userId2));
+    List<Category> categories = categoryRepository.findNotDeleted(Arrays.asList(userId1, userId2));
     assertThat(categories).hasSize(2);
-    assertThat(categories).extracting(Category::getName).containsExactlyInAnyOrder(name1, name2);
+    assertThat(categories).extracting(Category::getName).containsExactlyInAnyOrder(book, electronics);
   }
 
   @Test
   @DisplayName("findByUserIdAndIdは正しいカテゴリを返す")
   void testFindByUserIdAndId() {
-    Optional<Category> found = categoryRepo.findUserCategory(userId1, category1.getId());
+    Optional<Category> found = categoryRepository.findUserCategory(userId1, existedCategory1.getId());
     assertThat(found).isPresent();
-    assertThat(found.get().getName()).isEqualTo(name1);
+    assertThat(found.get().getName()).isEqualTo(book);
   }
 
   @Test
   @DisplayName("findByUserIdAndIdは存在しない場合、空を返す")
   void testFindByUserIdAndIdNotFound() {
-    Optional<Category> found = categoryRepo.findUserCategory(userId2, category1.getId());
+    Optional<Category> found = categoryRepository.findUserCategory(userId2, existedCategory1.getId());
     assertThat(found).isNotPresent();
   }
 
   @Test
   @DisplayName("findByUserIdInAndNameは正しいカテゴリを返す")
   void testFindByUserIdInAndName() {
-    List<Category> categories = categoryRepo.findByUserIdInAndName(Arrays.asList(userId1, userId2), name1);
+    List<Category> categories = categoryRepository.findByUserIdInAndName(Arrays.asList(userId1, userId2), book);
     assertThat(categories).hasSize(1);
-    assertThat(categories.get(0).getName()).isEqualTo(name1);
+    assertThat(categories.get(0).getName()).isEqualTo(book);
   }
 }
