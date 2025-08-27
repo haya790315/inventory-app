@@ -22,9 +22,9 @@ public interface CategoryRepository extends JpaRepository<Category, UUID> {
 
   @Query(value = "SELECT *\n"
       + "FROM category\n"
-      + "WHERE user_id = :userId\n"
+      + "WHERE user_id IN (:userId)\n"
       + "AND id = :id", nativeQuery = true)
-  Optional<Category> findUserCategory(int userId, UUID id);
+  Optional<Category> findUserCategory(List<Integer> userId, UUID id);
 
   List<Category> findByUserIdInAndName(List<Integer> userIds, String name);
 }

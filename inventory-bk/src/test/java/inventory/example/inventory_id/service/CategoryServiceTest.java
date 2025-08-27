@@ -41,7 +41,6 @@ public class CategoryServiceTest {
   @InjectMocks
   private CategoryService categoryService;
   private int defaultUserId = 111;
-
   private int defaultSystemUserId = 999;
 
   private String categoryNotFoundMsg = "カテゴリーが見つかりません";
@@ -252,7 +251,8 @@ public class CategoryServiceTest {
 
     Category category = new Category("OldName");
     category.setUserId(userId);
-    when(categoryRepository.findUserCategory(userId, categoryId)).thenReturn(Optional.of(category));
+    when(categoryRepository.findUserCategory(List.of(userId, defaultSystemUserId), categoryId))
+        .thenReturn(Optional.of(category));
     when(categoryRepository.save(any(Category.class))).thenReturn(category);
 
     Category result = categoryService.updateCategory(categoryId, request, userId);
@@ -268,7 +268,8 @@ public class CategoryServiceTest {
     request.setName("UpdatedName");
     int userId = defaultUserId;
 
-    when(categoryRepository.findUserCategory(userId, categoryId)).thenReturn(Optional.empty());
+    when(categoryRepository.findUserCategory(List.of(userId, defaultSystemUserId), categoryId))
+        .thenReturn(Optional.empty());
 
     Exception exception = assertThrows(IllegalArgumentException.class, () -> {
       categoryService.updateCategory(categoryId, request, userId);
@@ -288,7 +289,8 @@ public class CategoryServiceTest {
 
     Category category = new Category("target");
     category.setUserId(defaultSystemUserId);
-    when(categoryRepository.findUserCategory(userId, categoryId)).thenReturn(Optional.of(category));
+    when(categoryRepository.findUserCategory(List.of(userId, defaultSystemUserId), categoryId))
+        .thenReturn(Optional.of(category));
 
     Exception exception = assertThrows(IllegalArgumentException.class, () -> {
       categoryService.updateCategory(categoryId, request, userId);

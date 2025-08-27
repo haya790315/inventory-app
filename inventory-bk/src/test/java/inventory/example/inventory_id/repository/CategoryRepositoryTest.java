@@ -80,7 +80,7 @@ public class CategoryRepositoryTest {
   @Test
   @DisplayName("findByUserIdAndIdは正しいカテゴリを返す")
   void testFindByUserIdAndId() {
-    Optional<Category> found = categoryRepository.findUserCategory(userId1, existedCategory1.getId());
+    Optional<Category> found = categoryRepository.findUserCategory(List.of(userId1), existedCategory1.getId());
     assertThat(found).isPresent();
     assertThat(found.get().getName()).isEqualTo(book);
   }
@@ -88,7 +88,7 @@ public class CategoryRepositoryTest {
   @Test
   @DisplayName("findByUserIdAndIdは存在しない場合、空を返す")
   void testFindByUserIdAndIdNotFound() {
-    Optional<Category> found = categoryRepository.findUserCategory(userId2, existedCategory1.getId());
+    Optional<Category> found = categoryRepository.findUserCategory(List.of(userId2), existedCategory1.getId());
     assertThat(found).isNotPresent();
   }
 

@@ -69,7 +69,7 @@ public class CategoryService {
   }
 
   public Category updateCategory(UUID categoryId, CategoryRequest categoryRequest, int userId) {
-    Optional<Category> categoryOpt = categoryRepository.findUserCategory(userId, categoryId);
+    Optional<Category> categoryOpt = categoryRepository.findUserCategory(List.of(userId, systemUserId), categoryId);
     if (!categoryOpt.isPresent()) {
       throw new IllegalArgumentException(categoryNotFoundMsg);
     }
