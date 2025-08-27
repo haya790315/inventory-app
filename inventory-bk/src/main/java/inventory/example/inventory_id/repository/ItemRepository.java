@@ -5,6 +5,7 @@ import java.util.Optional;
 import java.util.UUID;
 
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
 import inventory.example.inventory_id.model.Item;
@@ -15,7 +16,14 @@ public interface ItemRepository extends JpaRepository<Item, UUID> {
       List<Integer> userIds,
       String categoryName);
 
-  Optional<Item> findByUserIdInAndIdAndDeletedFlagFalse(
+  @Query(value = """
+      SELECT *
+      FROM item
+      WHERE user_id IN (:userIds)
+      AND id = :itemId
+      AND deleted_flag = FALSE
+      """, nativeQuery = true)
+  Optional<Item> getActiveItemWithId(
       List<Integer> userIds,
       UUID itemId);
 }

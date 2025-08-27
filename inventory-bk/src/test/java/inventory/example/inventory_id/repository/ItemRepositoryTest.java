@@ -80,7 +80,7 @@ class ItemRepositoryTest {
     item3.setQuantity(10);
     itemRepository.save(item3);
 
-    Optional<Item> result = itemRepository.findByUserIdInAndIdAndDeletedFlagFalse(List.of(123, 999), item.getId());
+    Optional<Item> result = itemRepository.getActiveItemWithId(List.of(123, 999), item.getId());
     assertThat(result).isPresent();
     assertThat(result.get().getName()).isEqualTo("Notebook");
     assertThat(result.get().getCategoryName()).isEqualTo("Laptop");
@@ -90,7 +90,7 @@ class ItemRepositoryTest {
   @Test
   @DisplayName("findByUserIdInAndIdAndDeletedFlagFalse 存在しない場合は空")
   void testFindByUserIdInAndIdAndDeletedFlagFalseNotFound() {
-    Optional<Item> result = itemRepository.findByUserIdInAndIdAndDeletedFlagFalse(List.of(999), UUID.randomUUID());
+    Optional<Item> result = itemRepository.getActiveItemWithId(List.of(999), UUID.randomUUID());
     assertThat(result).isEmpty();
   }
 }
