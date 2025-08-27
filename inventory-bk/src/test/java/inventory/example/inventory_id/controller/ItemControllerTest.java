@@ -19,6 +19,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Mockito;
 import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpStatus;
@@ -29,6 +30,7 @@ import org.springframework.web.server.ResponseStatusException;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import inventory.example.inventory_id.exception.ValidationException;
 import inventory.example.inventory_id.request.ItemRequest;
 import inventory.example.inventory_id.service.ItemService;
 
@@ -50,8 +52,10 @@ public class ItemControllerTest {
 
   @BeforeEach
   void setUp() {
-    doReturn(testUserId).when(itemController).fetchUserIdFromToken();
-    mockMvc = MockMvcBuilders.standaloneSetup(itemController).build();
+    Mockito.lenient().doReturn(testUserId).when(itemController).fetchUserIdFromToken();
+    mockMvc = MockMvcBuilders.standaloneSetup(itemController)
+        .setControllerAdvice(new ValidationException())
+        .build();
   }
 
   @Test
@@ -112,6 +116,38 @@ public class ItemControllerTest {
         .content(objectMapper.writeValueAsString(req)))
         .andExpect(status().isBadRequest())
         .andExpect(content().json("{\"message\":\"アイテム名は既に登録されています\"}"));
+  }
+
+  @Test
+  @Tag("PUT: /api/item")
+  @DisplayName("アイテム更新-400 Bad Request アイテム名がない")
+  void updateItem_badRequest_itemNameMissed() throws Exception {
+    UUID itemId = UUID.randomUUID();
+    ItemRequest req = new ItemRequest();
+    req.setCategoryName("category");
+    req.setQuantity(1);
+    mockMvc.perform(put("/api/item")
+        .param("item_id", itemId.toString())
+        .contentType(MediaType.APPLICATION_JSON)
+        .content(objectMapper.writeValueAsString(req)))
+        .andExpect(status().isBadRequest())
+        .andExpect(content().json("{\"error\":\"アイテム名は必須です\"}"));
+  }
+
+  @Test
+  @Tag("PUT: /api/item")
+  @DisplayName("アイテム更新-400 Bad Request カテゴリ名がない")
+  void updateItem_badRequest_categoryNameMissed() throws Exception {
+    UUID itemId = UUID.randomUUID();
+    ItemRequest req = new ItemRequest();
+    req.setName("itemName");
+    req.setQuantity(1);
+    mockMvc.perform(put("/api/item")
+        .param("item_id", itemId.toString())
+        .contentType(MediaType.APPLICATION_JSON)
+        .content(objectMapper.writeValueAsString(req)))
+        .andExpect(status().isBadRequest())
+        .andExpect(content().json("{\"error\":\"カテゴリは必須です\"}"));
   }
 
   @Test
