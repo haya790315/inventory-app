@@ -46,7 +46,7 @@ class ItemRepositoryTest {
     itemRepository.save(deleteditem);
 
     // Test
-    List<Item> result = itemRepository.findByUserIdInAndCategory_NameAndDeletedFlagFalse(List.of(123), "PC");
+    List<Item> result = itemRepository.getItemsByCategoryName(List.of(123), "PC");
     assertThat(result).hasSize(1);
     assertThat(result.get(0).getName()).isEqualTo("Notebook");
     assertThat(result.get(0).getCategoryName()).isEqualTo("PC");

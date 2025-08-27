@@ -94,7 +94,7 @@ public class ItemService {
       UUID itemId,
       ItemRequest itemRequest) {
     // 自分とデフォルトのカテゴリーアイテムを取得
-    List<Item> items = itemRepository.findByUserIdInAndCategory_NameAndDeletedFlagFalse(
+    List<Item> items = itemRepository.getItemsByCategoryName(
         List.of(userId, systemUserId),
         itemRequest.getCategoryName());
     // 編集したいアイテムを取得
