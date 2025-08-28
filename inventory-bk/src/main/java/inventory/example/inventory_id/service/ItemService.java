@@ -88,7 +88,6 @@ public class ItemService {
     if (items.isEmpty()) {
       throw new ResponseStatusException(HttpStatus.NOT_FOUND, "アイテムが登録されていません");
     }
-
     return items;
   }
 
