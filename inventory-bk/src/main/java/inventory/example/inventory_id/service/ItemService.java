@@ -35,7 +35,7 @@ public class ItemService {
       Integer userId,
       ItemRequest itemRequest) {
 
-    List<Category> categoryList = categoryRepository.findByUserIdInAndName(List.of(userId, systemUserId),
+    List<Category> categoryList = categoryRepository.findActiveCateByName(List.of(userId, systemUserId),
         itemRequest.getCategoryName());
 
     if (categoryList.isEmpty()) {
@@ -48,7 +48,8 @@ public class ItemService {
         .filter(i -> i.getName().equals(itemRequest.getName()) && !i.isDeletedFlag())
         .findAny()
         .ifPresent(i -> {
-          throw new IllegalArgumentException(String.format("アイテム名 '%s' は既に存在します", itemRequest.getName()));
+          throw new ResponseStatusException(HttpStatus.CONFLICT,
+              String.format("アイテム名 '%s' は既に存在します", itemRequest.getName()));
         });
 
     Item item = new Item();
@@ -63,7 +64,7 @@ public class ItemService {
   public List<ItemDto> getItems(
       Integer userId,
       String categoryName) {
-    List<Category> categoryList = categoryRepository.findByUserIdInAndName(List.of(userId, systemUserId), categoryName);
+    List<Category> categoryList = categoryRepository.findActiveCateByName(List.of(userId, systemUserId), categoryName);
     List<Category> notDeletedCategoryList = categoryList.stream()
         .filter(category -> !category.isDeletedFlag())
         .toList();
