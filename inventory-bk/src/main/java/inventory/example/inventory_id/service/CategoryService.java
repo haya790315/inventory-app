@@ -20,7 +20,7 @@ import inventory.example.inventory_id.request.CategoryRequest;
 @Service
 public class CategoryService {
   @Autowired
-  private CategoryRepository categoryRepo;
+  private CategoryRepository categoryRepository;
 
   @Value("${system.userid}")
   private int systemUserId;
@@ -29,14 +29,14 @@ public class CategoryService {
 
   public List<CategoryDto> getAllCategories(int userId) {
     // ユーザとデフォルトのカテゴリを取得
-    return categoryRepo.findByUserIdInAndDeletedFlagFalse(List.of(userId, systemUserId)).stream()
+    return categoryRepository.findNotDeleted(List.of(userId, systemUserId)).stream()
         .sorted(Comparator.comparing(Category::getName))
-        .map(category -> new CategoryDto(category.getName(), category.getItems()))
+        .map(category -> new CategoryDto(category.getName()))
         .toList();
   }
 
   public List<Item> getCategoryItems(int userId, UUID categoryId) {
-    List<Category> categories = categoryRepo.findByUserIdInAndDeletedFlagFalse(List.of(userId, systemUserId));
+    List<Category> categories = categoryRepository.findNotDeleted(List.of(userId, systemUserId));
     return categories.stream()
         .filter(category -> category.getId().equals(categoryId))
         .findFirst()
@@ -46,7 +46,7 @@ public class CategoryService {
 
   public Category createCategory(CategoryRequest categoryRequest, int userId) {
 
-    List<Category> categoryList = categoryRepo.findByUserIdInAndDeletedFlagFalse(List.of(userId, systemUserId));
+    List<Category> categoryList = categoryRepository.findNotDeleted(List.of(userId, systemUserId));
 
     List<Category> userCategories = categoryList.stream()
         .filter(category -> category.getUserId() == userId)
@@ -65,11 +65,11 @@ public class CategoryService {
 
     Category category = new Category(categoryRequest.getName());
     category.setUserId(userId);
-    return categoryRepo.save(category);
+    return categoryRepository.save(category);
   }
 
   public Category updateCategory(UUID categoryId, CategoryRequest categoryRequest, int userId) {
-    Optional<Category> categoryOpt = categoryRepo.findByUserIdAndId(userId, categoryId);
+    Optional<Category> categoryOpt = categoryRepository.findUserCategory(List.of(userId, systemUserId), categoryId);
     if (!categoryOpt.isPresent()) {
       throw new IllegalArgumentException(categoryNotFoundMsg);
     }
@@ -77,12 +77,19 @@ public class CategoryService {
     if (category.getUserId() != userId) {
       throw new IllegalArgumentException("デフォルトカテゴリは編集できません");
     }
+    List<Category> exsitCategory = categoryRepository
+        .findActiveCateByName(List.of(userId, systemUserId), categoryRequest.getName());
+
+    if (!exsitCategory.isEmpty()) {
+      throw new ResponseStatusException(HttpStatus.CONFLICT, "カテゴリー名はすでに存在します");
+    }
+
     category.setName(categoryRequest.getName());
-    return categoryRepo.save(category);
+    return categoryRepository.save(category);
   }
 
   public void deleteCategory(UUID id, int userId) {
-    List<Category> categoryList = categoryRepo.findByUserIdInAndDeletedFlagFalse(List.of(userId, systemUserId));
+    List<Category> categoryList = categoryRepository.findNotDeleted(List.of(userId, systemUserId));
     if (categoryList.isEmpty()) {
       throw new ResponseStatusException(HttpStatus.NOT_FOUND, categoryNotFoundMsg);
     }
@@ -97,7 +104,7 @@ public class CategoryService {
     if (category.getItems().isEmpty()) {
       // アイテムが存在しない場合のみ削除フラグを立てる
       category.setDeletedFlag(true);
-      categoryRepo.save(category);
+      categoryRepository.save(category);
     } else {
       throw new IllegalArgumentException("アイテムが存在するため削除できません");
     }

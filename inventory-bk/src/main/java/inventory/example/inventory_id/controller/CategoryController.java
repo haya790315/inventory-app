@@ -40,10 +40,14 @@ public class CategoryController extends BaseController {
   }
 
   @GetMapping("/items")
-  public ResponseEntity<List<Item>> getCategoryItems(@RequestParam UUID categoryId) {
-    Integer userId = fetchUserIdFromToken();
-    List<Item> items = categoryService.getCategoryItems(userId, categoryId);
-    return response(HttpStatus.OK, items);
+  public ResponseEntity<Object> getCategoryItems(@RequestParam UUID categoryId) {
+    try {
+      Integer userId = fetchUserIdFromToken();
+      List<Item> items = categoryService.getCategoryItems(userId, categoryId);
+      return response(HttpStatus.OK, items);
+    } catch (Exception e) {
+      return response(HttpStatus.INTERNAL_SERVER_ERROR, e.getMessage());
+    }
   }
 
   @PostMapping()
@@ -55,27 +59,29 @@ public class CategoryController extends BaseController {
     } catch (ResponseStatusException e) {
       return response(HttpStatus.valueOf(e.getStatusCode().value()), e.getReason());
     } catch (Exception e) {
-      return response(HttpStatus.INTERNAL_SERVER_ERROR, "サーバーエラーが発生しました");
+      return response(HttpStatus.INTERNAL_SERVER_ERROR, e.getMessage());
     }
   }
 
   @PutMapping()
   public ResponseEntity<Object> putMethodName(
-      @RequestParam("category_id") UUID category_id,
-      @RequestBody CategoryRequest categoryRequest) {
+      @RequestParam UUID category_id,
+      @RequestBody @Valid CategoryRequest categoryRequest) {
     try {
       Integer userId = fetchUserIdFromToken();
       categoryService.updateCategory(category_id, categoryRequest, userId);
       return response(HttpStatus.OK, "カスタムカテゴリの更新が完了しました");
+    } catch (ResponseStatusException e) {
+      return response(HttpStatus.valueOf(e.getStatusCode().value()), e.getReason());
     } catch (IllegalArgumentException e) {
       return response(HttpStatus.BAD_REQUEST, e.getMessage());
     } catch (Exception e) {
-      return response(HttpStatus.INTERNAL_SERVER_ERROR, "サーバーエラーが発生しました");
+      return response(HttpStatus.INTERNAL_SERVER_ERROR, e.getMessage());
     }
   }
 
   @DeleteMapping()
-  public ResponseEntity<Object> deleteCategory(@RequestParam("category_id") UUID category_id) {
+  public ResponseEntity<Object> deleteCategory(@RequestParam UUID category_id) {
     try {
       Integer userId = fetchUserIdFromToken();
       categoryService.deleteCategory(category_id, userId);
