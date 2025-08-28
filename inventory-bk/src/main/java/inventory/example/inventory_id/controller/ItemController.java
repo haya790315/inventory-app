@@ -86,7 +86,7 @@ public class ItemController extends BaseController {
       return response(HttpStatus.valueOf(e.getStatusCode().value()), e.getReason());
     } catch (Exception e) {
       System.err.println("Error deleting item: " + e.getMessage());
-      return response(HttpStatus.INTERNAL_SERVER_ERROR, "エラーが発生しました");
+      return response(HttpStatus.INTERNAL_SERVER_ERROR, e.getMessage());
     }
   }
 }

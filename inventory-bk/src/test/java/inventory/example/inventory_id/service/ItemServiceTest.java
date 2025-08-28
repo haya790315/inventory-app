@@ -10,6 +10,7 @@ import static org.mockito.Mockito.when;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 import org.junit.jupiter.api.BeforeEach;
@@ -19,6 +20,7 @@ import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
+import org.springframework.dao.DataAccessException;
 import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.web.server.ResponseStatusException;
 
@@ -434,5 +436,71 @@ class ItemServiceTest {
 
     Exception ex = assertThrows(ResponseStatusException.class, () -> itemService.updateItem(userId, itemId, request));
     assertEquals(itemNotFoundMsg, ((ResponseStatusException) ex).getReason());
+  }
+
+  @Test
+  @Tag("deleteItem")
+  @DisplayName("アイテム削除成功")
+  void testDeleteItemSuccess() {
+    int userId = defaultUserId;
+    UUID itemId = UUID.randomUUID();
+    Item item = new Item();
+    item.setId(itemId);
+    item.setUserId(userId);
+
+    when(itemRepository.findUserActiveItem(List.of(userId, defaultSystemUserId), itemId))
+        .thenReturn(Optional.of(item));
+    when(itemRepository.save(any(Item.class))).thenReturn(item);
+
+    assertDoesNotThrow(() -> itemService.deleteItem(userId, itemId));
+    assertEquals(true, item.isDeletedFlag());
+    verify(itemRepository).save(item);
+  }
+
+  @Test
+  @Tag("deleteItem")
+  @DisplayName("アイテム削除失敗 - アイテムが見つからない")
+  void testDeleteItemNotFound() {
+    int userId = defaultUserId;
+    UUID itemId = UUID.randomUUID();
+    when(itemRepository.findUserActiveItem(List.of(userId, defaultSystemUserId), itemId))
+        .thenReturn(Optional.empty());
+    Exception ex = assertThrows(ResponseStatusException.class, () -> itemService.deleteItem(userId, itemId));
+    assertEquals("アイテムが見つかりません", ((ResponseStatusException) ex).getReason());
+  }
+
+  @Test
+  @Tag("DB error")
+  @DisplayName("アイテム取得失敗 - DBエラー")
+  void selectItem_dbError() {
+    int userId = defaultUserId;
+    UUID itemId = UUID.randomUUID();
+    Item item = new Item();
+    item.setId(itemId);
+    item.setUserId(userId);
+    when(itemRepository.findUserActiveItem(any(List.class), any(UUID.class)))
+        .thenThrow(new DataAccessException("DB error") {
+        });
+    Exception ex = assertThrows(DataAccessException.class, () -> itemService.deleteItem(userId, itemId));
+    assertEquals("DB error", ex.getMessage());
+  }
+
+  @Test
+  @Tag("DB error")
+  @DisplayName("アイテム保存失敗 - DBエラー")
+  void saveItem_dbError() {
+    int userId = defaultUserId;
+    UUID itemId = UUID.randomUUID();
+    Item item = new Item();
+    item.setId(itemId);
+    item.setUserId(userId);
+
+    when(itemRepository.findUserActiveItem(List.of(userId, defaultSystemUserId), itemId))
+        .thenReturn(Optional.of(item));
+    when(itemRepository.save(any(Item.class))).thenThrow(new DataAccessException("DB エラー") {
+    });
+
+    Exception ex = assertThrows(DataAccessException.class, () -> itemService.deleteItem(userId, itemId));
+    assertEquals("DB エラー", ex.getMessage());
   }
 }
