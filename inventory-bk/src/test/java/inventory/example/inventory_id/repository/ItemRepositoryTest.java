@@ -18,10 +18,10 @@ import inventory.example.inventory_id.model.Item;
 class ItemRepositoryTest {
 
   @Autowired
-  private ItemRepository itemRepo;
+  private ItemRepository itemRepository;
 
   @Autowired
-  private CategoryRepository categoryRepo;
+  private CategoryRepository categoryRepository;
 
   @Test
   @DisplayName("findByUserIdInAndCategory_Name 正しいアイテムを取得できる")
@@ -30,7 +30,7 @@ class ItemRepositoryTest {
     Category category = new Category();
     category.setName("PC");
     category.setUserId(123);
-    categoryRepo.save(category);
+    categoryRepository.save(category);
 
     // Setup item
     Item notDeleteditem = new Item();
@@ -38,17 +38,17 @@ class ItemRepositoryTest {
     notDeleteditem.setUserId(123);
     notDeleteditem.setCategory(category);
     notDeleteditem.setQuantity(5);
-    itemRepo.save(notDeleteditem);
+    itemRepository.save(notDeleteditem);
     Item deleteditem = new Item();
     deleteditem.setName("Desktop");
     deleteditem.setUserId(123);
     deleteditem.setCategory(category);
     deleteditem.setQuantity(5);
     deleteditem.setDeletedFlag(true);
-    itemRepo.save(deleteditem);
+    itemRepository.save(deleteditem);
 
     // Test
-    List<Item> result = itemRepo.findUserActiveItemWithCategory(List.of(123), "PC");
+    List<Item> result = itemRepository.findUserActiveItemWithCategory(List.of(123), "PC");
     assertThat(result).hasSize(1);
     assertThat(result.get(0).getName()).isEqualTo("Notebook");
     assertThat(result.get(0).getCategoryName()).isEqualTo("PC");
@@ -57,7 +57,7 @@ class ItemRepositoryTest {
   @Test
   @DisplayName("findByUserIdInAndIdAndDeletedFlagFalse 存在しない場合は空")
   void testFindByUserIdInAndIdAndDeletedFlagFalseNotFound() {
-    Optional<Item> result = itemRepo.findUserActiveItem(List.of(999), UUID.randomUUID());
+    Optional<Item> result = itemRepository.findUserActiveItem(List.of(999), UUID.randomUUID());
     assertThat(result).isEmpty();
   }
 }

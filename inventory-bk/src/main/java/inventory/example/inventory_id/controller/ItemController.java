@@ -59,7 +59,8 @@ public class ItemController extends BaseController {
   }
 
   @PutMapping()
-  public ResponseEntity<Object> updateItem(@RequestBody @Valid ItemRequest itemRequest,
+  public ResponseEntity<Object> updateItem(
+      @RequestBody @Valid ItemRequest itemRequest,
       @RequestParam("item_id") UUID itemId) {
     try {
       Integer userId = fetchUserIdFromToken();
@@ -71,7 +72,7 @@ public class ItemController extends BaseController {
       return response(HttpStatus.valueOf(e.getStatusCode().value()), e.getReason());
     } catch (Exception e) {
       System.err.println("Error updating item: " + e.getMessage());
-      return response(HttpStatus.INTERNAL_SERVER_ERROR, "エラーが発生しました");
+      return response(HttpStatus.INTERNAL_SERVER_ERROR, e.getMessage());
     }
   }
 

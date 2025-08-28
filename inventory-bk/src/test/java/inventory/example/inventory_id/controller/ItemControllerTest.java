@@ -3,16 +3,19 @@ package inventory.example.inventory_id.controller;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.UUID;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -194,6 +197,119 @@ class ItemControllerTest {
   void getItems_throws500() throws Exception {
     when(itemService.getItems(anyInt(), anyString())).thenThrow(new RuntimeException(serverErrorMsg));
     mockMvc.perform(get("/api/item").param("category_name", "test"))
+        .andExpect(status().isInternalServerError())
+        .andExpect(content().json("{\"message\":\"" + serverErrorMsg + "\"}"));
+  }
+
+  @Test
+  @Tag("PUT: /api/item")
+  @DisplayName("アイテム更新-200 OK")
+  void updateItem_success() throws Exception {
+    UUID itemId = UUID.randomUUID();
+    ItemRequest req = new ItemRequest();
+    req.setName("itemName");
+    req.setCategoryName("category");
+    req.setQuantity(1);
+    doNothing().when(itemService).updateItem(anyInt(), eq(itemId), any(ItemRequest.class));
+    mockMvc.perform(put("/api/item")
+        .param("item_id", itemId.toString())
+        .contentType(MediaType.APPLICATION_JSON)
+        .content(objectMapper.writeValueAsString(req)))
+        .andExpect(status().isOk())
+        .andExpect(content().json("{\"message\":\"アイテムの更新が完了しました\"}"));
+  }
+
+  @Test
+  @Tag("PUT: /api/item")
+  @DisplayName("アイテム更新-404 Not Found アイテムが見つかりません")
+  void updateItem_notFound() throws Exception {
+    UUID itemId = UUID.randomUUID();
+    ItemRequest req = new ItemRequest();
+    req.setName("itemName");
+    req.setCategoryName("category");
+    req.setQuantity(1);
+    doThrow(new ResponseStatusException(HttpStatus.NOT_FOUND, "アイテムが見つかりません")).when(itemService).updateItem(
+        anyInt(),
+        eq(itemId),
+        any(ItemRequest.class));
+    mockMvc.perform(put("/api/item")
+        .param("item_id", itemId.toString())
+        .contentType(MediaType.APPLICATION_JSON)
+        .content(objectMapper.writeValueAsString(req)))
+        .andExpect(status().isNotFound())
+        .andExpect(content().json("{\"message\":\"アイテムが見つかりません\"}"));
+  }
+
+  @Test
+  @Tag("PUT: /api/item")
+  @DisplayName("アイテム更新-400 Bad Request アイテム名は既に登録されています")
+  void updateItem_badRequest() throws Exception {
+    UUID itemId = UUID.randomUUID();
+    ItemRequest req = new ItemRequest();
+    req.setName("itemName");
+    req.setCategoryName("category");
+    req.setQuantity(1);
+    doThrow(new ResponseStatusException(HttpStatus.BAD_REQUEST, "アイテム名は既に登録されています")).when(itemService).updateItem(
+        anyInt(),
+        eq(itemId),
+        any(ItemRequest.class));
+    mockMvc.perform(put("/api/item")
+        .param("item_id", itemId.toString())
+        .contentType(MediaType.APPLICATION_JSON)
+        .content(objectMapper.writeValueAsString(req)))
+        .andExpect(status().isBadRequest())
+        .andExpect(content().json("{\"message\":\"アイテム名は既に登録されています\"}"));
+  }
+
+  @Test
+  @Tag("PUT: /api/item")
+  @DisplayName("アイテム更新-400 Bad Request アイテム名がない")
+  void updateItem_badRequest_itemNameMissed() throws Exception {
+    UUID itemId = UUID.randomUUID();
+    ItemRequest req = new ItemRequest();
+    req.setCategoryName("category");
+    req.setQuantity(1);
+    mockMvc.perform(put("/api/item")
+        .param("item_id", itemId.toString())
+        .contentType(MediaType.APPLICATION_JSON)
+        .content(objectMapper.writeValueAsString(req)))
+        .andExpect(status().isBadRequest())
+        .andExpect(content().json("{\"error\":\"アイテム名は必須です\"}"));
+  }
+
+  @Test
+  @Tag("PUT: /api/item")
+  @DisplayName("アイテム更新-400 Bad Request カテゴリ名がない")
+  void updateItem_badRequest_categoryNameMissed() throws Exception {
+    UUID itemId = UUID.randomUUID();
+    ItemRequest req = new ItemRequest();
+    req.setName("itemName");
+    req.setQuantity(1);
+    mockMvc.perform(put("/api/item")
+        .param("item_id", itemId.toString())
+        .contentType(MediaType.APPLICATION_JSON)
+        .content(objectMapper.writeValueAsString(req)))
+        .andExpect(status().isBadRequest())
+        .andExpect(content().json("{\"error\":\"カテゴリは必須です\"}"));
+  }
+
+  @Test
+  @Tag("PUT: /api/item")
+  @DisplayName("アイテム更新-500 サーバーエラー")
+  void updateItem_throws500() throws Exception {
+    UUID itemId = UUID.randomUUID();
+    ItemRequest req = new ItemRequest();
+    req.setName("itemName");
+    req.setCategoryName("category");
+    req.setQuantity(1);
+    doThrow(new RuntimeException(serverErrorMsg)).when(itemService).updateItem(
+        anyInt(),
+        eq(itemId),
+        any(ItemRequest.class));
+    mockMvc.perform(put("/api/item")
+        .param("item_id", itemId.toString())
+        .contentType(MediaType.APPLICATION_JSON)
+        .content(objectMapper.writeValueAsString(req)))
         .andExpect(status().isInternalServerError())
         .andExpect(content().json("{\"message\":\"" + serverErrorMsg + "\"}"));
   }
