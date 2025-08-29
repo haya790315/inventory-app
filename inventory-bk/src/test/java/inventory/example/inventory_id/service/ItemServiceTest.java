@@ -68,7 +68,7 @@ class ItemServiceTest {
     request.setQuantity(quantity);
     request.setCategoryName(categoryName);
 
-    when(categoryRepository.findByUserIdInAndName(List.of(userId, systemUserId), categoryName))
+    when(categoryRepository.findActiveCateByName(List.of(userId, systemUserId), categoryName))
         .thenReturn(List.of(category));
 
     when(categoryRepository.save(any(Category.class))).thenReturn(category);
@@ -90,7 +90,7 @@ class ItemServiceTest {
     request.setQuantity(5);
     request.setCategoryName(categoryName);
 
-    when(categoryRepository.findByUserIdInAndName(List.of(userId, systemUserId), categoryName))
+    when(categoryRepository.findActiveCateByName(List.of(userId, systemUserId), categoryName))
         .thenReturn(List.of());
 
     Exception ex = assertThrows(IllegalArgumentException.class, () -> itemService.createItem(userId, request));
@@ -119,7 +119,7 @@ class ItemServiceTest {
     request.setQuantity(5);
     request.setCategoryName(categoryName);
 
-    when(categoryRepository.findByUserIdInAndName(List.of(userId, systemUserId), categoryName))
+    when(categoryRepository.findActiveCateByName(List.of(userId, systemUserId), categoryName))
         .thenReturn(List.of(category));
 
     ResponseStatusException ex = assertThrows(ResponseStatusException.class,
@@ -150,7 +150,7 @@ class ItemServiceTest {
     request.setQuantity(5);
     request.setCategoryName(categoryName);
 
-    when(categoryRepository.findByUserIdInAndName(List.of(userId, systemUserId), categoryName))
+    when(categoryRepository.findActiveCateByName(List.of(userId, systemUserId), categoryName))
         .thenReturn(List.of(category));
 
     assertDoesNotThrow(() -> itemService.createItem(userId, request));
@@ -181,7 +181,7 @@ class ItemServiceTest {
     request.setQuantity(5);
     request.setCategoryName(categoryName);
 
-    when(categoryRepository.findByUserIdInAndName(List.of(userId, systemUserId), categoryName))
+    when(categoryRepository.findActiveCateByName(List.of(userId, systemUserId), categoryName))
         .thenReturn(List.of(category));
 
     assertDoesNotThrow(() -> itemService.createItem(userId, request));

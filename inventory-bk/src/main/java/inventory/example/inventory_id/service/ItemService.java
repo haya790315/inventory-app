@@ -31,7 +31,7 @@ public class ItemService {
       Integer userId,
       ItemRequest itemRequest) {
 
-    List<Category> categoryList = categoryRepository.findByUserIdInAndName(List.of(userId, systemUserId),
+    List<Category> categoryList = categoryRepository.findActiveCateByName(List.of(userId, systemUserId),
         itemRequest.getCategoryName());
 
     if (categoryList.isEmpty()) {
