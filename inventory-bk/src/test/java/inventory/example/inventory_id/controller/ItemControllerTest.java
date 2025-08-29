@@ -48,6 +48,8 @@ public class ItemControllerTest {
   private ObjectMapper objectMapper = new ObjectMapper();
 
   private int testUserId = 111;
+  private String categoryNotFoundMsg = "カテゴリーが見つかりません";
+  private String itemNotFoundMsg = "アイテムが見つかりません";
   private String serverErrorMsg = "サーバーエラーが発生しました";
 
   @BeforeEach
@@ -85,7 +87,7 @@ public class ItemControllerTest {
     req.setName("itemName");
     req.setCategoryName("category");
     req.setQuantity(1);
-    doThrow(new ResponseStatusException(HttpStatus.NOT_FOUND, "アイテムが見つかりません"))
+    doThrow(new ResponseStatusException(HttpStatus.NOT_FOUND, itemNotFoundMsg))
         .when(itemService).updateItem(
             anyInt(),
             eq(itemId),
@@ -95,7 +97,7 @@ public class ItemControllerTest {
         .contentType(MediaType.APPLICATION_JSON)
         .content(objectMapper.writeValueAsString(req)))
         .andExpect(status().isNotFound())
-        .andExpect(content().json("{\"message\":\"アイテムが見つかりません\"}"));
+        .andExpect(content().json("{\"message\":\"" + itemNotFoundMsg + "\"}"));
   }
 
   @Test

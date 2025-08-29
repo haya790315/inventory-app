@@ -31,6 +31,8 @@ public class ItemService {
 
   private String categoryNotFoundMsg = "カテゴリーが見つかりません";
 
+  private String itemsNotFoundMsg = "アイテムが見つかりません";
+
   public void createItem(Integer userId, ItemRequest itemRequest) {
 
     List<Category> categoryList = categoryRepository.findByUserIdInAndName(List.of(userId, systemUserId),
@@ -102,7 +104,7 @@ public class ItemService {
         .filter(i -> i.getId().equals(itemId))
         .findFirst();
     if (match.isEmpty()) {
-      throw new ResponseStatusException(HttpStatus.NOT_FOUND, "アイテムが見つかりません");
+      throw new ResponseStatusException(HttpStatus.NOT_FOUND, itemsNotFoundMsg);
     }
 
     // 編集したい名前は他のアイテムに重複かをチェック
