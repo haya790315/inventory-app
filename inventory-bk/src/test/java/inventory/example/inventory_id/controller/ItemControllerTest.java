@@ -45,6 +45,7 @@ class ItemControllerTest {
 
   private int testUserId = 111;
   private String categoryNotFoundMsg = "カテゴリーが見つかりません";
+  private String itemNotFoundMsg = "アイテムが見つかりません";
   private String serverErrorMsg = "サーバーエラーが発生しました";
 
   @BeforeEach
@@ -80,10 +81,10 @@ class ItemControllerTest {
   @DisplayName("アイテム一覧取得-404 アイテムが見つからない")
   void getItems_throws404() throws Exception {
     when(itemService.getItems(anyInt(), anyString()))
-        .thenThrow(new ResponseStatusException(HttpStatus.NOT_FOUND, "アイテムが登録されていません"));
+        .thenThrow(new ResponseStatusException(HttpStatus.NOT_FOUND, itemNotFoundMsg));
     mockMvc.perform(get("/api/item").param("category_name", "test"))
         .andExpect(status().isNotFound())
-        .andExpect(content().json("{\"message\":\"アイテムが登録されていません\"}"));
+        .andExpect(content().json("{\"message\":\"" + itemNotFoundMsg + "\"}"));
   }
 
   @Test
