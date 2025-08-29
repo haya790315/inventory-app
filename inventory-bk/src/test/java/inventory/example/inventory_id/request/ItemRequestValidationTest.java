@@ -53,4 +53,12 @@ class ItemRequestValidationTest {
     Set<ConstraintViolation<ItemRequest>> violations = validator.validate(request);
     assertFalse(violations.isEmpty());
   }
+
+  @Test
+  @DisplayName("アイテムリクエストのバリデーション失敗 - 名前が50文字を超える")
+  void testNameTooLong() {
+    ItemRequest request = new ItemRequest("A".repeat(51), "category", 1);
+    Set<ConstraintViolation<ItemRequest>> violations = validator.validate(request);
+    assertFalse(violations.isEmpty());
+  }
 }
