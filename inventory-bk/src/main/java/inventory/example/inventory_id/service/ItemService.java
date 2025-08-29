@@ -74,12 +74,11 @@ public class ItemService {
         .filter(item -> !item.isDeletedFlag())
         // 更新日時でソートし、DTOに変換
         .sorted(Comparator.comparing(Item::getUpdatedAt).reversed())
-        .map(item -> {
-          ItemDto dto = new ItemDto();
-          dto.setName(item.getName());
-          dto.setQuantity(item.getQuantity());
-          return dto;
-        }).toList();
+        .map(item -> new ItemDto(
+            item.getName(),
+            category.getName(),
+            item.getQuantity()))
+        .toList();
 
     if (items.isEmpty()) {
       throw new ResponseStatusException(HttpStatus.NOT_FOUND, "アイテムが登録されていません");
