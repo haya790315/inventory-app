@@ -1,0 +1,31 @@
+spring:
+  application:
+    name: inventory-bk
+  datasource:
+    url: jdbc:h2:file:./data/inventory-db
+    driver-class-name: org.h2.Driver
+    username: sa
+    password: ''
+  jpa:
+    database-platform: org.hibernate.dialect.H2Dialect
+    hibernate:
+      ddl-auto: create-drop
+    show-sql: true
+  h2:
+    console:
+      enabled: true
+      settings:
+        web-allow-others: true
+  devtools:
+    restart:
+      enabled: true
+    livereload:
+      enabled: true
+
+logging:
+  level:
+    org.springframework.web: Error
+    org.springframework.jdbc: Error
+
+system:
+  userid: 9999
