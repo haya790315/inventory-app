@@ -25,11 +25,7 @@ class ItemRequestValidationTest {
   @Test
   @DisplayName("アイテムリクエストのバリデーション成功")
   void testValidItemRequest() {
-    ItemRequest request = new ItemRequest();
-    request.setName("ValidName");
-    request.setQuantity(1);
-    request.setCategoryName("Category");
-
+    ItemRequest request = new ItemRequest("validName", "category", 1);
     Set<ConstraintViolation<ItemRequest>> violations = validator.validate(request);
     assertTrue(violations.isEmpty());
   }
@@ -37,11 +33,7 @@ class ItemRequestValidationTest {
   @Test
   @DisplayName("アイテムリクエストのバリデーション失敗 - 名前が空")
   void testBlankName() {
-    ItemRequest request = new ItemRequest();
-    request.setName("");
-    request.setQuantity(1);
-    request.setCategoryName("Category");
-
+    ItemRequest request = new ItemRequest("", "category", 1);
     Set<ConstraintViolation<ItemRequest>> violations = validator.validate(request);
     assertFalse(violations.isEmpty());
   }
@@ -49,11 +41,7 @@ class ItemRequestValidationTest {
   @Test
   @DisplayName("アイテムリクエストのバリデーション失敗 - 数量が負")
   void testNegativeQuantity() {
-    ItemRequest request = new ItemRequest();
-    request.setName("ValidName");
-    request.setQuantity(-1);
-    request.setCategoryName("Category");
-
+    ItemRequest request = new ItemRequest("", "category", -1);
     Set<ConstraintViolation<ItemRequest>> violations = validator.validate(request);
     assertFalse(violations.isEmpty());
   }
@@ -61,11 +49,7 @@ class ItemRequestValidationTest {
   @Test
   @DisplayName("アイテムリクエストのバリデーション失敗 - カテゴリー名が空")
   void testNullCategoryName() {
-    ItemRequest request = new ItemRequest();
-    request.setName("ValidName");
-    request.setQuantity(1);
-    request.setCategoryName(null);
-
+    ItemRequest request = new ItemRequest("ValidName", null, 1);
     Set<ConstraintViolation<ItemRequest>> violations = validator.validate(request);
     assertFalse(violations.isEmpty());
   }

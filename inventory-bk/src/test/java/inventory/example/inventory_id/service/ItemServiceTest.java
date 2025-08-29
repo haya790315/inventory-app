@@ -63,10 +63,7 @@ class ItemServiceTest {
     category.setUserId(userId);
     category.setItems(new ArrayList<>());
 
-    ItemRequest request = new ItemRequest();
-    request.setName(itemName);
-    request.setQuantity(quantity);
-    request.setCategoryName(categoryName);
+    ItemRequest request = new ItemRequest(itemName, categoryName, quantity);
 
     when(categoryRepository.findActiveCateByName(List.of(userId, systemUserId), categoryName))
         .thenReturn(List.of(category));
@@ -85,10 +82,7 @@ class ItemServiceTest {
     int systemUserId = defaultSystemUserId;
     String categoryName = "Books";
 
-    ItemRequest request = new ItemRequest();
-    request.setName("Notebook");
-    request.setQuantity(5);
-    request.setCategoryName(categoryName);
+    ItemRequest request = new ItemRequest("Notebook", categoryName, 5);
 
     when(categoryRepository.findActiveCateByName(List.of(userId, systemUserId), categoryName))
         .thenReturn(List.of());
@@ -109,15 +103,11 @@ class ItemServiceTest {
     Category category = new Category(categoryName);
     category.setUserId(userId);
 
-    Item existingItem = new Item();
-    existingItem.setName(itemName);
+    Item existingItem = new Item(itemName);
 
     category.setItems(List.of(existingItem));
 
-    ItemRequest request = new ItemRequest();
-    request.setName(itemName);
-    request.setQuantity(5);
-    request.setCategoryName(categoryName);
+    ItemRequest request = new ItemRequest(itemName, categoryName, 5);
 
     when(categoryRepository.findActiveCateByName(List.of(userId, systemUserId), categoryName))
         .thenReturn(List.of(category));
@@ -145,10 +135,7 @@ class ItemServiceTest {
 
     category.setItems(new ArrayList<>(List.of(existingItem)));
 
-    ItemRequest request = new ItemRequest();
-    request.setName(itemName);
-    request.setQuantity(5);
-    request.setCategoryName(categoryName);
+    ItemRequest request = new ItemRequest(itemName, categoryName, 5);
 
     when(categoryRepository.findActiveCateByName(List.of(userId, systemUserId), categoryName))
         .thenReturn(List.of(category));
@@ -176,10 +163,7 @@ class ItemServiceTest {
 
     category.setItems(new ArrayList<>(List.of(existingItem)));
 
-    ItemRequest request = new ItemRequest();
-    request.setName(itemName);
-    request.setQuantity(5);
-    request.setCategoryName(categoryName);
+    ItemRequest request = new ItemRequest(itemName, categoryName, 5);
 
     when(categoryRepository.findActiveCateByName(List.of(userId, systemUserId), categoryName))
         .thenReturn(List.of(category));

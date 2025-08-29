@@ -59,10 +59,7 @@ class ItemControllerTest {
   @Tag("POST: /api/item")
   @DisplayName("アイテム作成-201 Created")
   void createItem_success() throws Exception {
-    ItemRequest req = new ItemRequest();
-    req.setName("itemName");
-    req.setCategoryName("category");
-    req.setQuantity(1);
+    ItemRequest req = new ItemRequest("itemName", "category", 1);
     doNothing().when(itemService).createItem(anyInt(), any(ItemRequest.class));
     mockMvc.perform(post("/api/item")
         .contentType(MediaType.APPLICATION_JSON)
@@ -75,10 +72,7 @@ class ItemControllerTest {
   @Tag("POST: /api/item")
   @DisplayName("アイテム作成-400 Bad Request カテゴリーが見つからない")
   void createItem_badRequest_categoryNotFound() throws Exception {
-    ItemRequest req = new ItemRequest();
-    req.setName("itemName");
-    req.setCategoryName("category");
-    req.setQuantity(1);
+    ItemRequest req = new ItemRequest("itemName", "category", 1);
     doThrow(new IllegalArgumentException(categoryNotFoundMsg)).when(itemService).createItem(anyInt(),
         any(ItemRequest.class));
     mockMvc.perform(post("/api/item")
@@ -92,10 +86,7 @@ class ItemControllerTest {
   @Tag("POST: /api/item")
   @DisplayName("アイテム作成-409 Conflict アイテム名が重複")
   void createItem_conflict_itemNameDuplicate() throws Exception {
-    ItemRequest req = new ItemRequest();
-    req.setName("itemName");
-    req.setCategoryName("category");
-    req.setQuantity(1);
+    ItemRequest req = new ItemRequest("itemName", "category", 1);
     doThrow(new ResponseStatusException(HttpStatus.CONFLICT, String.format("アイテム名 '%s' は既に存在します", req.getName())))
         .when(itemService)
         .createItem(anyInt(),
@@ -139,10 +130,7 @@ class ItemControllerTest {
   @Tag("POST: /api/item")
   @DisplayName("アイテム作成-400 Bad Request　数量がマイナス")
   void createItem_badRequest_quantityNegative() throws Exception {
-    ItemRequest req = new ItemRequest();
-    req.setName("itemName");
-    req.setCategoryName("category");
-    req.setQuantity(-1);
+    ItemRequest req = new ItemRequest("itemName", "category", -1);
     mockMvc.perform(post("/api/item")
         .contentType(MediaType.APPLICATION_JSON)
         .content(objectMapper.writeValueAsString(req)))
@@ -154,9 +142,7 @@ class ItemControllerTest {
   @Tag("POST: /api/item")
   @DisplayName("アイテム作成-500 サーバーエラー")
   void createItem_throws500() throws Exception {
-    ItemRequest req = new ItemRequest();
-    req.setName("itemName");
-    req.setCategoryName("category");
+    ItemRequest req = new ItemRequest("itemName", "category", 1);
     doThrow(new RuntimeException(
         serverErrorMsg))
         .when(itemService)

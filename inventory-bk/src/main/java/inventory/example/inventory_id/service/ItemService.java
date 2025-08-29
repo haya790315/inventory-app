@@ -48,11 +48,12 @@ public class ItemService {
               String.format("アイテム名 '%s' は既に存在します", itemRequest.getName()));
         });
 
-    Item item = new Item();
-    item.setName(itemRequest.getName());
-    item.setUserId(userId);
-    item.setCategory(cate);
-    item.setQuantity(itemRequest.getQuantity());
+    Item item = new Item(
+        itemRequest.getName(),
+        userId,
+        cate,
+        itemRequest.getQuantity(),
+        false);
     cate.getItems().add(item);
     categoryRepository.save(cate);
   }
