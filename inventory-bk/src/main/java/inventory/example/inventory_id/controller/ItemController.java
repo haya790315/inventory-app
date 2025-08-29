@@ -42,10 +42,10 @@ public class ItemController extends BaseController {
   }
 
   @GetMapping()
-  public ResponseEntity<Object> getItems(@RequestParam("category_name") String category_name) {
+  public ResponseEntity<Object> getItems(@RequestParam("category_name") String categoryName) {
     try {
       Integer userId = fetchUserIdFromToken();
-      List<ItemDto> items = itemService.getItems(userId, category_name);
+      List<ItemDto> items = itemService.getItems(userId, categoryName);
       return response(HttpStatus.OK, items);
     } catch (IllegalArgumentException e) {
       return response(HttpStatus.BAD_REQUEST, e.getMessage());

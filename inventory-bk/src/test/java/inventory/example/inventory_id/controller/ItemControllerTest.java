@@ -85,10 +85,11 @@ public class ItemControllerTest {
     req.setName("itemName");
     req.setCategoryName("category");
     req.setQuantity(1);
-    doThrow(new ResponseStatusException(HttpStatus.NOT_FOUND, "アイテムが見つかりません")).when(itemService).updateItem(
-        anyInt(),
-        eq(itemId),
-        any(ItemRequest.class));
+    doThrow(new ResponseStatusException(HttpStatus.NOT_FOUND, "アイテムが見つかりません"))
+        .when(itemService).updateItem(
+            anyInt(),
+            eq(itemId),
+            any(ItemRequest.class));
     mockMvc.perform(put("/api/item")
         .param("item_id", itemId.toString())
         .contentType(MediaType.APPLICATION_JSON)
@@ -106,10 +107,12 @@ public class ItemControllerTest {
     req.setName("itemName");
     req.setCategoryName("category");
     req.setQuantity(1);
-    doThrow(new ResponseStatusException(HttpStatus.BAD_REQUEST, "アイテム名は既に登録されています")).when(itemService).updateItem(
-        anyInt(),
-        eq(itemId),
-        any(ItemRequest.class));
+    doThrow(new ResponseStatusException(HttpStatus.BAD_REQUEST, "アイテム名は既に登録されています"))
+        .when(itemService)
+        .updateItem(
+            anyInt(),
+            eq(itemId),
+            any(ItemRequest.class));
     mockMvc.perform(put("/api/item")
         .param("item_id", itemId.toString())
         .contentType(MediaType.APPLICATION_JSON)

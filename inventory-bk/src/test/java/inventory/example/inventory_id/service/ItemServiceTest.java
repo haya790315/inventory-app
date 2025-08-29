@@ -216,7 +216,7 @@ class ItemServiceTest {
     List<Item> items = new ArrayList<>();
     items.add(existingItem);
 
-    when(itemRepository.getItemsByCategoryName(List.of(userId, systemUserId), categoryName))
+    when(itemRepository.getActiveByCategoryName(List.of(userId, systemUserId), categoryName))
         .thenReturn(items);
     when(itemRepository.save(any(Item.class))).thenReturn(existingItem);
 
@@ -249,10 +249,11 @@ class ItemServiceTest {
     request.setCategoryName(categoryName);
 
     List<Item> items = List.of(item1, item2);
-    when(itemRepository.getItemsByCategoryName(List.of(userId, systemUserId), categoryName))
+    when(itemRepository.getActiveByCategoryName(List.of(userId, systemUserId), categoryName))
         .thenReturn(items);
 
-    Exception ex = assertThrows(IllegalArgumentException.class, () -> itemService.updateItem(userId, itemId, request));
+    Exception ex = assertThrows(IllegalArgumentException.class,
+        () -> itemService.updateItem(userId, itemId, request));
     assertEquals("アイテム名は既に登録されています", ex.getMessage());
   }
 
@@ -270,11 +271,12 @@ class ItemServiceTest {
     request.setQuantity(10);
     request.setCategoryName(categoryName);
 
-    when(itemRepository.getItemsByCategoryName(List.of(userId, systemUserId), categoryName))
+    when(itemRepository.getActiveByCategoryName(List.of(userId, systemUserId), categoryName))
         .thenReturn(List.of());
 
-    Exception ex = assertThrows(ResponseStatusException.class, () -> itemService.updateItem(userId, itemId, request));
-    assertEquals(itemNotFoundMsg, ((ResponseStatusException) ex).getReason());
+    ResponseStatusException ex = assertThrows(ResponseStatusException.class,
+        () -> itemService.updateItem(userId, itemId, request));
+    assertEquals(itemNotFoundMsg, ex.getReason());
   }
 
   @Test
@@ -296,10 +298,12 @@ class ItemServiceTest {
     existingItem.setName("Notebook");
     existingItem.setQuantity(5);
 
-    when(itemRepository.getItemsByCategoryName(List.of(userId, systemUserId), categoryName))
+    when(itemRepository
+        .getActiveByCategoryName(List.of(userId, systemUserId), categoryName))
         .thenReturn(List.of(existingItem));
 
-    Exception ex = assertThrows(ResponseStatusException.class, () -> itemService.updateItem(userId, itemId, request));
+    Exception ex = assertThrows(ResponseStatusException.class,
+        () -> itemService.updateItem(userId, itemId, request));
     assertEquals(itemNotFoundMsg, ((ResponseStatusException) ex).getReason());
   }
 }
