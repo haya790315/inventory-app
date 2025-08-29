@@ -20,8 +20,10 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.http.HttpStatus;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
+import org.springframework.web.server.ResponseStatusException;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -42,6 +44,7 @@ class ItemControllerTest {
   private ObjectMapper objectMapper = new ObjectMapper();
 
   private int testUserId = 111;
+  private String categoryNotFoundMsg = "カテゴリーが見つかりません";
   private String serverErrorMsg = "サーバーエラーが発生しました";
 
   @BeforeEach
@@ -63,9 +66,32 @@ class ItemControllerTest {
 
   @Test
   @Tag("GET: /api/item")
+  @DisplayName("アイテム一覧取得-400 不正な引数")
+  void getItems_throws400() throws Exception {
+    when(itemService.getItems(anyInt(), anyString()))
+        .thenThrow(new IllegalArgumentException(categoryNotFoundMsg));
+    mockMvc.perform(get("/api/item").param("category_name", "test"))
+        .andExpect(status().isBadRequest())
+        .andExpect(content().json("{\"message\":\"" + categoryNotFoundMsg + "\"}"));
+  }
+
+  @Test
+  @Tag("GET: /api/item")
+  @DisplayName("アイテム一覧取得-404 アイテムが見つからない")
+  void getItems_throws404() throws Exception {
+    when(itemService.getItems(anyInt(), anyString()))
+        .thenThrow(new ResponseStatusException(HttpStatus.NOT_FOUND, "アイテムが登録されていません"));
+    mockMvc.perform(get("/api/item").param("category_name", "test"))
+        .andExpect(status().isNotFound())
+        .andExpect(content().json("{\"message\":\"アイテムが登録されていません\"}"));
+  }
+
+  @Test
+  @Tag("GET: /api/item")
   @DisplayName("アイテム一覧取得-500 サーバーエラー")
   void getItems_throws500() throws Exception {
-    when(itemService.getItems(anyInt(), anyString())).thenThrow(new RuntimeException(serverErrorMsg));
+    when(itemService.getItems(anyInt(), anyString()))
+        .thenThrow(new RuntimeException(serverErrorMsg));
     mockMvc.perform(get("/api/item").param("category_name", "test"))
         .andExpect(status().isInternalServerError())
         .andExpect(content().json("{\"message\":\"" + serverErrorMsg + "\"}"));
