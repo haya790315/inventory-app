@@ -24,10 +24,8 @@ spring:
 
 logging:
   level:
-    org:
-      springframework:
-        web: Error
-        jdbc: Error
+    org.springframework.web: Error
+    org.springframework.jdbc: Error
 
 system:
   userid: 9999

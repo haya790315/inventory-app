@@ -10,13 +10,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 
 import inventory.example.inventory_id.model.Category;
-import inventory.example.inventory_id.model.Item;
 import inventory.example.inventory_id.repository.CategoryRepository;
 
 @Component
 public class DataInitializer implements CommandLineRunner {
   @Autowired
-  private CategoryRepository categoryRepository;
+  private CategoryRepository categoryRepo;
   @Value("${system.userid}")
   private int systemUserId;
 

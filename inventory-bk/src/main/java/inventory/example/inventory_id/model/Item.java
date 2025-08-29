@@ -54,17 +54,4 @@ public class Item {
   public Item(String name) {
     this.name = name;
   }
-
-  public Item(
-      String name,
-      long userId,
-      Category category,
-      int quantity,
-      boolean deletedFlag) {
-    this.name = name;
-    this.userId = userId;
-    this.category = category;
-    this.quantity = quantity;
-    this.deletedFlag = deletedFlag;
-  }
 }
