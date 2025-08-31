@@ -1,6 +1,7 @@
 package inventory.example.inventory_id.request;
 
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.PositiveOrZero;
 import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
@@ -11,11 +12,15 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 public class ItemRequest {
+  private final String nonEmptyStringRegex = ".*[^\\s　].*";
+
   @NotBlank(message = "アイテム名は必須です")
+  @Pattern(regexp = nonEmptyStringRegex, message = "アイテム名は必須です")
   @Size(max = 50, message = "アイテム名は50文字以内で入力してください")
   private String name;
 
   @NotBlank(message = "カテゴリは必須です")
+  @Pattern(regexp = nonEmptyStringRegex, message = "カテゴリは必須です")
   private String categoryName;
 
   @PositiveOrZero(message = "数量は0以上の整数で入力してください")
