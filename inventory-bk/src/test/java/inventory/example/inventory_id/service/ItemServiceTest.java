@@ -10,7 +10,6 @@ import static org.mockito.Mockito.when;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 import java.util.UUID;
 
 import org.junit.jupiter.api.BeforeEach;
@@ -169,7 +168,6 @@ class ItemServiceTest {
     category.setItems(new ArrayList<>(List.of(existingItem)));
 
     ItemRequest request = new ItemRequest(itemName, categoryName, 5);
-
     when(categoryRepository.findActiveCateByName(List.of(userId, systemUserId), categoryName))
         .thenReturn(List.of(category));
 
