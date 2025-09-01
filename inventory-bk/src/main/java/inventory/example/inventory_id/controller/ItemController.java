@@ -33,11 +33,12 @@ public class ItemController extends BaseController {
       Integer userId = fetchUserIdFromToken();
       itemService.createItem(userId, itemRequest);
       return response(HttpStatus.CREATED, "アイテムの作成が完了しました");
-
+    } catch (ResponseStatusException e) {
+      return response(HttpStatus.valueOf(e.getStatusCode().value()), e.getReason());
     } catch (IllegalArgumentException e) {
       return response(HttpStatus.BAD_REQUEST, e.getMessage());
     } catch (Exception e) {
-      return response(HttpStatus.INTERNAL_SERVER_ERROR, "エラーが発生しました");
+      return response(HttpStatus.INTERNAL_SERVER_ERROR, e.getMessage());
     }
   }
 
@@ -52,7 +53,7 @@ public class ItemController extends BaseController {
     } catch (ResponseStatusException e) {
       return response(HttpStatus.valueOf(e.getStatusCode().value()), e.getReason());
     } catch (Exception e) {
-      return response(HttpStatus.INTERNAL_SERVER_ERROR, "エラーが発生しました");
+      return response(HttpStatus.INTERNAL_SERVER_ERROR, e.getMessage());
     }
   }
 

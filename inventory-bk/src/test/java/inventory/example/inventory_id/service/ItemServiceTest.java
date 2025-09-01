@@ -7,7 +7,6 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -41,9 +40,7 @@ class ItemServiceTest {
   private ItemService itemService;
 
   private String categoryNotFoundMsg = "カテゴリーが見つかりません";
-
-  private String itemNotFoundMsg = "アイテムが見つかりません";
-
+  private String itemsNotFoundMsg = "アイテムが見つかりません";
   private int defaultUserId = 111;
 
   private int defaultSystemUserId = 999;
@@ -55,6 +52,7 @@ class ItemServiceTest {
   }
 
   @Test
+  @Tag("createItem")
   @DisplayName("アイテム作成成功")
   void testCreateItemSuccess() {
     int userId = defaultUserId;
@@ -67,12 +65,9 @@ class ItemServiceTest {
     category.setUserId(userId);
     category.setItems(new ArrayList<>());
 
-    ItemRequest request = new ItemRequest();
-    request.setName(itemName);
-    request.setQuantity(quantity);
-    request.setCategoryName(categoryName);
+    ItemRequest request = new ItemRequest(itemName, categoryName, quantity);
 
-    when(categoryRepository.findByUserIdInAndName(List.of(userId, systemUserId), categoryName))
+    when(categoryRepository.findActiveCateByName(List.of(userId, systemUserId), categoryName))
         .thenReturn(List.of(category));
 
     when(categoryRepository.save(any(Category.class))).thenReturn(category);
@@ -82,18 +77,16 @@ class ItemServiceTest {
   }
 
   @Test
-  @DisplayName("アイテム作成失敗 - カテゴリーが見つからない")
+  @Tag("createItem")
+  @DisplayName("アイテム作成失敗- カテゴリーが見つからない")
   void testCreateItemCategoryNotFound() {
     int userId = defaultUserId;
     int systemUserId = defaultSystemUserId;
     String categoryName = "Books";
 
-    ItemRequest request = new ItemRequest();
-    request.setName("Notebook");
-    request.setQuantity(5);
-    request.setCategoryName(categoryName);
+    ItemRequest request = new ItemRequest("Notebook", categoryName, 5);
 
-    when(categoryRepository.findByUserIdInAndName(List.of(userId, systemUserId), categoryName))
+    when(categoryRepository.findActiveCateByName(List.of(userId, systemUserId), categoryName))
         .thenReturn(List.of());
 
     Exception ex = assertThrows(IllegalArgumentException.class, () -> itemService.createItem(userId, request));
@@ -101,6 +94,7 @@ class ItemServiceTest {
   }
 
   @Test
+  @Tag("createItem")
   @DisplayName("アイテム作成失敗 - 同じ名前のアイテムが存在する")
   void testCreateItemAlreadyExists() {
     int userId = defaultUserId;
@@ -111,84 +105,116 @@ class ItemServiceTest {
     Category category = new Category(categoryName);
     category.setUserId(userId);
 
-    Item existingItem = new Item();
-    existingItem.setName(itemName);
+    Item existingItem = new Item(itemName);
+
     category.setItems(List.of(existingItem));
 
-    ItemRequest request = new ItemRequest();
-    request.setName(itemName);
-    request.setQuantity(5);
-    request.setCategoryName(categoryName);
+    ItemRequest request = new ItemRequest(itemName, categoryName, 5);
 
-    when(categoryRepository.findByUserIdInAndName(List.of(userId, systemUserId), categoryName))
+    when(categoryRepository.findActiveCateByName(List.of(userId, systemUserId), categoryName))
         .thenReturn(List.of(category));
 
-    Exception ex = assertThrows(IllegalArgumentException.class, () -> itemService.createItem(userId, request));
-    assertEquals("そのアイテム名は既に登録されています", ex.getMessage());
+    ResponseStatusException ex = assertThrows(ResponseStatusException.class,
+        () -> itemService.createItem(userId, request));
+    assertEquals(String.format("アイテム名 '%s' は既に存在します", itemName), ex.getReason());
   }
 
   @Test
+  @Tag("createItem")
+  @DisplayName("アイテム作成 - 同じ名前のアイテムが存在するが削除フラグが立っている場合")
+  void testCreateItemThatHasDeletedFlag() {
+    int userId = defaultUserId;
+    int systemUserId = defaultSystemUserId;
+    String categoryName = "Laptop";
+    String itemName = "Notebook";
+
+    Category category = new Category(categoryName);
+    category.setUserId(userId);
+
+    Item existingItem = new Item();
+    existingItem.setName(itemName);
+    existingItem.setDeletedFlag(true);
+
+    category.setItems(new ArrayList<>(List.of(existingItem)));
+
+    ItemRequest request = new ItemRequest(itemName, categoryName, 5);
+
+    when(categoryRepository.findActiveCateByName(List.of(userId, systemUserId), categoryName))
+        .thenReturn(List.of(category));
+
+    assertDoesNotThrow(() -> itemService.createItem(userId, request));
+    verify(categoryRepository).save(any(Category.class));
+  }
+
+  @Test
+  @Tag("createItem")
+  @DisplayName("アイテム作成 - 名前が違うアイテムが存在するが削除フラグが立っている場合")
+  void testCreateItemThatHasDeletedFlagButDifferentName() {
+    int userId = defaultUserId;
+    int systemUserId = defaultSystemUserId;
+    String categoryName = "Laptop";
+    String itemName = "Notebook";
+    String differentItemName = "Tablet";
+
+    Category category = new Category(categoryName);
+    category.setUserId(userId);
+
+    Item existingItem = new Item();
+    existingItem.setName(differentItemName);
+    existingItem.setDeletedFlag(true);
+
+    category.setItems(new ArrayList<>(List.of(existingItem)));
+
+    ItemRequest request = new ItemRequest(itemName, categoryName, 5);
+
+    when(categoryRepository.findActiveCateByName(List.of(userId, systemUserId), categoryName))
+        .thenReturn(List.of(category));
+
+    assertDoesNotThrow(() -> itemService.createItem(userId, request));
+    verify(categoryRepository).save(any(Category.class));
+  }
+
+  @Test
+  @Tag("getItem")
   @DisplayName("アイテム取得成功")
   void testGetItemsSortedByUpdatedAtDescending() {
     int userId = defaultUserId;
     int systemUserId = defaultSystemUserId;
-    String categoryName = "Laptop";
+    String categoryName = "pc";
 
     Category category = new Category(categoryName);
     category.setUserId(userId);
 
-    Item item1 = new Item();
-    item1.setName("Notebook");
-    item1.setQuantity(5);
-    item1.setUpdatedAt(LocalDateTime.now());
+    Item notebook = new Item("Notebook", userId, category, 5, false);
 
-    Item item2 = new Item();
-    item2.setName("PC");
-    item2.setQuantity(10);
-    item2.setUpdatedAt(LocalDateTime.now().minusDays(1));
+    Item desktop = new Item("Desktop", userId, category, 10, false);
 
-    category.setItems(List.of(item1, item2));
+    category.setItems(List.of(notebook, desktop));
 
-    when(categoryRepository.findByUserIdInAndName(List.of(userId, systemUserId), categoryName))
-        .thenReturn(List.of(category));
+    when(itemRepository
+        .getActiveByCategoryName(List.of(userId, systemUserId), categoryName))
+        .thenReturn(category.getItems());
 
-    List<ItemDto> result = itemService.getItems(userId, categoryName);
+    List<ItemDto> result = assertDoesNotThrow(() -> itemService.getItems(userId, categoryName));
 
     assertEquals(2, result.size());
-    assertEquals("Notebook", result.get(0).getName());
-    assertEquals("PC", result.get(1).getName());
   }
 
   @Test
-  @DisplayName("アイテム取得失敗 - カテゴリーが見つからない")
-  void testGetItemsCategoryNotFound() {
-    int userId = defaultUserId;
-    int systemUserId = defaultSystemUserId;
-    String categoryName = "NonExistent";
-
-    when(categoryRepository.findByUserIdInAndName(List.of(userId, systemUserId), categoryName))
-        .thenReturn(List.of());
-
-    Exception ex = assertThrows(IllegalArgumentException.class, () -> itemService.getItems(userId, categoryName));
-    assertEquals(categoryNotFoundMsg, ex.getMessage());
-  }
-
-  @Test
-  @DisplayName("アイテム取得失敗 - アイテムが登録されていない")
-  void testGetCategoryItemsNotExist() {
+  @Tag("getItem")
+  @DisplayName("アイテム取得失敗 - アイテムが見つかりません")
+  void testGetItemsNotExist() {
     int userId = defaultUserId;
     int systemUserId = defaultSystemUserId;
     String categoryName = "Food";
-    Category category = new Category(categoryName);
 
-    category.setUserId(userId);
-    category.setItems(new ArrayList<>());
+    when(itemRepository
+        .getActiveByCategoryName(List.of(userId, systemUserId), categoryName))
+        .thenReturn(new ArrayList<>());
 
-    when(categoryRepository.findByUserIdInAndName(List.of(userId, systemUserId), categoryName))
-        .thenReturn(List.of(category));
-
-    Exception ex = assertThrows(ResponseStatusException.class, () -> itemService.getItems(userId, categoryName));
-    assertEquals("アイテムが登録されていません", ((ResponseStatusException) ex).getReason());
+    ResponseStatusException ex = assertThrows(ResponseStatusException.class,
+        () -> itemService.getItems(userId, categoryName));
+    assertEquals(itemsNotFoundMsg, ex.getReason());
   }
 
   @Test
@@ -276,7 +302,7 @@ class ItemServiceTest {
 
     ResponseStatusException ex = assertThrows(ResponseStatusException.class,
         () -> itemService.updateItem(userId, itemId, request));
-    assertEquals(itemNotFoundMsg, ex.getReason());
+    assertEquals(itemsNotFoundMsg, ex.getReason());
   }
 
   @Test
@@ -304,6 +330,6 @@ class ItemServiceTest {
 
     Exception ex = assertThrows(ResponseStatusException.class,
         () -> itemService.updateItem(userId, itemId, request));
-    assertEquals(itemNotFoundMsg, ((ResponseStatusException) ex).getReason());
+    assertEquals(itemsNotFoundMsg, ((ResponseStatusException) ex).getReason());
   }
 }

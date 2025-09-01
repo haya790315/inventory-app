@@ -1,6 +1,5 @@
 package inventory.example.inventory_id.service;
 
-import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -33,9 +32,11 @@ public class ItemService {
 
   private String itemsNotFoundMsg = "アイテムが見つかりません";
 
-  public void createItem(Integer userId, ItemRequest itemRequest) {
+  public void createItem(
+      Integer userId,
+      ItemRequest itemRequest) {
 
-    List<Category> categoryList = categoryRepository.findByUserIdInAndName(List.of(userId, systemUserId),
+    List<Category> categoryList = categoryRepository.findActiveCateByName(List.of(userId, systemUserId),
         itemRequest.getCategoryName());
 
     if (categoryList.isEmpty()) {
@@ -43,52 +44,38 @@ public class ItemService {
     }
     Category cate = categoryList.get(0);
 
-    // 同じ名前のアイテムが存在するかをチェック
-    Optional<Item> existingItemOpt = cate.getItems().stream()
-        .filter(i -> i.getName().equals(itemRequest.getName()))
-        .findFirst();
+    // 同じ名前のアイテムが存在し、削除されていない場合はエラーを投げる
+    cate.getItems().stream()
+        .filter(i -> i.getName().equals(itemRequest.getName()) && !i.isDeletedFlag())
+        .findAny()
+        .ifPresent(i -> {
+          throw new ResponseStatusException(HttpStatus.CONFLICT,
+              String.format("アイテム名 '%s' は既に存在します", itemRequest.getName()));
+        });
 
-    if (existingItemOpt.isPresent()) {
-      if (existingItemOpt.get().isDeletedFlag()) {
-        // 既に削除されたアイテムの場合は復活させる
-        existingItemOpt.get().setDeletedFlag(false);
-        existingItemOpt.get().setQuantity(itemRequest.getQuantity());
-        itemRepository.save(existingItemOpt.get());
-        return;
-      } else {
-        throw new IllegalArgumentException("そのアイテム名は既に登録されています");
-      }
-    }
-    Item item = new Item();
-    item.setName(itemRequest.getName());
-    item.setUserId(userId);
-    item.setCategory(cate);
-    item.setQuantity(itemRequest.getQuantity());
+    Item item = new Item(
+        itemRequest.getName(),
+        userId,
+        cate,
+        itemRequest.getQuantity(),
+        false);
     cate.getItems().add(item);
     categoryRepository.save(cate);
   }
 
-  public List<ItemDto> getItems(Integer userId, String categoryName) {
-    List<Category> categoryList = categoryRepository.findByUserIdInAndName(List.of(userId, systemUserId), categoryName);
-    if (categoryList.isEmpty()) {
-      throw new IllegalArgumentException(categoryNotFoundMsg);
-    }
-    Category category = categoryList.get(0);
-    // カテゴリーに紐づくアイテムを取得
-    List<ItemDto> items = category.getItems().stream().filter(i -> !i.isDeletedFlag())
-        // 更新日時でソートし、DTOに変換
-        .sorted(Comparator.comparing(Item::getUpdatedAt).reversed())
-        .map(item -> {
-          ItemDto dto = new ItemDto();
-          dto.setName(item.getName());
-          dto.setQuantity(item.getQuantity());
-          dto.setCategoryName(item.getCategoryName());
-          return dto;
-        }).toList();
+  public List<ItemDto> getItems(
+      Integer userId,
+      String categoryName) {
+    List<Item> items = itemRepository.getActiveByCategoryName(List.of(userId, systemUserId), categoryName);
     if (items.isEmpty()) {
-      throw new ResponseStatusException(HttpStatus.NOT_FOUND, "アイテムが登録されていません");
+      throw new ResponseStatusException(HttpStatus.NOT_FOUND, itemsNotFoundMsg);
     }
-    return items;
+    return items.stream()
+        .map(item -> new ItemDto(
+            item.getName(),
+            categoryName,
+            item.getQuantity()))
+        .toList();
   }
 
   public void updateItem(
