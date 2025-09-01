@@ -345,13 +345,14 @@ class ItemControllerTest {
   @DisplayName("アイテム削除-404 Not Found")
   void deleteItem_notFound() throws Exception {
     UUID itemId = UUID.randomUUID();
-    doThrow(new ResponseStatusException(HttpStatus.NOT_FOUND, categoryNotFoundMsg)).when(itemService).deleteItem(
-        anyInt(),
-        eq(itemId));
+    doThrow(new ResponseStatusException(HttpStatus.NOT_FOUND, itemNotFoundMsg))
+        .when(itemService).deleteItem(
+            anyInt(),
+            eq(itemId));
     mockMvc.perform(delete("/api/item")
         .param("item_id", itemId.toString()))
         .andExpect(status().isNotFound())
-        .andExpect(content().json("{\"message\":\"" + categoryNotFoundMsg + "\"}"));
+        .andExpect(content().json("{\"message\":\"" + itemNotFoundMsg + "\"}"));
   }
 
   @Test
@@ -359,9 +360,11 @@ class ItemControllerTest {
   @DisplayName("アイテム削除-500 サーバーエラー")
   void deleteItem_throws500() throws Exception {
     UUID itemId = UUID.randomUUID();
-    doThrow(new RuntimeException(serverErrorMsg)).when(itemService).deleteItem(
-        anyInt(),
-        eq(itemId));
+    doThrow(new RuntimeException(serverErrorMsg))
+        .when(itemService)
+        .deleteItem(
+            anyInt(),
+            eq(itemId));
     mockMvc.perform(delete("/api/item")
         .param("item_id", itemId.toString()))
         .andExpect(status().isInternalServerError())

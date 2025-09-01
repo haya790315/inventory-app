@@ -96,8 +96,10 @@ public class ItemService {
 
     // 編集したい名前は他のアイテムに重複かをチェック
     List<Item> sameNamed = items.stream()
-        .filter(i -> i.getName().equals(itemRequest.getName()) &&
-            !i.getId().equals(itemId))
+        .filter(
+            i -> i.getName()
+                .equals(itemRequest.getName()) &&
+                !i.getId().equals(itemId))
         .toList();
     if (!sameNamed.isEmpty()) {
       throw new IllegalArgumentException("アイテム名は既に登録されています");
@@ -113,10 +115,11 @@ public class ItemService {
       Integer userId,
       UUID itemId) {
     // 自分とデフォルトのカテゴリーアイテムを取得
-    Optional<Item> itemsOpt = itemRepository.getActiveItemWithId(List.of(userId, systemUserId),
-        itemId);
+    Optional<Item> itemsOpt = itemRepository
+        .getActiveItemWithId(List.of(userId, systemUserId), itemId);
+
     if (itemsOpt.isEmpty()) {
-      throw new ResponseStatusException(HttpStatus.NOT_FOUND, "アイテムが見つかりません");
+      throw new ResponseStatusException(HttpStatus.NOT_FOUND, itemsNotFoundMsg);
     }
 
     Item item = itemsOpt.get();

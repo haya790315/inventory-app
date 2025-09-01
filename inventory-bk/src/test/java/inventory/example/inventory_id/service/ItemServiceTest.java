@@ -345,8 +345,10 @@ class ItemServiceTest {
     item.setId(itemId);
     item.setUserId(userId);
 
-    when(itemRepository.getActiveItemWithId(List.of(userId, defaultSystemUserId), itemId))
+    when(itemRepository
+        .getActiveItemWithId(List.of(userId, defaultSystemUserId), itemId))
         .thenReturn(Optional.of(item));
+
     when(itemRepository.save(any(Item.class))).thenReturn(item);
 
     assertDoesNotThrow(() -> itemService.deleteItem(userId, itemId));
@@ -360,9 +362,12 @@ class ItemServiceTest {
   void testDeleteItemNotFound() {
     int userId = defaultUserId;
     UUID itemId = UUID.randomUUID();
-    when(itemRepository.getActiveItemWithId(List.of(userId, defaultSystemUserId), itemId))
+    when(itemRepository
+        .getActiveItemWithId(List.of(userId, defaultSystemUserId), itemId))
         .thenReturn(Optional.empty());
-    Exception ex = assertThrows(ResponseStatusException.class, () -> itemService.deleteItem(userId, itemId));
+
+    Exception ex = assertThrows(ResponseStatusException.class,
+        () -> itemService.deleteItem(userId, itemId));
     assertEquals("アイテムが見つかりません", ((ResponseStatusException) ex).getReason());
   }
 
@@ -378,7 +383,8 @@ class ItemServiceTest {
     when(itemRepository.getActiveItemWithId(anyList(), any(UUID.class)))
         .thenThrow(new DataAccessException("DB error") {
         });
-    Exception ex = assertThrows(DataAccessException.class, () -> itemService.deleteItem(userId, itemId));
+    Exception ex = assertThrows(DataAccessException.class,
+        () -> itemService.deleteItem(userId, itemId));
     assertEquals("DB error", ex.getMessage());
   }
 
@@ -392,12 +398,15 @@ class ItemServiceTest {
     item.setId(itemId);
     item.setUserId(userId);
 
-    when(itemRepository.getActiveItemWithId(List.of(userId, defaultSystemUserId), itemId))
+    when(itemRepository
+        .getActiveItemWithId(List.of(userId, defaultSystemUserId), itemId))
         .thenReturn(Optional.of(item));
-    when(itemRepository.save(any(Item.class))).thenThrow(new DataAccessException("DB エラー") {
-    });
+    when(itemRepository.save(any(Item.class)))
+        .thenThrow(new DataAccessException("DB エラー") {
+        });
 
-    Exception ex = assertThrows(DataAccessException.class, () -> itemService.deleteItem(userId, itemId));
+    Exception ex = assertThrows(DataAccessException.class,
+        () -> itemService.deleteItem(userId, itemId));
     assertEquals("DB エラー", ex.getMessage());
   }
 }
