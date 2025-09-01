@@ -39,9 +39,7 @@ class ItemServiceTest {
   private ItemService itemService;
 
   private String categoryNotFoundMsg = "カテゴリーが見つかりません";
-
   private String itemsNotFoundMsg = "アイテムが見つかりません";
-
   private int defaultUserId = 111;
 
   private int defaultSystemUserId = 999;
