@@ -7,7 +7,6 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -54,6 +53,7 @@ class ItemServiceTest {
   }
 
   @Test
+  @Tag("createItem")
   @DisplayName("アイテム作成成功")
   void testCreateItemSuccess() {
     int userId = defaultUserId;
@@ -66,10 +66,7 @@ class ItemServiceTest {
     category.setUserId(userId);
     category.setItems(new ArrayList<>());
 
-    ItemRequest request = new ItemRequest();
-    request.setName(itemName);
-    request.setQuantity(quantity);
-    request.setCategoryName(categoryName);
+    ItemRequest request = new ItemRequest(itemName, categoryName, quantity);
 
     when(categoryRepository.findActiveCateByName(List.of(userId, systemUserId), categoryName))
         .thenReturn(List.of(category));
@@ -81,16 +78,14 @@ class ItemServiceTest {
   }
 
   @Test
-  @DisplayName("アイテム作成失敗 - カテゴリーが見つからない")
+  @Tag("createItem")
+  @DisplayName("アイテム作成失敗- カテゴリーが見つからない")
   void testCreateItemCategoryNotFound() {
     int userId = defaultUserId;
     int systemUserId = defaultSystemUserId;
     String categoryName = "Books";
 
-    ItemRequest request = new ItemRequest();
-    request.setName("Notebook");
-    request.setQuantity(5);
-    request.setCategoryName(categoryName);
+    ItemRequest request = new ItemRequest("Notebook", categoryName, 5);
 
     when(categoryRepository.findActiveCateByName(List.of(userId, systemUserId), categoryName))
         .thenReturn(List.of());
@@ -100,6 +95,7 @@ class ItemServiceTest {
   }
 
   @Test
+  @Tag("createItem")
   @DisplayName("アイテム作成失敗 - 同じ名前のアイテムが存在する")
   void testCreateItemAlreadyExists() {
     int userId = defaultUserId;
@@ -110,20 +106,73 @@ class ItemServiceTest {
     Category category = new Category(categoryName);
     category.setUserId(userId);
 
-    Item existingItem = new Item();
-    existingItem.setName(itemName);
+    Item existingItem = new Item(itemName);
+
     category.setItems(List.of(existingItem));
 
-    ItemRequest request = new ItemRequest();
-    request.setName(itemName);
-    request.setQuantity(5);
-    request.setCategoryName(categoryName);
+    ItemRequest request = new ItemRequest(itemName, categoryName, 5);
 
     when(categoryRepository.findActiveCateByName(List.of(userId, systemUserId), categoryName))
         .thenReturn(List.of(category));
 
-    Exception ex = assertThrows(IllegalArgumentException.class, () -> itemService.createItem(userId, request));
-    assertEquals("そのアイテム名は既に登録されています", ex.getMessage());
+    ResponseStatusException ex = assertThrows(ResponseStatusException.class,
+        () -> itemService.createItem(userId, request));
+    assertEquals(String.format("アイテム名 '%s' は既に存在します", itemName), ex.getReason());
+  }
+
+  @Test
+  @Tag("createItem")
+  @DisplayName("アイテム作成 - 同じ名前のアイテムが存在するが削除フラグが立っている場合")
+  void testCreateItemThatHasDeletedFlag() {
+    int userId = defaultUserId;
+    int systemUserId = defaultSystemUserId;
+    String categoryName = "Laptop";
+    String itemName = "Notebook";
+
+    Category category = new Category(categoryName);
+    category.setUserId(userId);
+
+    Item existingItem = new Item();
+    existingItem.setName(itemName);
+    existingItem.setDeletedFlag(true);
+
+    category.setItems(new ArrayList<>(List.of(existingItem)));
+
+    ItemRequest request = new ItemRequest(itemName, categoryName, 5);
+
+    when(categoryRepository.findActiveCateByName(List.of(userId, systemUserId), categoryName))
+        .thenReturn(List.of(category));
+
+    assertDoesNotThrow(() -> itemService.createItem(userId, request));
+    verify(categoryRepository).save(any(Category.class));
+  }
+
+  @Test
+  @Tag("createItem")
+  @DisplayName("アイテム作成 - 名前が違うアイテムが存在するが削除フラグが立っている場合")
+  void testCreateItemThatHasDeletedFlagButDifferentName() {
+    int userId = defaultUserId;
+    int systemUserId = defaultSystemUserId;
+    String categoryName = "Laptop";
+    String itemName = "Notebook";
+    String differentItemName = "Tablet";
+
+    Category category = new Category(categoryName);
+    category.setUserId(userId);
+
+    Item existingItem = new Item();
+    existingItem.setName(differentItemName);
+    existingItem.setDeletedFlag(true);
+
+    category.setItems(new ArrayList<>(List.of(existingItem)));
+
+    ItemRequest request = new ItemRequest(itemName, categoryName, 5);
+
+    when(categoryRepository.findActiveCateByName(List.of(userId, systemUserId), categoryName))
+        .thenReturn(List.of(category));
+
+    assertDoesNotThrow(() -> itemService.createItem(userId, request));
+    verify(categoryRepository).save(any(Category.class));
   }
 
   @Test

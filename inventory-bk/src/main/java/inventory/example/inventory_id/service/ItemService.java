@@ -1,8 +1,6 @@
 package inventory.example.inventory_id.service;
 
-import java.util.Comparator;
 import java.util.List;
-import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -32,7 +30,9 @@ public class ItemService {
 
   private String itemsNotFoundMsg = "アイテムが見つかりません";
 
-  public void createItem(Integer userId, ItemRequest itemRequest) {
+  public void createItem(
+      Integer userId,
+      ItemRequest itemRequest) {
 
     List<Category> categoryList = categoryRepository.findActiveCateByName(List.of(userId, systemUserId),
         itemRequest.getCategoryName());
@@ -42,19 +42,21 @@ public class ItemService {
     }
     Category cate = categoryList.get(0);
 
-    // 同じ名前のアイテムが存在するかをチェック
-    Optional<Item> existingItemOpt = cate.getItems().stream()
-        .filter(i -> i.getName().equals(itemRequest.getName()))
-        .findFirst();
+    // 同じ名前のアイテムが存在し、削除されていない場合はエラーを投げる
+    cate.getItems().stream()
+        .filter(i -> i.getName().equals(itemRequest.getName()) && !i.isDeletedFlag())
+        .findAny()
+        .ifPresent(i -> {
+          throw new ResponseStatusException(HttpStatus.CONFLICT,
+              String.format("アイテム名 '%s' は既に存在します", itemRequest.getName()));
+        });
 
-    if (existingItemOpt.isPresent()) {
-      throw new IllegalArgumentException("そのアイテム名は既に登録されています");
-    }
-    Item item = new Item();
-    item.setName(itemRequest.getName());
-    item.setUserId(userId);
-    item.setCategory(cate);
-    item.setQuantity(itemRequest.getQuantity());
+    Item item = new Item(
+        itemRequest.getName(),
+        userId,
+        cate,
+        itemRequest.getQuantity(),
+        false);
     cate.getItems().add(item);
     categoryRepository.save(cate);
   }
