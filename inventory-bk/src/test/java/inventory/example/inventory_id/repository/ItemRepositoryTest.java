@@ -1,7 +1,6 @@
 package inventory.example.inventory_id.repository;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -10,46 +9,90 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
+import org.springframework.test.context.ActiveProfiles;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import inventory.example.inventory_id.model.Category;
 import inventory.example.inventory_id.model.Item;
 
 @DataJpaTest
-class ItemRepositoryTest {
-
+@ActiveProfiles("test")
+public class ItemRepositoryTest {
   @Autowired
   private ItemRepository itemRepository;
-
   @Autowired
   private CategoryRepository categoryRepository;
 
+  private int userId = 111;
+
+  private int systemUserId = 999;
+
   @Test
-  @DisplayName("findByUserIdInAndCategory_Name 正しいアイテムを取得できる")
-  void testFindByUserIdInAndCategoryName() {
-    // カテゴリのセットアップ
-    Category category = new Category();
-    category.setName("Laptop");
-    category.setUserId(123);
-    categoryRepository.save(category);
+  @DisplayName("アクティブなアイテムをカテゴリ名で取得")
+  public void testGetActiveByCategoryName() {
+    Category categoryPc = new Category("pc");
+    categoryPc.setUserId(systemUserId);
+    categoryRepository.save(categoryPc);
+    Item existedNotebook = new Item(
+        "Notebook",
+        userId,
+        categoryPc,
+        10,
+        false);
+    existedNotebook.setUpdatedAt(LocalDateTime.now().minusDays(1));
+    itemRepository.save(existedNotebook);
+    Item existedDesktop = new Item("Desktop",
+        userId,
+        categoryPc,
+        5,
+        false);
+    existedDesktop.setUpdatedAt(LocalDateTime.now());
+    itemRepository.save(existedDesktop);
 
-    // アイテムのセットアップ
-    Item item = new Item();
-    item.setName("Notebook");
-    item.setUserId(123);
-    item.setCategory(category);
-    item.setQuantity(5);
-    itemRepository.save(item);
+    Item deletedMonitor = new Item(
+        "Monitor",
+        userId,
+        categoryPc,
+        1,
+        true);
+    itemRepository.save(deletedMonitor);
 
-    Optional<List<Item>> result = itemRepository.findByUserIdInAndCategory_Name(List.of(123), "Laptop");
-    assertThat(result).isPresent();
-    assertThat(result.get()).hasSize(1);
-    assertThat(result.get().get(0).getName()).isEqualTo("Notebook");
-    assertThat(result.get().get(0).getCategoryName()).isEqualTo("Laptop");
+    Item anotherUserItem = new Item(
+        "Tablet",
+        222,
+        categoryPc,
+        3,
+        false);
+    itemRepository.save(anotherUserItem);
+
+    List<Item> result = itemRepository.getActiveByCategoryName(List.of(userId, systemUserId), "pc");
+
+    assertThat(result).hasSize(2);
+    // 順番確認
+    assertThat(result.get(0)
+        .getUpdatedAt()).isAfter(result.get(1).getUpdatedAt());
+    // 各アイテムの名前確認
+    assertThat(result.get(0)
+        .getName()).isEqualTo("Desktop");
+    assertThat(result.get(1)
+        .getName()).isEqualTo("Notebook");
+    // 削除フラグが立っていないこと確認
+    assertThat(result.get(0)
+        .isDeletedFlag()).isFalse();
+    assertThat(result.get(1)
+        .isDeletedFlag()).isFalse();
   }
 
   @Test
-  @DisplayName("findByUserIdInAndIdAndDeletedFlagFalse 正しいアイテムを取得できる")
-  void testFindByUserIdInAndIdAndDeletedFlagFalse() {
+  @DisplayName("アクティブなアイテムをカテゴリ名で取得（テストゼロ件）")
+  public void testGetActiveByCategoryNameWithZeroResult() {
+    List<Item> result = itemRepository.getActiveByCategoryName(List.of(userId, systemUserId), "nonexistent");
+    assertThat(result).isEmpty();
+  }
+
+  @Test
+  @DisplayName("getActiveItemWithId 正しいアイテムを取得できる")
+  void testGetActiveItemWithId() {
     // カテゴリのセットアップ
     Category category = new Category();
     category.setName("Laptop");
@@ -57,39 +100,43 @@ class ItemRepositoryTest {
     categoryRepository.save(category);
 
     // ユーザ1アイテムのセットアップ
-    Item item = new Item();
-    item.setName("Notebook");
-    item.setUserId(123);
-    item.setCategory(category);
-    item.setQuantity(5);
-    itemRepository.save(item);
+    Item existedItem = new Item();
+    existedItem.setName("Notebook");
+    existedItem.setUserId(123);
+    existedItem.setCategory(category);
+    existedItem.setQuantity(5);
+    itemRepository.save(existedItem);
 
     // ユーザ2アイテムのセットアップ
-    Item item2 = new Item();
-    item2.setName("Macbook");
-    item2.setUserId(123);
-    item2.setCategory(category);
-    item2.setQuantity(1);
-    item2.setDeletedFlag(true);
-    itemRepository.save(item2);
+    Item notExitedItem = new Item();
+    notExitedItem.setName("Macbook");
+    notExitedItem.setUserId(123);
+    notExitedItem.setCategory(category);
+    notExitedItem.setQuantity(1);
+    notExitedItem.setDeletedFlag(true);
+    itemRepository.save(notExitedItem);
 
-    Item item3 = new Item();
-    item3.setName("Notebook");
-    item3.setUserId(321);
-    item3.setCategory(category);
-    item3.setQuantity(10);
-    itemRepository.save(item3);
+    Item differUserItem = new Item();
+    differUserItem.setName("Notebook");
+    differUserItem.setUserId(321);
+    differUserItem.setCategory(category);
+    differUserItem.setQuantity(10);
+    itemRepository.save(differUserItem);
 
-    Optional<Item> result = itemRepository.getActiveItemWithId(List.of(123, 999), item.getId());
-    assertThat(result).isPresent();
-    assertThat(result.get().getName()).isEqualTo("Notebook");
-    assertThat(result.get().getCategoryName()).isEqualTo("Laptop");
-    assertThat(result.get().getQuantity()).isEqualTo(5);
+    Optional<Item> resultExisted = itemRepository.getActiveItemWithId(List.of(123, 999), existedItem.getId());
+    assertThat(resultExisted).isPresent();
+    assertThat(resultExisted.get().getName()).isEqualTo("Notebook");
+    assertThat(resultExisted.get().getCategoryName()).isEqualTo("Laptop");
+    assertThat(resultExisted.get().getQuantity()).isEqualTo(5);
+    assertThat(resultExisted.get().isDeletedFlag()).isFalse();
+
+    Optional<Item> resultNotExisted = itemRepository.getActiveItemWithId(List.of(123, 999), notExitedItem.getId());
+    assertThat(resultNotExisted).isEmpty();
   }
 
   @Test
-  @DisplayName("findByUserIdInAndIdAndDeletedFlagFalse 存在しない場合は空")
-  void testFindByUserIdInAndIdAndDeletedFlagFalseNotFound() {
+  @DisplayName("getActiveItemWithId（テストゼロ件）")
+  void testGetActiveItemWithIdNotFound() {
     Optional<Item> result = itemRepository.getActiveItemWithId(List.of(999), UUID.randomUUID());
     assertThat(result).isEmpty();
   }

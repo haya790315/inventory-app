@@ -25,70 +25,88 @@ public class CategoryService {
   @Value("${system.userid}")
   private int systemUserId;
 
+  private String categoryNotFoundMsg = "カテゴリーが見つかりません";
+
   public List<CategoryDto> getAllCategories(int userId) {
     // ユーザとデフォルトのカテゴリを取得
-    return categoryRepository.findByUserIdIn(List.of(userId, systemUserId)).stream()
+    return categoryRepository.findNotDeleted(List.of(userId, systemUserId)).stream()
         .sorted(Comparator.comparing(Category::getName))
-        .map(category -> new CategoryDto(category.getName(), category.getItems()))
+        .map(category -> new CategoryDto(category.getName()))
         .toList();
   }
 
-  public Optional<List<Item>> getCategoryItems(int userId, UUID categoryId) {
-    Optional<Category> category = categoryRepository.findByUserIdAndId(userId, categoryId);
-    if (category.isPresent()) {
-      return Optional.of(category.get().getItems());
-    }
-    return Optional.empty();
+  public List<Item> getCategoryItems(int userId, UUID categoryId) {
+    List<Category> categories = categoryRepository.findNotDeleted(List.of(userId, systemUserId));
+    return categories.stream()
+        .filter(category -> category.getId().equals(categoryId))
+        .findFirst()
+        .map(Category::getItems)
+        .orElse(List.of()); // アイテムが見つからない場合は空リストを返す
   }
 
   public Category createCategory(CategoryRequest categoryRequest, int userId) {
 
-    // ユーザのカテゴリ数を確認,50以上は登録不可
-    if (categoryRepository.countByUserIdAndDeletedFlagFalse(userId) >= 50) {
-      throw new ResponseStatusException(HttpStatus.CONFLICT, "登録できるカテゴリの上限に達しています");
+    List<Category> categoryList = categoryRepository.findNotDeleted(List.of(userId, systemUserId));
+
+    List<Category> userCategories = categoryList.stream()
+        .filter(category -> category.getUserId() == userId)
+        .toList();
+
+    // ユーザカテゴリーの上限は50件まで
+    if (userCategories.size() >= 50) {
+      throw new ResponseStatusException(HttpStatus.CONFLICT,
+          "登録できるカテゴリの上限に達しています");
     }
-    // カテゴリー名の重複チェック
-    if (categoryRepository.existsByUserIdAndName(userId, categoryRequest.getName())) {
-      Optional<Category> existing = categoryRepository.findByUserIdAndName(userId, categoryRequest.getName());
-      if (existing.isPresent() && existing.get().isDeletedFlag()) {
-        // カテゴリーが存在し、削除フラグが立っている場合は復活させる
-        existing.get().setDeletedFlag(false);
-        return categoryRepository.save(existing.get());
-      }
+    boolean isNameExist = categoryList.stream()
+        .anyMatch(category -> category.getName().equals(categoryRequest.getName()));
+    if (isNameExist) {
       throw new ResponseStatusException(HttpStatus.CONFLICT, "カテゴリー名はすでに存在します");
     }
+
     Category category = new Category(categoryRequest.getName());
     category.setUserId(userId);
     return categoryRepository.save(category);
   }
 
   public Category updateCategory(UUID categoryId, CategoryRequest categoryRequest, int userId) {
-    Optional<Category> categoryOpt = categoryRepository.findByUserIdAndId(userId, categoryId);
+    Optional<Category> categoryOpt = categoryRepository.findUserCategory(List.of(userId, systemUserId), categoryId);
     if (!categoryOpt.isPresent()) {
-      throw new IllegalArgumentException("カテゴリーが見つかりません");
+      throw new IllegalArgumentException(categoryNotFoundMsg);
     }
     Category category = categoryOpt.get();
     if (category.getUserId() != userId) {
       throw new IllegalArgumentException("デフォルトカテゴリは編集できません");
     }
+    List<Category> exsitCategory = categoryRepository
+        .findActiveCateByName(List.of(userId, systemUserId), categoryRequest.getName());
+
+    if (!exsitCategory.isEmpty()) {
+      throw new ResponseStatusException(HttpStatus.CONFLICT, "カテゴリー名はすでに存在します");
+    }
+
     category.setName(categoryRequest.getName());
     return categoryRepository.save(category);
   }
 
   public void deleteCategory(UUID id, int userId) {
-    Optional<Category> categoryOpt = categoryRepository.findByUserIdAndId(userId, id);
-    if (categoryOpt.isPresent()) {
-      Category category = categoryOpt.get();
-      if (category.getUserId() != userId) {
-        throw new IllegalArgumentException("デフォルトカテゴリは削除できません");
-      }
-      if (category.getItems() == null || category.getItems().isEmpty()) {
-        // アイテムが存在しない場合のみ削除フラグを立てる
-        category.setDeletedFlag(true);
-        categoryRepository.save(category);
-      } else {
-        throw new IllegalArgumentException("アイテムが存在するため削除できません");
-      }
+    List<Category> categoryList = categoryRepository.findNotDeleted(List.of(userId, systemUserId));
+    if (categoryList.isEmpty()) {
+      throw new ResponseStatusException(HttpStatus.NOT_FOUND, categoryNotFoundMsg);
+    }
+    Category category = categoryList.stream()
+        .filter(cat -> cat.getId().equals(id))
+        .findFirst()
+        .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, categoryNotFoundMsg));
+
+    if (category.getUserId() != userId) {
+      throw new IllegalArgumentException("デフォルトカテゴリは削除できません");
+    }
+    if (category.getItems().isEmpty()) {
+      // アイテムが存在しない場合のみ削除フラグを立てる
+      category.setDeletedFlag(true);
+      categoryRepository.save(category);
+    } else {
+      throw new IllegalArgumentException("アイテムが存在するため削除できません");
     }
   }
 }
