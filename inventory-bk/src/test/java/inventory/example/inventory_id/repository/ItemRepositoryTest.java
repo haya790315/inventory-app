@@ -80,4 +80,11 @@ public class ItemRepositoryTest {
     assertThat(result.get(1)
         .isDeletedFlag()).isFalse();
   }
+
+  @Test
+  @DisplayName("アクティブなアイテムをカテゴリ名で取得（テストゼロ件）")
+  public void testGetActiveByCategoryNameWithZeroResult() {
+    List<Item> result = itemRepository.getActiveByCategoryName(List.of(userId, systemUserId), "nonexistent");
+    assertThat(result).isEmpty();
+  }
 }
