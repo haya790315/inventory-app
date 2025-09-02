@@ -228,16 +228,10 @@ class ItemServiceTest {
     int newQuantity = 5;
     UUID itemId = UUID.randomUUID();
 
-    Item existingItem = new Item();
+    Item existingItem = new Item("OldName", defaultUserId, null, 1, false);
     existingItem.setId(itemId);
-    existingItem.setUserId(defaultUserId);
-    existingItem.setName("OldName");
-    existingItem.setQuantity(1);
 
-    ItemRequest request = new ItemRequest();
-    request.setName(newItemName);
-    request.setQuantity(newQuantity);
-    request.setCategoryName(categoryName);
+    ItemRequest request = new ItemRequest(newItemName, categoryName, newQuantity);
 
     List<Item> items = new ArrayList<>();
     items.add(existingItem);
@@ -261,18 +255,13 @@ class ItemServiceTest {
     String categoryName = "Laptop";
     UUID itemId = UUID.randomUUID();
 
-    Item item1 = new Item();
+    Item item1 = new Item("Notebook");
     item1.setId(itemId);
-    item1.setName("Notebook");
 
-    Item item2 = new Item();
+    Item item2 = new Item("Notebook");
     item2.setId(UUID.randomUUID());
-    item2.setName("Notebook");
 
-    ItemRequest request = new ItemRequest();
-    request.setName("Notebook");
-    request.setQuantity(10);
-    request.setCategoryName(categoryName);
+    ItemRequest request = new ItemRequest("Notebook", categoryName, 10);
 
     List<Item> items = List.of(item1, item2);
     when(itemRepository.getActiveByCategoryName(List.of(userId, systemUserId), categoryName))
@@ -292,10 +281,7 @@ class ItemServiceTest {
     String categoryName = "Laptop";
     UUID itemId = UUID.randomUUID();
 
-    ItemRequest request = new ItemRequest();
-    request.setName("Notebook");
-    request.setQuantity(10);
-    request.setCategoryName(categoryName);
+    ItemRequest request = new ItemRequest("Notebook", categoryName, 10);
 
     when(itemRepository.getActiveByCategoryName(List.of(userId, systemUserId), categoryName))
         .thenReturn(List.of());
@@ -313,16 +299,12 @@ class ItemServiceTest {
     int systemUserId = defaultSystemUserId;
     String categoryName = "Laptop";
     UUID itemId = UUID.randomUUID();
+    Category category = new Category(categoryName);
 
-    ItemRequest request = new ItemRequest();
-    request.setName("Notebook");
-    request.setQuantity(10);
-    request.setCategoryName(categoryName);
+    ItemRequest request = new ItemRequest("Notebook", categoryName, 10);
 
-    Item existingItem = new Item();
+    Item existingItem = new Item("Notebook", userId, category, 5, false);
     existingItem.setId(UUID.randomUUID());
-    existingItem.setName("Notebook");
-    existingItem.setQuantity(5);
 
     when(itemRepository
         .getActiveByCategoryName(List.of(userId, systemUserId), categoryName))
