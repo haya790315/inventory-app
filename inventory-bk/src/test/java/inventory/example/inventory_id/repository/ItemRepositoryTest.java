@@ -94,31 +94,18 @@ public class ItemRepositoryTest {
   @DisplayName("getActiveItemWithId 正しいアイテムを取得できる")
   void testGetActiveItemWithId() {
     // カテゴリのセットアップ
-    Category category = new Category();
-    category.setName("Laptop");
-    category.setUserId(999);
+    Category category = new Category("Laptop", 999);
     categoryRepository.save(category);
 
     // ユーザ1アイテムのセットアップ
-    Item existedItem = new Item();
-    existedItem.setName("Notebook");
-    existedItem.setUserId(123);
-    existedItem.setCategory(category);
-    existedItem.setQuantity(5);
+    Item existedItem = new Item("Notebook", 123, category, 5, false);
     itemRepository.save(existedItem);
 
     // ユーザ2アイテムのセットアップ
-    Item notExitedItem = new Item();
-    notExitedItem.setName("Macbook");
-    notExitedItem.setUserId(123);
-    notExitedItem.setCategory(category);
-    notExitedItem.setQuantity(1);
-    notExitedItem.setDeletedFlag(true);
+    Item notExitedItem = new Item("Macbook", 123, category, 1, true);
     itemRepository.save(notExitedItem);
 
-    Item differUserItem = new Item();
-    differUserItem.setName("Notebook");
-    differUserItem.setUserId(321);
+    Item differUserItem = new Item("Notebook", 321, category, 10, false);
     differUserItem.setCategory(category);
     differUserItem.setQuantity(10);
     itemRepository.save(differUserItem);
