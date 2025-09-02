@@ -87,25 +87,25 @@ public class ItemService {
         List.of(userId, systemUserId),
         itemRequest.getCategoryName());
     // 編集したいアイテムを取得
-    Optional<Item> match = items.stream()
+    Optional<Item> matchItem = items.stream()
         .filter(i -> i.getId().equals(itemId))
         .findFirst();
-    if (match.isEmpty()) {
+    if (matchItem.isEmpty()) {
       throw new ResponseStatusException(HttpStatus.NOT_FOUND, itemsNotFoundMsg);
     }
 
     // 編集したい名前は他のアイテムに重複かをチェック
-    List<Item> sameNamed = items.stream()
+    List<Item> sameNamedItem = items.stream()
         .filter(
             i -> i.getName()
                 .equals(itemRequest.getName()) &&
                 !i.getId().equals(itemId))
         .toList();
-    if (!sameNamed.isEmpty()) {
+    if (!sameNamedItem.isEmpty()) {
       throw new IllegalArgumentException("アイテム名は既に登録されています");
     }
 
-    Item item = match.get();
+    Item item = matchItem.get();
     item.setName(itemRequest.getName());
     item.setQuantity(itemRequest.getQuantity());
     itemRepository.save(item);

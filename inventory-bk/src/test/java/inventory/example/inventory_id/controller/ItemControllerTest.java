@@ -115,9 +115,7 @@ class ItemControllerTest {
   @Tag("POST: /api/item")
   @DisplayName("アイテム作成-400 Bad Request アイテム名入力がない")
   void createItem_badRequest_itemNameMissing() throws Exception {
-    ItemRequest req = new ItemRequest();
-    req.setCategoryName("category");
-    req.setQuantity(1);
+    ItemRequest req = new ItemRequest("", "category", 1);
     mockMvc.perform(post("/api/item")
         .contentType(MediaType.APPLICATION_JSON)
         .content(objectMapper.writeValueAsString(req)))
@@ -129,9 +127,7 @@ class ItemControllerTest {
   @Tag("POST: /api/item")
   @DisplayName("アイテム作成-400 Bad Request カテゴリー名入力がない")
   void createItem_badRequest_categoryNameMissing() throws Exception {
-    ItemRequest req = new ItemRequest();
-    req.setName("itemName");
-    req.setQuantity(1);
+    ItemRequest req = new ItemRequest("test", "", 1);
     mockMvc.perform(post("/api/item")
         .contentType(MediaType.APPLICATION_JSON)
         .content(objectMapper.writeValueAsString(req)))
@@ -217,10 +213,7 @@ class ItemControllerTest {
   @DisplayName("アイテム更新-200 OK")
   void updateItem_success() throws Exception {
     UUID itemId = UUID.randomUUID();
-    ItemRequest req = new ItemRequest();
-    req.setName("itemName");
-    req.setCategoryName("category");
-    req.setQuantity(1);
+    ItemRequest req = new ItemRequest("itemName", "category", 1);
     doNothing().when(itemService).updateItem(anyInt(), eq(itemId), any(ItemRequest.class));
     mockMvc.perform(put("/api/item")
         .param("item_id", itemId.toString())
@@ -235,10 +228,7 @@ class ItemControllerTest {
   @DisplayName("アイテム更新-404 Not Found アイテムが見つかりません")
   void updateItem_notFound() throws Exception {
     UUID itemId = UUID.randomUUID();
-    ItemRequest req = new ItemRequest();
-    req.setName("itemName");
-    req.setCategoryName("category");
-    req.setQuantity(1);
+    ItemRequest req = new ItemRequest("itemName", "category", 1);
     doThrow(new ResponseStatusException(HttpStatus.NOT_FOUND, itemNotFoundMsg))
         .when(itemService).updateItem(
             anyInt(),
@@ -257,10 +247,7 @@ class ItemControllerTest {
   @DisplayName("アイテム更新-400 Bad Request アイテム名は既に登録されています")
   void updateItem_badRequest() throws Exception {
     UUID itemId = UUID.randomUUID();
-    ItemRequest req = new ItemRequest();
-    req.setName("itemName");
-    req.setCategoryName("category");
-    req.setQuantity(1);
+    ItemRequest req = new ItemRequest("itemName", "category", 1);
     doThrow(new ResponseStatusException(HttpStatus.BAD_REQUEST, "アイテム名は既に登録されています"))
         .when(itemService)
         .updateItem(
@@ -280,9 +267,7 @@ class ItemControllerTest {
   @DisplayName("アイテム更新-400 Bad Request アイテム名がない")
   void updateItem_badRequest_itemNameMissed() throws Exception {
     UUID itemId = UUID.randomUUID();
-    ItemRequest req = new ItemRequest();
-    req.setCategoryName("category");
-    req.setQuantity(1);
+    ItemRequest req = new ItemRequest("", "category", 1);
     mockMvc.perform(put("/api/item")
         .param("item_id", itemId.toString())
         .contentType(MediaType.APPLICATION_JSON)
@@ -296,9 +281,7 @@ class ItemControllerTest {
   @DisplayName("アイテム更新-400 Bad Request カテゴリ名がない")
   void updateItem_badRequest_categoryNameMissed() throws Exception {
     UUID itemId = UUID.randomUUID();
-    ItemRequest req = new ItemRequest();
-    req.setName("itemName");
-    req.setQuantity(1);
+    ItemRequest req = new ItemRequest("itemName", "", 1);
     mockMvc.perform(put("/api/item")
         .param("item_id", itemId.toString())
         .contentType(MediaType.APPLICATION_JSON)
@@ -312,10 +295,7 @@ class ItemControllerTest {
   @DisplayName("アイテム更新-500 サーバーエラー")
   void updateItem_throws500() throws Exception {
     UUID itemId = UUID.randomUUID();
-    ItemRequest req = new ItemRequest();
-    req.setName("itemName");
-    req.setCategoryName("category");
-    req.setQuantity(1);
+    ItemRequest req = new ItemRequest("itemName", "category", 1);
     doThrow(new RuntimeException(serverErrorMsg)).when(itemService).updateItem(
         anyInt(),
         eq(itemId),
