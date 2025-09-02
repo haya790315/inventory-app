@@ -29,7 +29,7 @@ public class FirebaseAuthService {
 
   public String verifyToken(String idToken) throws FirebaseAuthException {
     FirebaseToken token = FirebaseAuth.getInstance().verifyIdToken(idToken);
-    logger.info("Token verified: " + token.getUid());
+    // logger.info("Token verified: " + token.getUid());
     return token.getUid();
   }
 
