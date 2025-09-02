@@ -77,4 +77,12 @@ class ItemRequestValidationTest {
     Set<ConstraintViolation<ItemRequest>> violations = validator.validate(request);
     assertFalse(violations.isEmpty());
   }
+
+  @Test
+  @DisplayName("アイテムリクエストのバリデーション成功 - 名前が50文字")
+  void testNameExactly50Characters() {
+    ItemRequest request = new ItemRequest("A".repeat(50), "category", 1);
+    Set<ConstraintViolation<ItemRequest>> violations = validator.validate(request);
+    assertTrue(violations.isEmpty());
+  }
 }
