@@ -10,12 +10,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 
 import inventory.example.inventory_id.model.Category;
+import inventory.example.inventory_id.model.Item;
 import inventory.example.inventory_id.repository.CategoryRepository;
 
 @Component
 public class DataInitializer implements CommandLineRunner {
   @Autowired
-  private CategoryRepository categoryRepo;
+  private CategoryRepository categoryRepository;
   @Value("${system.userid}")
   private int systemUserId;
 
@@ -27,11 +28,15 @@ public class DataInitializer implements CommandLineRunner {
   private void addDefaultCategories() {
     List<String> categoryNames = Arrays.asList("Children", "Food", "Electronics", "Books", "Kitchen");
     for (String name : categoryNames) {
-      boolean exists = categoryRepo.existsByUserIdAndName(systemUserId, name);
+      boolean exists = categoryRepository.existsByUserIdAndName(systemUserId, name);
       if (!exists) {
         Category category = new Category(name);
         category.setUserId(systemUserId);
-        categoryRepo.save(category);
+        Item item = new Item("default Item");
+        item.setCategory(category);
+        item.setUserId(systemUserId);
+        category.setItems(List.of(item));
+        categoryRepository.save(category);
       }
     }
   }
