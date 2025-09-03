@@ -20,6 +20,7 @@ public interface ItemRepository extends JpaRepository<Item, UUID> {
       JOIN category c ON i.category_id = c.id
       WHERE i.user_id IN (:userIds)
         AND c.name = :categoryName
+        AND c.deleted_flag = FALSE
         AND i.deleted_flag = FALSE
       ORDER BY i.updated_at DESC
       """, nativeQuery = true)
