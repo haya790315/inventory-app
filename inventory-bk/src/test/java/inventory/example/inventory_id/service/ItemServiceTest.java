@@ -70,7 +70,8 @@ class ItemServiceTest {
 
     ItemRequest request = new ItemRequest(itemName, categoryName, quantity);
 
-    when(categoryRepository.findActiveCateByName(List.of(userId, systemUserId), categoryName))
+    when(categoryRepository
+        .findActiveCateByName(List.of(userId, systemUserId), categoryName))
         .thenReturn(List.of(category));
 
     when(categoryRepository.save(any(Category.class))).thenReturn(category);
@@ -89,10 +90,12 @@ class ItemServiceTest {
 
     ItemRequest request = new ItemRequest("Notebook", categoryName, 5);
 
-    when(categoryRepository.findActiveCateByName(List.of(userId, systemUserId), categoryName))
+    when(categoryRepository
+        .findActiveCateByName(List.of(userId, systemUserId), categoryName))
         .thenReturn(List.of());
 
-    Exception ex = assertThrows(IllegalArgumentException.class, () -> itemService.createItem(userId, request));
+    Exception ex = assertThrows(IllegalArgumentException.class,
+        () -> itemService.createItem(userId, request));
     assertEquals(categoryNotFoundMsg, ex.getMessage());
   }
 
@@ -114,7 +117,9 @@ class ItemServiceTest {
 
     ItemRequest request = new ItemRequest(itemName, categoryName, 5);
 
-    when(categoryRepository.findActiveCateByName(List.of(userId, systemUserId), categoryName))
+    when(categoryRepository
+        .findActiveCateByName(List.of(userId,
+            systemUserId), categoryName))
         .thenReturn(List.of(category));
 
     ResponseStatusException ex = assertThrows(ResponseStatusException.class,
@@ -142,7 +147,8 @@ class ItemServiceTest {
 
     ItemRequest request = new ItemRequest(itemName, categoryName, 5);
 
-    when(categoryRepository.findActiveCateByName(List.of(userId, systemUserId), categoryName))
+    when(categoryRepository
+        .findActiveCateByName(List.of(userId, systemUserId), categoryName))
         .thenReturn(List.of(category));
 
     assertDoesNotThrow(() -> itemService.createItem(userId, request));
@@ -169,7 +175,9 @@ class ItemServiceTest {
     category.setItems(new ArrayList<>(List.of(existingItem)));
 
     ItemRequest request = new ItemRequest(itemName, categoryName, 5);
-    when(categoryRepository.findActiveCateByName(List.of(userId, systemUserId), categoryName))
+
+    when(categoryRepository
+        .findActiveCateByName(List.of(userId, systemUserId), categoryName))
         .thenReturn(List.of(category));
 
     assertDoesNotThrow(() -> itemService.createItem(userId, request));
@@ -187,9 +195,19 @@ class ItemServiceTest {
     Category category = new Category(categoryName);
     category.setUserId(userId);
 
-    Item notebook = new Item("Notebook", userId, category, 5, false);
+    Item notebook = new Item(
+        "Notebook",
+        userId,
+        category,
+        5,
+        false);
 
-    Item desktop = new Item("Desktop", userId, category, 10, false);
+    Item desktop = new Item(
+        "Desktop",
+        userId,
+        category,
+        10,
+        false);
 
     category.setItems(List.of(notebook, desktop));
 
@@ -230,7 +248,12 @@ class ItemServiceTest {
     int newQuantity = 5;
     UUID itemId = UUID.randomUUID();
 
-    Item existingItem = new Item("OldName", defaultUserId, null, 1, false);
+    Item existingItem = new Item(
+        "OldName",
+        defaultUserId,
+        null,
+        1,
+        false);
     existingItem.setId(itemId);
 
     ItemRequest request = new ItemRequest(newItemName, categoryName, newQuantity);
@@ -238,7 +261,8 @@ class ItemServiceTest {
     List<Item> items = new ArrayList<>();
     items.add(existingItem);
 
-    when(itemRepository.getActiveByCategoryName(List.of(userId, systemUserId), categoryName))
+    when(itemRepository.getActiveByCategoryName(
+        List.of(userId, systemUserId), categoryName))
         .thenReturn(items);
     when(itemRepository.save(any(Item.class))).thenReturn(existingItem);
 
@@ -257,15 +281,15 @@ class ItemServiceTest {
     String categoryName = "Laptop";
     UUID itemId = UUID.randomUUID();
 
-    Item item1 = new Item("Notebook");
-    item1.setId(itemId);
+    Item userNotebook = new Item("Notebook");
+    userNotebook.setId(itemId);
 
-    Item item2 = new Item("Notebook");
-    item2.setId(UUID.randomUUID());
+    Item diffUserNotebook = new Item("Notebook");
+    diffUserNotebook.setId(UUID.randomUUID());
 
     ItemRequest request = new ItemRequest("Notebook", categoryName, 10);
 
-    List<Item> items = List.of(item1, item2);
+    List<Item> items = List.of(userNotebook, diffUserNotebook);
     when(itemRepository.getActiveByCategoryName(List.of(userId, systemUserId), categoryName))
         .thenReturn(items);
 
@@ -285,7 +309,8 @@ class ItemServiceTest {
 
     ItemRequest request = new ItemRequest("Notebook", categoryName, 10);
 
-    when(itemRepository.getActiveByCategoryName(List.of(userId, systemUserId), categoryName))
+    when(itemRepository
+        .getActiveByCategoryName(List.of(userId, systemUserId), categoryName))
         .thenReturn(List.of());
 
     ResponseStatusException ex = assertThrows(ResponseStatusException.class,
@@ -305,7 +330,11 @@ class ItemServiceTest {
 
     ItemRequest request = new ItemRequest("Notebook", categoryName, 10);
 
-    Item existingItem = new Item("Notebook", userId, category, 5, false);
+    Item existingItem = new Item(
+        "Notebook",
+        userId,
+        category, 5,
+        false);
     existingItem.setId(UUID.randomUUID());
 
     when(itemRepository
