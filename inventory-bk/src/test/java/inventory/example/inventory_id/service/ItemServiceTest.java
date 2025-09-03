@@ -350,7 +350,8 @@ class ItemServiceTest {
 
     Exception ex = assertThrows(ResponseStatusException.class,
         () -> itemService.deleteItem(userId, itemId));
-    assertEquals("アイテムが見つかりません", ((ResponseStatusException) ex).getReason());
+    assertEquals("アイテムが見つかりません",
+        ((ResponseStatusException) ex).getReason());
   }
 
   @Test
