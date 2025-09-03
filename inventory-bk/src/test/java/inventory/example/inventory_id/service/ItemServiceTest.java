@@ -278,15 +278,15 @@ class ItemServiceTest {
     String categoryName = "Laptop";
     UUID itemId = UUID.randomUUID();
 
-    Item item1 = new Item("Notebook");
-    item1.setId(itemId);
+    Item userNotebook = new Item("Notebook");
+    userNotebook.setId(itemId);
 
-    Item item2 = new Item("Notebook");
-    item2.setId(UUID.randomUUID());
+    Item diffUserNotebook = new Item("Notebook");
+    diffUserNotebook.setId(UUID.randomUUID());
 
     ItemRequest request = new ItemRequest("Notebook", categoryName, 10);
 
-    List<Item> items = List.of(item1, item2);
+    List<Item> items = List.of(userNotebook, diffUserNotebook);
     when(itemRepository.getActiveByCategoryName(List.of(userId, systemUserId), categoryName))
         .thenReturn(items);
 
