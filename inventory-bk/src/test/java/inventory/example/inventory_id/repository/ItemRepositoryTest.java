@@ -63,7 +63,9 @@ public class ItemRepositoryTest {
         false);
     itemRepository.save(anotherUserItem);
 
-    List<Item> result = itemRepository.getActiveByCategoryName(List.of(userId, systemUserId), "pc");
+    List<Item> result = itemRepository.getActiveByCategoryName(
+        List.of(userId, systemUserId),
+        "pc");
 
     assertThat(result).hasSize(2);
     // 順番確認
@@ -84,7 +86,22 @@ public class ItemRepositoryTest {
   @Test
   @DisplayName("アクティブなアイテムをカテゴリ名で取得（テストゼロ件）")
   public void testGetActiveByCategoryNameWithZeroResult() {
-    List<Item> result = itemRepository.getActiveByCategoryName(List.of(userId, systemUserId), "nonexistent");
+    List<Item> result = itemRepository.getActiveByCategoryName(
+        List.of(userId, systemUserId),
+        "nonexistent");
+    assertThat(result).isEmpty();
+  }
+
+  @Test
+  @DisplayName("アクティブなアイテムをカテゴリ名で取得失敗（カテゴリーが削除）")
+  public void testGetActiveByCategoryNameWithDeletedCategory() {
+    Category deletedCategory = new Category("deleted", userId);
+    deletedCategory.setDeletedFlag(true);
+    categoryRepository.save(deletedCategory);
+
+    List<Item> result = itemRepository.getActiveByCategoryName(
+        List.of(userId, systemUserId),
+        "deleted");
     assertThat(result).isEmpty();
   }
 }

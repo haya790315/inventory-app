@@ -33,4 +33,9 @@ public class Category {
   public Category(String name) {
     this.name = name;
   }
+
+  public Category(String name, int userId) {
+    this.name = name;
+    this.userId = userId;
+  }
 }
