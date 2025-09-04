@@ -63,9 +63,10 @@ public class ItemRepositoryTest {
         false);
     itemRepository.save(anotherUserItem);
 
-    List<Item> result = itemRepository.getActiveByCategoryName(
-        List.of(userId, systemUserId),
-        "pc");
+    List<Item> result = itemRepository
+        .getActiveByCategoryName(
+            List.of(userId, systemUserId),
+            "pc");
 
     assertThat(result).hasSize(2);
     // 順番確認

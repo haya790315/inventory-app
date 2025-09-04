@@ -1,6 +1,8 @@
 package inventory.example.inventory_id.service;
 
 import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -74,5 +76,36 @@ public class ItemService {
             categoryName,
             item.getQuantity()))
         .toList();
+  }
+
+  public void updateItem(
+      Integer userId,
+      UUID itemId,
+      ItemRequest itemRequest) {
+    // 自分とデフォルトのカテゴリーアイテムを取得
+    List<Item> items = itemRepository.getActiveByCategoryName(
+        List.of(userId, systemUserId),
+        itemRequest.getCategoryName());
+    // 編集したいアイテムを取得
+    Optional<Item> matchItem = items.stream()
+        .filter(i -> i.getId().equals(itemId))
+        .findFirst();
+    if (matchItem.isEmpty()) {
+      throw new ResponseStatusException(HttpStatus.NOT_FOUND, itemsNotFoundMsg);
+    }
+
+    // 編集したい名前は他のアイテムに重複かをチェック
+    List<Item> sameNamedItem = items.stream()
+        .filter(i -> i.getName().equals(itemRequest.getName()) &&
+            !i.getId().equals(itemId))
+        .toList();
+    if (!sameNamedItem.isEmpty()) {
+      throw new IllegalArgumentException("アイテム名は既に登録されています");
+    }
+
+    Item item = matchItem.get();
+    item.setName(itemRequest.getName());
+    item.setQuantity(itemRequest.getQuantity());
+    itemRepository.save(item);
   }
 }

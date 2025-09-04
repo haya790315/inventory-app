@@ -2,10 +2,8 @@ package inventory.example.inventory_id.model;
 
 import java.util.UUID;
 import java.time.LocalDateTime;
-
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
-
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -28,7 +26,6 @@ public class Item {
   @Id
   @GeneratedValue(strategy = GenerationType.AUTO)
   private UUID id;
-
   private String name;
   private long userId;
   @ManyToOne
@@ -37,7 +34,6 @@ public class Item {
   private Category category;
   private int quantity;
   private boolean deletedFlag;
-
   private LocalDateTime updatedAt;
 
   @PrePersist

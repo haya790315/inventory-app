@@ -3,18 +3,20 @@ package inventory.example.inventory_id.controller;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyString;
+
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doNothing;
-import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.UUID;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -35,7 +37,6 @@ import org.springframework.web.server.ResponseStatusException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import inventory.example.inventory_id.dto.ItemDto;
-
 import inventory.example.inventory_id.exception.ValidationException;
 import inventory.example.inventory_id.request.ItemRequest;
 import inventory.example.inventory_id.service.ItemService;
@@ -84,8 +85,9 @@ class ItemControllerTest {
   @DisplayName("アイテム作成-400 Bad Request カテゴリーが見つからない")
   void createItem_badRequest_categoryNotFound() throws Exception {
     ItemRequest req = new ItemRequest("itemName", "category", 1);
-    doThrow(new IllegalArgumentException(categoryNotFoundMsg)).when(itemService).createItem(anyInt(),
-        any(ItemRequest.class));
+    doThrow(new IllegalArgumentException(categoryNotFoundMsg))
+        .when(itemService)
+        .createItem(anyInt(), any(ItemRequest.class));
     mockMvc.perform(post("/api/item")
         .contentType(MediaType.APPLICATION_JSON)
         .content(objectMapper.writeValueAsString(req)))
@@ -98,24 +100,25 @@ class ItemControllerTest {
   @DisplayName("アイテム作成-409 Conflict アイテム名が重複")
   void createItem_conflict_itemNameDuplicate() throws Exception {
     ItemRequest req = new ItemRequest("itemName", "category", 1);
-    doThrow(new ResponseStatusException(HttpStatus.CONFLICT, String.format("アイテム名 '%s' は既に存在します", req.getName())))
+    doThrow(new ResponseStatusException(
+        HttpStatus.CONFLICT,
+        String.format("アイテム名 '%s' は既に存在します", req.getName())))
         .when(itemService)
-        .createItem(anyInt(),
-            any(ItemRequest.class));
+        .createItem(anyInt(), any(ItemRequest.class));
     mockMvc.perform(post("/api/item")
         .contentType(MediaType.APPLICATION_JSON)
         .content(objectMapper.writeValueAsString(req)))
         .andExpect(status().isConflict())
-        .andExpect(content().json("{\"message\":\"" + String.format("アイテム名 '%s' は既に存在します", req.getName()) + "\"}"));
+        .andExpect(content()
+            .json("{\"message\":\"" +
+                String.format("アイテム名 '%s' は既に存在します", req.getName()) + "\"}"));
   }
 
   @Test
   @Tag("POST: /api/item")
   @DisplayName("アイテム作成-400 Bad Request アイテム名入力がない")
   void createItem_badRequest_itemNameMissing() throws Exception {
-    ItemRequest req = new ItemRequest();
-    req.setCategoryName("category");
-    req.setQuantity(1);
+    ItemRequest req = new ItemRequest("", "category", 1);
     mockMvc.perform(post("/api/item")
         .contentType(MediaType.APPLICATION_JSON)
         .content(objectMapper.writeValueAsString(req)))
@@ -127,9 +130,7 @@ class ItemControllerTest {
   @Tag("POST: /api/item")
   @DisplayName("アイテム作成-400 Bad Request カテゴリー名入力がない")
   void createItem_badRequest_categoryNameMissing() throws Exception {
-    ItemRequest req = new ItemRequest();
-    req.setName("itemName");
-    req.setQuantity(1);
+    ItemRequest req = new ItemRequest("", "", 1);
     mockMvc.perform(post("/api/item")
         .contentType(MediaType.APPLICATION_JSON)
         .content(objectMapper.writeValueAsString(req)))
@@ -157,8 +158,7 @@ class ItemControllerTest {
     doThrow(new RuntimeException(
         serverErrorMsg))
         .when(itemService)
-        .createItem(anyInt(),
-            any(ItemRequest.class));
+        .createItem(anyInt(), any(ItemRequest.class));
     mockMvc.perform(post("/api/item")
         .contentType(MediaType.APPLICATION_JSON)
         .content(objectMapper.writeValueAsString(req)))
@@ -172,7 +172,8 @@ class ItemControllerTest {
   void getItems_success() throws Exception {
     List<ItemDto> items = Arrays.asList(new ItemDto(), new ItemDto());
     when(itemService.getItems(anyInt(), anyString())).thenReturn(items);
-    mockMvc.perform(get("/api/item").param("category_name", "test"))
+    mockMvc.perform(get("/api/item")
+        .param("category_name", "test"))
         .andExpect(status().isOk())
         .andExpect(content().json(objectMapper.writeValueAsString(items)));
   }
@@ -183,7 +184,8 @@ class ItemControllerTest {
   void getItems_throws400() throws Exception {
     when(itemService.getItems(anyInt(), anyString()))
         .thenThrow(new IllegalArgumentException(categoryNotFoundMsg));
-    mockMvc.perform(get("/api/item").param("category_name", "test"))
+    mockMvc.perform(get("/api/item")
+        .param("category_name", "test"))
         .andExpect(status().isBadRequest())
         .andExpect(content().json("{\"message\":\"" + categoryNotFoundMsg + "\"}"));
   }
@@ -194,7 +196,8 @@ class ItemControllerTest {
   void getItems_throws404() throws Exception {
     when(itemService.getItems(anyInt(), anyString()))
         .thenThrow(new ResponseStatusException(HttpStatus.NOT_FOUND, itemNotFoundMsg));
-    mockMvc.perform(get("/api/item").param("category_name", "test"))
+    mockMvc.perform(get("/api/item")
+        .param("category_name", "test"))
         .andExpect(status().isNotFound())
         .andExpect(content().json("{\"message\":\"" + itemNotFoundMsg + "\"}"));
   }
@@ -205,7 +208,111 @@ class ItemControllerTest {
   void getItems_throws500() throws Exception {
     when(itemService.getItems(anyInt(), anyString()))
         .thenThrow(new RuntimeException(serverErrorMsg));
-    mockMvc.perform(get("/api/item").param("category_name", "test"))
+    mockMvc.perform(get("/api/item")
+        .param("category_name", "test"))
+        .andExpect(status().isInternalServerError())
+        .andExpect(content().json("{\"message\":\"" + serverErrorMsg + "\"}"));
+  }
+
+  @Test
+  @Tag("PUT: /api/item")
+  @DisplayName("アイテム更新-200 OK")
+  void updateItem_success() throws Exception {
+    UUID itemId = UUID.randomUUID();
+    ItemRequest req = new ItemRequest("itemName", "category", 1);
+    doNothing().when(itemService).updateItem(
+        anyInt(),
+        eq(itemId),
+        any(ItemRequest.class));
+    mockMvc.perform(put("/api/item")
+        .param("item_id", itemId.toString())
+        .contentType(MediaType.APPLICATION_JSON)
+        .content(objectMapper.writeValueAsString(req)))
+        .andExpect(status().isOk())
+        .andExpect(content().json("{\"message\":\"アイテムの更新が完了しました\"}"));
+  }
+
+  @Test
+  @Tag("PUT: /api/item")
+  @DisplayName("アイテム更新-404 Not Found アイテムが見つかりません")
+  void updateItem_notFound() throws Exception {
+    UUID itemId = UUID.randomUUID();
+    ItemRequest req = new ItemRequest("itemName", "category", 1);
+    doThrow(new ResponseStatusException(HttpStatus.NOT_FOUND, itemNotFoundMsg))
+        .when(itemService).updateItem(
+            anyInt(),
+            eq(itemId),
+            any(ItemRequest.class));
+    mockMvc.perform(put("/api/item")
+        .param("item_id", itemId.toString())
+        .contentType(MediaType.APPLICATION_JSON)
+        .content(objectMapper.writeValueAsString(req)))
+        .andExpect(status().isNotFound())
+        .andExpect(content().json("{\"message\":\"" + itemNotFoundMsg + "\"}"));
+  }
+
+  @Test
+  @Tag("PUT: /api/item")
+  @DisplayName("アイテム更新-400 Bad Request アイテム名は既に登録されています")
+  void updateItem_badRequest() throws Exception {
+    UUID itemId = UUID.randomUUID();
+    ItemRequest req = new ItemRequest("itemName", "category", 1);
+    doThrow(new ResponseStatusException(HttpStatus.BAD_REQUEST, "アイテム名は既に登録されています"))
+        .when(itemService)
+        .updateItem(
+            anyInt(),
+            eq(itemId),
+            any(ItemRequest.class));
+    mockMvc.perform(put("/api/item")
+        .param("item_id", itemId.toString())
+        .contentType(MediaType.APPLICATION_JSON)
+        .content(objectMapper.writeValueAsString(req)))
+        .andExpect(status().isBadRequest())
+        .andExpect(content().json("{\"message\":\"アイテム名は既に登録されています\"}"));
+  }
+
+  @Test
+  @Tag("PUT: /api/item")
+  @DisplayName("アイテム更新-400 Bad Request アイテム名がない")
+  void updateItem_badRequest_itemNameMissed() throws Exception {
+    UUID itemId = UUID.randomUUID();
+    ItemRequest req = new ItemRequest("", "category", 1);
+    mockMvc.perform(put("/api/item")
+        .param("item_id", itemId.toString())
+        .contentType(MediaType.APPLICATION_JSON)
+        .content(objectMapper.writeValueAsString(req)))
+        .andExpect(status().isBadRequest())
+        .andExpect(content().json("{\"error\":\"アイテム名は必須です\"}"));
+  }
+
+  @Test
+  @Tag("PUT: /api/item")
+  @DisplayName("アイテム更新-400 Bad Request カテゴリ名がない")
+  void updateItem_badRequest_categoryNameMissed() throws Exception {
+    UUID itemId = UUID.randomUUID();
+    ItemRequest req = new ItemRequest("itemName", "", 1);
+    mockMvc.perform(put("/api/item")
+        .param("item_id", itemId.toString())
+        .contentType(MediaType.APPLICATION_JSON)
+        .content(objectMapper.writeValueAsString(req)))
+        .andExpect(status().isBadRequest())
+        .andExpect(content().json("{\"error\":\"カテゴリは必須です\"}"));
+  }
+
+  @Test
+  @Tag("PUT: /api/item")
+  @DisplayName("アイテム更新-500 サーバーエラー")
+  void updateItem_throws500() throws Exception {
+    UUID itemId = UUID.randomUUID();
+    ItemRequest req = new ItemRequest("itemName", "category", 1);
+    doThrow(new RuntimeException(serverErrorMsg)).when(itemService).updateItem(
+        anyInt(),
+        eq(itemId),
+        any(ItemRequest.class));
+    mockMvc.perform(put("/api/item")
+        .param("item_id", itemId.toString())
+        .contentType(MediaType.APPLICATION_JSON)
+        .content(objectMapper.writeValueAsString(req)))
         .andExpect(status().isInternalServerError())
         .andExpect(content().json("{\"message\":\"" + serverErrorMsg + "\"}"));
   }
