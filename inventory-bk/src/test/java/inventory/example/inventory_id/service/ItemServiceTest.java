@@ -20,6 +20,7 @@ import org.mockito.MockitoAnnotations;
 import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.web.server.ResponseStatusException;
 
+import inventory.example.inventory_id.dto.ItemDto;
 import inventory.example.inventory_id.model.Category;
 import inventory.example.inventory_id.model.Item;
 import inventory.example.inventory_id.repository.CategoryRepository;
@@ -38,7 +39,7 @@ class ItemServiceTest {
   private ItemService itemService;
 
   private String categoryNotFoundMsg = "カテゴリーが見つかりません";
-
+  private String itemsNotFoundMsg = "アイテムが見つかりません";
   private int defaultUserId = 111;
 
   private int defaultSystemUserId = 999;
@@ -170,5 +171,48 @@ class ItemServiceTest {
 
     assertDoesNotThrow(() -> itemService.createItem(userId, request));
     verify(categoryRepository).save(any(Category.class));
+  }
+
+  @Test
+  @Tag("getItem")
+  @DisplayName("アイテム取得成功")
+  void testGetItemsSortedByUpdatedAtDescending() {
+    int userId = defaultUserId;
+    int systemUserId = defaultSystemUserId;
+    String categoryName = "pc";
+
+    Category category = new Category(categoryName);
+    category.setUserId(userId);
+
+    Item notebook = new Item("Notebook", userId, category, 5, false);
+
+    Item desktop = new Item("Desktop", userId, category, 10, false);
+
+    category.setItems(List.of(notebook, desktop));
+
+    when(itemRepository
+        .getActiveByCategoryName(List.of(userId, systemUserId), categoryName))
+        .thenReturn(category.getItems());
+
+    List<ItemDto> result = assertDoesNotThrow(() -> itemService.getItems(userId, categoryName));
+
+    assertEquals(2, result.size());
+  }
+
+  @Test
+  @Tag("getItem")
+  @DisplayName("アイテム取得失敗 - アイテムが見つかりません")
+  void testGetItemsNotExist() {
+    int userId = defaultUserId;
+    int systemUserId = defaultSystemUserId;
+    String categoryName = "Food";
+
+    when(itemRepository
+        .getActiveByCategoryName(List.of(userId, systemUserId), categoryName))
+        .thenReturn(new ArrayList<>());
+
+    ResponseStatusException ex = assertThrows(ResponseStatusException.class,
+        () -> itemService.getItems(userId, categoryName));
+    assertEquals(itemsNotFoundMsg, ex.getReason());
   }
 }

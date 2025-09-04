@@ -2,11 +2,19 @@ package inventory.example.inventory_id.controller;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.when;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
+import java.util.Arrays;
+import java.util.List;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -25,6 +33,8 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.server.ResponseStatusException;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+
+import inventory.example.inventory_id.dto.ItemDto;
 
 import inventory.example.inventory_id.exception.ValidationException;
 import inventory.example.inventory_id.request.ItemRequest;
@@ -45,6 +55,7 @@ class ItemControllerTest {
 
   private int testUserId = 111;
   private String categoryNotFoundMsg = "カテゴリーが見つかりません";
+  private String itemNotFoundMsg = "アイテムが見つかりません";
   private String serverErrorMsg = "サーバーエラーが発生しました";
 
   @BeforeEach
@@ -151,6 +162,50 @@ class ItemControllerTest {
     mockMvc.perform(post("/api/item")
         .contentType(MediaType.APPLICATION_JSON)
         .content(objectMapper.writeValueAsString(req)))
+        .andExpect(status().isInternalServerError())
+        .andExpect(content().json("{\"message\":\"" + serverErrorMsg + "\"}"));
+  }
+
+  @Test
+  @Tag("GET: /api/item")
+  @DisplayName("アイテム一覧取得-200 OK")
+  void getItems_success() throws Exception {
+    List<ItemDto> items = Arrays.asList(new ItemDto(), new ItemDto());
+    when(itemService.getItems(anyInt(), anyString())).thenReturn(items);
+    mockMvc.perform(get("/api/item").param("category_name", "test"))
+        .andExpect(status().isOk())
+        .andExpect(content().json(objectMapper.writeValueAsString(items)));
+  }
+
+  @Test
+  @Tag("GET: /api/item")
+  @DisplayName("アイテム一覧取得-400 不正な引数")
+  void getItems_throws400() throws Exception {
+    when(itemService.getItems(anyInt(), anyString()))
+        .thenThrow(new IllegalArgumentException(categoryNotFoundMsg));
+    mockMvc.perform(get("/api/item").param("category_name", "test"))
+        .andExpect(status().isBadRequest())
+        .andExpect(content().json("{\"message\":\"" + categoryNotFoundMsg + "\"}"));
+  }
+
+  @Test
+  @Tag("GET: /api/item")
+  @DisplayName("アイテム一覧取得-404 アイテムが見つからない")
+  void getItems_throws404() throws Exception {
+    when(itemService.getItems(anyInt(), anyString()))
+        .thenThrow(new ResponseStatusException(HttpStatus.NOT_FOUND, itemNotFoundMsg));
+    mockMvc.perform(get("/api/item").param("category_name", "test"))
+        .andExpect(status().isNotFound())
+        .andExpect(content().json("{\"message\":\"" + itemNotFoundMsg + "\"}"));
+  }
+
+  @Test
+  @Tag("GET: /api/item")
+  @DisplayName("アイテム一覧取得-500 サーバーエラー")
+  void getItems_throws500() throws Exception {
+    when(itemService.getItems(anyInt(), anyString()))
+        .thenThrow(new RuntimeException(serverErrorMsg));
+    mockMvc.perform(get("/api/item").param("category_name", "test"))
         .andExpect(status().isInternalServerError())
         .andExpect(content().json("{\"message\":\"" + serverErrorMsg + "\"}"));
   }

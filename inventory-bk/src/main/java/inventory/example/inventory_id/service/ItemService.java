@@ -8,6 +8,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
+import inventory.example.inventory_id.dto.ItemDto;
 import inventory.example.inventory_id.model.Category;
 import inventory.example.inventory_id.model.Item;
 import inventory.example.inventory_id.repository.CategoryRepository;
@@ -26,6 +27,8 @@ public class ItemService {
   private int systemUserId;
 
   private String categoryNotFoundMsg = "カテゴリーが見つかりません";
+
+  private String itemsNotFoundMsg = "アイテムが見つかりません";
 
   public void createItem(
       Integer userId,
@@ -56,5 +59,20 @@ public class ItemService {
         false);
     cate.getItems().add(item);
     categoryRepository.save(cate);
+  }
+
+  public List<ItemDto> getItems(
+      Integer userId,
+      String categoryName) {
+    List<Item> items = itemRepository.getActiveByCategoryName(List.of(userId, systemUserId), categoryName);
+    if (items.isEmpty()) {
+      throw new ResponseStatusException(HttpStatus.NOT_FOUND, itemsNotFoundMsg);
+    }
+    return items.stream()
+        .map(item -> new ItemDto(
+            item.getName(),
+            categoryName,
+            item.getQuantity()))
+        .toList();
   }
 }
