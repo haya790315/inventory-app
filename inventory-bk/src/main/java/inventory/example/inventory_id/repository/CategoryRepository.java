@@ -12,7 +12,7 @@ import java.util.List;
 
 @Repository
 public interface CategoryRepository extends JpaRepository<Category, UUID> {
-  boolean existsByUserIdAndName(int userId, String name);
+  boolean existsByUserIdAndName(String userId, String name);
 
   @Query(value = """
       SELECT *
@@ -20,7 +20,7 @@ public interface CategoryRepository extends JpaRepository<Category, UUID> {
       WHERE user_id IN (:userIds)
       AND deleted_flag = FALSE
       """, nativeQuery = true)
-  List<Category> findNotDeleted(List<Integer> userIds);
+  List<Category> findNotDeleted(List<String> userIds);
 
   @Query(value = """
       SELECT *
@@ -29,7 +29,7 @@ public interface CategoryRepository extends JpaRepository<Category, UUID> {
       AND id = :id
       AND deleted_flag = FALSE
       """, nativeQuery = true)
-  Optional<Category> findUserCategory(List<Integer> userIds, UUID id);
+  Optional<Category> findUserCategory(List<String> userIds, UUID id);
 
   @Query(value = """
       SELECT *
@@ -38,5 +38,5 @@ public interface CategoryRepository extends JpaRepository<Category, UUID> {
       AND name = :name
       AND deleted_flag = FALSE
       """, nativeQuery = true)
-  List<Category> findActiveCateByName(List<Integer> userIds, String name);
+  List<Category> findActiveCateByName(List<String> userIds, String name);
 }

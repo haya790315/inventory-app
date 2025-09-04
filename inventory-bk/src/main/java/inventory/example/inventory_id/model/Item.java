@@ -27,7 +27,7 @@ public class Item {
   @GeneratedValue(strategy = GenerationType.AUTO)
   private UUID id;
   private String name;
-  private long userId;
+  private String userId;
   @ManyToOne
   @JoinColumn(name = "category_id")
   @JsonIgnore
@@ -53,7 +53,7 @@ public class Item {
 
   public Item(
       String name,
-      long userId,
+      String userId,
       Category category,
       int quantity,
       boolean deletedFlag) {

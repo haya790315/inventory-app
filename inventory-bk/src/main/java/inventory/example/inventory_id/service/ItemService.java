@@ -26,14 +26,14 @@ public class ItemService {
   private CategoryRepository categoryRepository;
 
   @Value("${system.userid}")
-  private int systemUserId;
+  private String systemUserId;
 
   private String categoryNotFoundMsg = "カテゴリーが見つかりません";
 
   private String itemsNotFoundMsg = "アイテムが見つかりません";
 
   public void createItem(
-      Integer userId,
+      String userId,
       ItemRequest itemRequest) {
 
     List<Category> categoryList = categoryRepository.findActiveCateByName(List.of(userId, systemUserId),
@@ -64,7 +64,7 @@ public class ItemService {
   }
 
   public List<ItemDto> getItems(
-      Integer userId,
+      String userId,
       String categoryName) {
     List<Item> items = itemRepository.getActiveByCategoryName(List.of(userId, systemUserId), categoryName);
     if (items.isEmpty()) {
@@ -79,7 +79,7 @@ public class ItemService {
   }
 
   public void updateItem(
-      Integer userId,
+      String userId,
       UUID itemId,
       ItemRequest itemRequest) {
     // 自分とデフォルトのカテゴリーアイテムを取得
@@ -112,7 +112,7 @@ public class ItemService {
   }
 
   public void deleteItem(
-      Integer userId,
+      String userId,
       UUID itemId) {
     // 自分とデフォルトのカテゴリーアイテムを取得
     Optional<Item> itemsOpt = itemRepository

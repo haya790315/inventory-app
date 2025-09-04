@@ -23,26 +23,26 @@ public class ItemRepositoryTest {
   @Autowired
   private CategoryRepository categoryRepository;
 
-  private int userId = 111;
+  private String testUserId = "testUserId";
 
-  private int systemUserId = 999;
+  private String defaultSystemId = "systemId";
 
   @Test
   @DisplayName("アクティブなアイテムをカテゴリ名で取得")
   public void testGetActiveByCategoryName() {
     Category categoryPc = new Category("pc");
-    categoryPc.setUserId(systemUserId);
+    categoryPc.setUserId(defaultSystemId);
     categoryRepository.save(categoryPc);
     Item existedNotebook = new Item(
         "Notebook",
-        userId,
+        testUserId,
         categoryPc,
         10,
         false);
     existedNotebook.setUpdatedAt(LocalDateTime.now().minusDays(1));
     itemRepository.save(existedNotebook);
     Item existedDesktop = new Item("Desktop",
-        userId,
+        testUserId,
         categoryPc,
         5,
         false);
@@ -51,7 +51,7 @@ public class ItemRepositoryTest {
 
     Item deletedMonitor = new Item(
         "Monitor",
-        userId,
+        testUserId,
         categoryPc,
         1,
         true);
@@ -59,7 +59,7 @@ public class ItemRepositoryTest {
 
     Item anotherUserItem = new Item(
         "Tablet",
-        222,
+        "anotherUserId",
         categoryPc,
         3,
         false);
@@ -67,7 +67,7 @@ public class ItemRepositoryTest {
 
     List<Item> result = itemRepository
         .getActiveByCategoryName(
-            List.of(userId, systemUserId),
+            List.of(testUserId, defaultSystemId),
             "pc");
 
     assertThat(result).hasSize(2);
@@ -90,7 +90,7 @@ public class ItemRepositoryTest {
   @DisplayName("アクティブなアイテムをカテゴリ名で取得（テストゼロ件）")
   public void testGetActiveByCategoryNameWithZeroResult() {
     List<Item> result = itemRepository.getActiveByCategoryName(
-        List.of(userId, systemUserId),
+        List.of(testUserId, defaultSystemId),
         "nonexistent");
     assertThat(result).isEmpty();
   }
@@ -98,12 +98,12 @@ public class ItemRepositoryTest {
   @Test
   @DisplayName("アクティブなアイテムをカテゴリ名で取得失敗（カテゴリーが削除）")
   public void testGetActiveByCategoryNameWithDeletedCategory() {
-    Category deletedCategory = new Category("deleted", userId);
+    Category deletedCategory = new Category("deleted", testUserId);
     deletedCategory.setDeletedFlag(true);
     categoryRepository.save(deletedCategory);
 
     List<Item> result = itemRepository.getActiveByCategoryName(
-        List.of(userId, systemUserId),
+        List.of(testUserId, defaultSystemId),
         "deleted");
     assertThat(result).isEmpty();
   }
@@ -112,37 +112,39 @@ public class ItemRepositoryTest {
   @DisplayName("getActiveItemWithId 正しいアイテムを取得できる")
   void testGetActiveItemWithId() {
     // カテゴリのセットアップ
-    Category category = new Category("Laptop", 999);
+    Category category = new Category("Laptop", defaultSystemId);
     categoryRepository.save(category);
 
     // ユーザ1アイテムのセットアップ
-    Item existedItem = new Item("Notebook", 123, category, 5, false);
+    Item existedItem = new Item("Notebook", testUserId, category, 5, false);
     itemRepository.save(existedItem);
 
     // ユーザ2アイテムのセットアップ
-    Item notExitedItem = new Item("Macbook", 123, category, 1, true);
+    Item notExitedItem = new Item("Macbook", testUserId, category, 1, true);
     itemRepository.save(notExitedItem);
 
-    Item differUserItem = new Item("Notebook", 321, category, 10, false);
+    Item differUserItem = new Item("Notebook", "anotherUserId", category, 10, false);
     differUserItem.setCategory(category);
     differUserItem.setQuantity(10);
     itemRepository.save(differUserItem);
 
-    Optional<Item> resultExisted = itemRepository.getActiveItemWithId(List.of(123, 999), existedItem.getId());
+    Optional<Item> resultExisted = itemRepository.getActiveItemWithId(List.of(testUserId, defaultSystemId),
+        existedItem.getId());
     assertThat(resultExisted).isPresent();
     assertThat(resultExisted.get().getName()).isEqualTo("Notebook");
     assertThat(resultExisted.get().getCategoryName()).isEqualTo("Laptop");
     assertThat(resultExisted.get().getQuantity()).isEqualTo(5);
     assertThat(resultExisted.get().isDeletedFlag()).isFalse();
 
-    Optional<Item> resultNotExisted = itemRepository.getActiveItemWithId(List.of(123, 999), notExitedItem.getId());
+    Optional<Item> resultNotExisted = itemRepository.getActiveItemWithId(List.of(testUserId, defaultSystemId),
+        notExitedItem.getId());
     assertThat(resultNotExisted).isEmpty();
   }
 
   @Test
   @DisplayName("getActiveItemWithId（テストゼロ件）")
   void testGetActiveItemWithIdNotFound() {
-    Optional<Item> result = itemRepository.getActiveItemWithId(List.of(999), UUID.randomUUID());
+    Optional<Item> result = itemRepository.getActiveItemWithId(List.of(defaultSystemId), UUID.randomUUID());
     assertThat(result).isEmpty();
   }
 }

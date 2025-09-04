@@ -31,7 +31,7 @@ public class ItemController extends BaseController {
   @PostMapping()
   public ResponseEntity<Object> createItem(@RequestBody @Valid ItemRequest itemRequest) {
     try {
-      Integer userId = fetchUserIdFromToken();
+      String userId = fetchUserIdFromToken();
       itemService.createItem(userId, itemRequest);
       return response(HttpStatus.CREATED, "アイテムの作成が完了しました");
     } catch (ResponseStatusException e) {
@@ -46,7 +46,7 @@ public class ItemController extends BaseController {
   @GetMapping()
   public ResponseEntity<Object> getItems(@RequestParam("category_name") String categoryName) {
     try {
-      Integer userId = fetchUserIdFromToken();
+      String userId = fetchUserIdFromToken();
       List<ItemDto> items = itemService.getItems(userId, categoryName);
       return response(HttpStatus.OK, items);
     } catch (IllegalArgumentException e) {
@@ -63,7 +63,7 @@ public class ItemController extends BaseController {
       @RequestBody @Valid ItemRequest itemRequest,
       @RequestParam("item_id") UUID itemId) {
     try {
-      Integer userId = fetchUserIdFromToken();
+      String userId = fetchUserIdFromToken();
       itemService.updateItem(userId, itemId, itemRequest);
       return response(HttpStatus.OK, "アイテムの更新が完了しました");
     } catch (IllegalArgumentException e) {
@@ -79,7 +79,7 @@ public class ItemController extends BaseController {
   @DeleteMapping()
   public ResponseEntity<Object> deleteItem(@RequestParam("item_id") UUID itemId) {
     try {
-      Integer userId = fetchUserIdFromToken();
+      String userId = fetchUserIdFromToken();
       itemService.deleteItem(userId, itemId);
       return response(HttpStatus.OK, "アイテムの削除が完了しました");
     } catch (ResponseStatusException e) {

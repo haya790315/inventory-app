@@ -25,7 +25,7 @@ public interface ItemRepository extends JpaRepository<Item, UUID> {
       ORDER BY i.updated_at DESC
       """, nativeQuery = true)
   List<Item> getActiveByCategoryName(
-      @Param("userIds") List<Integer> userIds,
+      @Param("userIds") List<String> userIds,
       @Param("categoryName") String categoryName);
 
   @Query(value = """
@@ -36,6 +36,6 @@ public interface ItemRepository extends JpaRepository<Item, UUID> {
       AND deleted_flag = FALSE
       """, nativeQuery = true)
   Optional<Item> getActiveItemWithId(
-      List<Integer> userIds,
+      List<String> userIds,
       UUID itemId);
 }

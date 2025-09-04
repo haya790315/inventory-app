@@ -31,7 +31,7 @@ public class CategoryController extends BaseController {
   @GetMapping()
   public ResponseEntity<Object> getAllCategories() {
     try {
-      Integer userId = fetchUserIdFromToken();
+      String userId = fetchUserIdFromToken();
       List<CategoryDto> categories = categoryService.getAllCategories(userId);
       return response(HttpStatus.OK, categories);
     } catch (Exception e) {
@@ -42,7 +42,7 @@ public class CategoryController extends BaseController {
   @GetMapping("/items")
   public ResponseEntity<Object> getCategoryItems(@RequestParam UUID categoryId) {
     try {
-      Integer userId = fetchUserIdFromToken();
+      String userId = fetchUserIdFromToken();
       List<Item> items = categoryService.getCategoryItems(userId, categoryId);
       return response(HttpStatus.OK, items);
     } catch (Exception e) {
@@ -53,7 +53,7 @@ public class CategoryController extends BaseController {
   @PostMapping()
   public ResponseEntity<Object> createCategory(@RequestBody @Valid CategoryRequest categoryRequest) {
     try {
-      Integer userId = fetchUserIdFromToken();
+      String userId = fetchUserIdFromToken();
       categoryService.createCategory(categoryRequest, userId);
       return response(HttpStatus.CREATED, "カスタムカテゴリの作成が完了しました");
     } catch (ResponseStatusException e) {
@@ -68,7 +68,7 @@ public class CategoryController extends BaseController {
       @RequestParam UUID category_id,
       @RequestBody @Valid CategoryRequest categoryRequest) {
     try {
-      Integer userId = fetchUserIdFromToken();
+      String userId = fetchUserIdFromToken();
       categoryService.updateCategory(category_id, categoryRequest, userId);
       return response(HttpStatus.OK, "カスタムカテゴリの更新が完了しました");
     } catch (ResponseStatusException e) {
@@ -83,7 +83,7 @@ public class CategoryController extends BaseController {
   @DeleteMapping()
   public ResponseEntity<Object> deleteCategory(@RequestParam UUID category_id) {
     try {
-      Integer userId = fetchUserIdFromToken();
+      String userId = fetchUserIdFromToken();
       categoryService.deleteCategory(category_id, userId);
       return response(HttpStatus.ACCEPTED, "カスタムカテゴリの削除が完了しました");
     } catch (ResponseStatusException e) {

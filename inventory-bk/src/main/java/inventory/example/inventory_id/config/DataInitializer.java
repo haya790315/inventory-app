@@ -18,7 +18,7 @@ public class DataInitializer implements CommandLineRunner {
   @Autowired
   private CategoryRepository categoryRepository;
   @Value("${system.userid}")
-  private int systemUserId;
+  private String systemUserId;
 
   @Override
   public void run(String... args) {

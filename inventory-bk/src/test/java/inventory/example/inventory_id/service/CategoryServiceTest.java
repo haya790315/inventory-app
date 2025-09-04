@@ -40,22 +40,22 @@ public class CategoryServiceTest {
 
   @InjectMocks
   private CategoryService categoryService;
-  private int defaultUserId = 111;
-  private int defaultSystemUserId = 999;
+  private String testUserId = "testUserId";
+  private String defaultSystemId = "systemId";
 
   private String categoryNotFoundMsg = "カテゴリーが見つかりません";
 
   @BeforeEach
   void setup() {
     MockitoAnnotations.openMocks(this);
-    ReflectionTestUtils.setField(categoryService, "systemUserId", defaultSystemUserId);
+    ReflectionTestUtils.setField(categoryService, "systemUserId", defaultSystemId);
   }
 
   @Test
   @Tag("getCategory")
   @DisplayName("カテゴリー取得- 取得成功")
   void testGetAllCategoriesSuccess() {
-    int userId = defaultUserId;
+    String userId = testUserId;
     Category category1 = new Category();
     category1.setName("CategoryB");
     category1.setId(UUID.randomUUID());
@@ -65,7 +65,7 @@ public class CategoryServiceTest {
     category2.setName("CategoryA");
     category2.setId(UUID.randomUUID());
     category2.setUserId(userId);
-    when(categoryRepository.findNotDeleted(List.of(userId, defaultSystemUserId)))
+    when(categoryRepository.findNotDeleted(List.of(userId, defaultSystemId)))
         .thenReturn(List.of(category1, category2));
 
     List<CategoryDto> result = categoryService.getAllCategories(userId);
@@ -79,8 +79,8 @@ public class CategoryServiceTest {
   @Tag("getCategory")
   @DisplayName("カテゴリー取得- 件数0件の場合")
   void testGetAllCategoriesNoResults() {
-    int userId = defaultUserId;
-    when(categoryRepository.findNotDeleted(List.of(userId, defaultSystemUserId)))
+    String userId = testUserId;
+    when(categoryRepository.findNotDeleted(List.of(userId, defaultSystemId)))
         .thenReturn(List.of());
 
     List<CategoryDto> result = categoryService.getAllCategories(userId);
@@ -92,15 +92,15 @@ public class CategoryServiceTest {
   @DisplayName("アイテム取得- アイテムを取得成功")
   void testGetCategoryItemsSuccess() {
     UUID categoryId = UUID.randomUUID();
-    int userId = defaultUserId;
+    String userId = testUserId;
     Category category = new Category();
     category.setId(categoryId);
     category.setUserId(userId);
     category.setItems(List.of(new Item("Item1")));
-    when(categoryRepository.findNotDeleted(List.of(userId, defaultSystemUserId)))
+    when(categoryRepository.findNotDeleted(List.of(userId, defaultSystemId)))
         .thenReturn(List.of(category));
 
-    List<Item> result = categoryService.getCategoryItems(defaultUserId, categoryId);
+    List<Item> result = categoryService.getCategoryItems(testUserId, categoryId);
     assertFalse(result.isEmpty());
     assertEquals(category.getItems(), result);
   }
@@ -110,14 +110,14 @@ public class CategoryServiceTest {
   @DisplayName("アイテム取得- アイテムが空の場合")
   void testGetCategoryItemsEmpty() {
     UUID categoryId = UUID.randomUUID();
-    int userId = defaultUserId;
+    String userId = testUserId;
     Category category = new Category();
     category.setId(categoryId);
     category.setUserId(userId);
-    when(categoryRepository.findNotDeleted(List.of(userId, defaultSystemUserId)))
+    when(categoryRepository.findNotDeleted(List.of(userId, defaultSystemId)))
         .thenReturn(List.of(category));
 
-    List<Item> result = categoryService.getCategoryItems(defaultUserId, categoryId);
+    List<Item> result = categoryService.getCategoryItems(testUserId, categoryId);
     assertTrue(result.isEmpty());
   }
 
@@ -127,9 +127,9 @@ public class CategoryServiceTest {
   void testCreateCategorySuccess() {
     CategoryRequest request = new CategoryRequest();
     request.setName("TestCategory");
-    int userId = defaultUserId;
+    String userId = testUserId;
 
-    when(categoryRepository.findNotDeleted(List.of(userId, defaultSystemUserId))).thenReturn(List.of());
+    when(categoryRepository.findNotDeleted(List.of(userId, defaultSystemId))).thenReturn(List.of());
 
     Category savedCategory = new Category();
     savedCategory.setName(request.getName());
@@ -149,11 +149,11 @@ public class CategoryServiceTest {
   void testCreateCategoryAlreadyExists() {
     CategoryRequest request = new CategoryRequest();
     request.setName("TestCategory");
-    int userId = defaultUserId;
+    String userId = testUserId;
     Category savedCategory = new Category();
     savedCategory.setName(request.getName());
     savedCategory.setUserId(userId);
-    when(categoryRepository.findNotDeleted(List.of(userId, defaultSystemUserId)))
+    when(categoryRepository.findNotDeleted(List.of(userId, defaultSystemId)))
         .thenReturn(List.of(savedCategory));
     ResponseStatusException exception = assertThrows(ResponseStatusException.class, () -> {
       categoryService.createCategory(request, userId);
@@ -168,13 +168,13 @@ public class CategoryServiceTest {
   void testCreateCategoryAlreadyDeleted() {
     CategoryRequest request = new CategoryRequest();
     request.setName("TestCategory");
-    int userId = defaultUserId;
+    String userId = testUserId;
     Category existedCategory = new Category();
     existedCategory.setName(request.getName());
     existedCategory.setUserId(userId);
     existedCategory.setDeletedFlag(true);
 
-    when(categoryRepository.findNotDeleted(List.of(userId, defaultSystemUserId)))
+    when(categoryRepository.findNotDeleted(List.of(userId, defaultSystemId)))
         .thenReturn(List.of());
 
     Category newCategory = new Category();
@@ -191,13 +191,13 @@ public class CategoryServiceTest {
   void testCreateCategoryNameNotTheSameAsDeletedCategory() {
     CategoryRequest request = new CategoryRequest();
     request.setName("TestCategory");
-    int userId = defaultUserId;
+    String userId = testUserId;
     Category existedCategory = new Category();
     existedCategory.setName("existedCategory");
     existedCategory.setUserId(userId);
     existedCategory.setDeletedFlag(true);
 
-    when(categoryRepository.findNotDeleted(List.of(userId, defaultSystemUserId)))
+    when(categoryRepository.findNotDeleted(List.of(userId, defaultSystemId)))
         .thenReturn(List.of(existedCategory));
 
     Category newCategory = new Category();
@@ -215,7 +215,7 @@ public class CategoryServiceTest {
   void testCreateCategoryLimitExceeded() {
     CategoryRequest request = new CategoryRequest();
     request.setName("TestCategory");
-    int userId = defaultUserId;
+    String userId = testUserId;
 
     // Create a list with 50 categories for the user
     List<Category> existingCategories = new ArrayList<>();
@@ -226,11 +226,11 @@ public class CategoryServiceTest {
       existingCategories.add(category);
     }
     Category defCategory = new Category("DefaultCategory");
-    defCategory.setUserId(defaultSystemUserId);
+    defCategory.setUserId(defaultSystemId);
     existingCategories.add(defCategory);
 
     // Mock the repository to return the list
-    when(categoryRepository.findNotDeleted(List.of(userId, defaultSystemUserId)))
+    when(categoryRepository.findNotDeleted(List.of(userId, defaultSystemId)))
         .thenReturn(existingCategories);
 
     ResponseStatusException exception = assertThrows(ResponseStatusException.class, () -> {
@@ -247,11 +247,11 @@ public class CategoryServiceTest {
     UUID categoryId = UUID.randomUUID();
     CategoryRequest request = new CategoryRequest();
     request.setName("UpdatedName");
-    int userId = 1;
+    String userId = testUserId;
 
     Category category = new Category("OldName");
     category.setUserId(userId);
-    when(categoryRepository.findUserCategory(List.of(userId, defaultSystemUserId), categoryId))
+    when(categoryRepository.findUserCategory(List.of(userId, defaultSystemId), categoryId))
         .thenReturn(Optional.of(category));
     when(categoryRepository.save(any(Category.class))).thenReturn(category);
 
@@ -266,9 +266,9 @@ public class CategoryServiceTest {
     UUID categoryId = UUID.randomUUID();
     CategoryRequest request = new CategoryRequest();
     request.setName("UpdatedName");
-    int userId = defaultUserId;
+    String userId = testUserId;
 
-    when(categoryRepository.findUserCategory(List.of(userId, defaultSystemUserId), categoryId))
+    when(categoryRepository.findUserCategory(List.of(userId, defaultSystemId), categoryId))
         .thenReturn(Optional.empty());
 
     Exception exception = assertThrows(IllegalArgumentException.class, () -> {
@@ -285,11 +285,11 @@ public class CategoryServiceTest {
     UUID categoryId = UUID.randomUUID();
     CategoryRequest request = new CategoryRequest();
     request.setName("Update");
-    int userId = defaultUserId; // Default user ID
+    String userId = testUserId; // Default user ID
 
     Category category = new Category("target");
-    category.setUserId(defaultSystemUserId);
-    when(categoryRepository.findUserCategory(List.of(userId, defaultSystemUserId), categoryId))
+    category.setUserId(defaultSystemId);
+    when(categoryRepository.findUserCategory(List.of(userId, defaultSystemId), categoryId))
         .thenReturn(Optional.of(category));
 
     Exception exception = assertThrows(IllegalArgumentException.class, () -> {
@@ -306,14 +306,14 @@ public class CategoryServiceTest {
     UUID categoryId = UUID.randomUUID();
     CategoryRequest request = new CategoryRequest();
     request.setName("Update");
-    int userId = defaultUserId; // Default user ID
+    String userId = testUserId; // Default user ID
 
     Category category = new Category("target");
-    category.setUserId(defaultSystemUserId);
+    category.setUserId(defaultSystemId);
     category.setUserId(userId);
-    when(categoryRepository.findUserCategory(List.of(userId, defaultSystemUserId), categoryId))
+    when(categoryRepository.findUserCategory(List.of(userId, defaultSystemId), categoryId))
         .thenReturn(Optional.of(category));
-    when(categoryRepository.findActiveCateByName(List.of(userId, defaultSystemUserId), request.getName()))
+    when(categoryRepository.findActiveCateByName(List.of(userId, defaultSystemId), request.getName()))
         .thenReturn(List.of(new Category(request.getName())));
 
     ResponseStatusException exception = assertThrows(ResponseStatusException.class, () -> {
@@ -329,12 +329,12 @@ public class CategoryServiceTest {
   @DisplayName("カテゴリー削除成功")
   void testDeleteCategorySuccess() {
     UUID categoryId = UUID.randomUUID();
-    int userId = defaultUserId;
+    String userId = testUserId;
     Category category = new Category();
     category.setId(categoryId);
     category.setUserId(userId);
     category.setItems(new ArrayList<>());
-    when(categoryRepository.findNotDeleted(List.of(userId, defaultSystemUserId)))
+    when(categoryRepository.findNotDeleted(List.of(userId, defaultSystemId)))
         .thenReturn(List.of(category));
 
     assertDoesNotThrow(() -> categoryService.deleteCategory(categoryId, userId));
@@ -346,12 +346,12 @@ public class CategoryServiceTest {
   @DisplayName("カテゴリー削除時にアイテムが存在する場合のエラー")
   void testDeleteCategoryHasItems() {
     UUID categoryId = UUID.randomUUID();
-    int userId = defaultUserId;
+    String userId = testUserId;
     Category category = new Category();
     category.setId(categoryId);
     category.setUserId(userId);
     category.setItems(new ArrayList<Item>(List.of(new Item())));
-    when(categoryRepository.findNotDeleted(List.of(userId, defaultSystemUserId)))
+    when(categoryRepository.findNotDeleted(List.of(userId, defaultSystemId)))
         .thenReturn(List.of(category));
 
     Exception exception = assertThrows(IllegalArgumentException.class, () -> {
@@ -366,12 +366,12 @@ public class CategoryServiceTest {
   @DisplayName("カテゴリー削除- カテゴリーが見つからない場合のエラー")
   void testDeleteCategoryNotFound() {
     UUID targetCategoryId = UUID.randomUUID();
-    int userId = defaultUserId;
+    String userId = testUserId;
     Category exsitedCategory = new Category();
     exsitedCategory.setId(UUID.randomUUID());
     exsitedCategory.setUserId(userId);
 
-    when(categoryRepository.findNotDeleted(List.of(userId, defaultSystemUserId)))
+    when(categoryRepository.findNotDeleted(List.of(userId, defaultSystemId)))
         .thenReturn(List.of(exsitedCategory));
 
     ResponseStatusException ex = assertThrows(ResponseStatusException.class, () -> {
@@ -386,12 +386,12 @@ public class CategoryServiceTest {
   @DisplayName("カテゴリー削除- デフォルトカテゴリを削除場合のエラー")
   void testDeleteDefaultCategoryError() {
     UUID categoryId = UUID.randomUUID();
-    int userId = defaultUserId; // Default user ID
+    String userId = testUserId; // Default user ID
     Category category = new Category();
     category.setId(categoryId);
-    category.setUserId(defaultSystemUserId);
+    category.setUserId(defaultSystemId);
     category.setItems(new ArrayList<>());
-    when(categoryRepository.findNotDeleted(List.of(userId, defaultSystemUserId)))
+    when(categoryRepository.findNotDeleted(List.of(userId, defaultSystemId)))
         .thenReturn(List.of(category));
 
     Exception exception = assertThrows(IllegalArgumentException.class, () -> {
@@ -405,9 +405,9 @@ public class CategoryServiceTest {
   @Tag("deleteCategory")
   @DisplayName("カテゴリ削除- カテゴリーリストが空の場合のエラー")
   void testDeleteCategoryEmptyList() {
-    int userId = defaultUserId;
+    String userId = testUserId;
     UUID categoryId = UUID.randomUUID();
-    when(categoryRepository.findNotDeleted(List.of(userId, defaultSystemUserId))).thenReturn(List.of());
+    when(categoryRepository.findNotDeleted(List.of(userId, defaultSystemId))).thenReturn(List.of());
 
     ResponseStatusException exception = assertThrows(ResponseStatusException.class, () -> {
       categoryService.deleteCategory(categoryId, userId);
@@ -420,8 +420,8 @@ public class CategoryServiceTest {
   @Tag("DB Error")
   @DisplayName("カテゴリー取得失敗 - DBエラー")
   void testGetAllCategoriesDbError() {
-    int userId = defaultUserId;
-    when(categoryRepository.findNotDeleted(List.of(userId, defaultSystemUserId)))
+    String userId = testUserId;
+    when(categoryRepository.findNotDeleted(List.of(userId, defaultSystemId)))
         .thenThrow(new DataAccessException("DBエラー") {
         });
 
@@ -437,12 +437,12 @@ public class CategoryServiceTest {
   @DisplayName("カテゴリー作成失敗 - DBエラー")
   void testCreateCategoryDbError() {
     UUID categoryId = UUID.randomUUID();
-    int userId = defaultUserId;
+    String userId = testUserId;
     Category category = new Category();
     category.setId(categoryId);
     category.setUserId(userId);
     category.setItems(new ArrayList<>());
-    when(categoryRepository.findNotDeleted(List.of(userId, defaultSystemUserId)))
+    when(categoryRepository.findNotDeleted(List.of(userId, defaultSystemId)))
         .thenReturn(List.of(category));
     when(categoryRepository.save(any(Category.class))).thenThrow(new DataAccessException("DBエラー") {
     });
