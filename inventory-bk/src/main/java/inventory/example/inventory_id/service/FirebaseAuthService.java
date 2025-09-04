@@ -1,7 +1,6 @@
 package inventory.example.inventory_id.service;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClient;
 
@@ -17,8 +16,10 @@ import io.github.cdimascio.dotenv.Dotenv;
 @Service
 public class FirebaseAuthService {
   private final Dotenv dotenv;
-  private static final Logger logger = LoggerFactory.getLogger(FirebaseAuthService.class);
-  private static final String SIGN_UP_BASE_URL = "https://identitytoolkit.googleapis.com";
+
+  @Value("${firebase.signUpBaseUrl}")
+  private String signUpBaseUrl;
+
   private static final String API_KEY_PARAM = "key";
 
   private String FIREBASE_API_KEY = "FIREBASE_API_KEY";
@@ -33,7 +34,6 @@ public class FirebaseAuthService {
 
   public String verifyToken(String idToken) throws FirebaseAuthException {
     FirebaseToken token = FirebaseAuth.getInstance().verifyIdToken(idToken);
-    // logger.info("Token verified: " + token.getUid());
     return token.getUid();
   }
 
@@ -41,10 +41,9 @@ public class FirebaseAuthService {
 
     FirebaseSignUpRequest requestBody = new FirebaseSignUpRequest(true);
     try {
-      return RestClient.create(SIGN_UP_BASE_URL)
+      return RestClient.create(signUpBaseUrl)
           .post()
           .uri(uriBuilder -> uriBuilder
-              .path("/v1/accounts:signUp")
               .queryParam(API_KEY_PARAM, getApiKey())
               .build())
           .body(requestBody)

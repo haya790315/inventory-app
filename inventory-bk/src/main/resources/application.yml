@@ -31,3 +31,6 @@ logging:
 
 system:
   userid: 9999
+
+firebase:
+  signUpBaseUrl: https://identitytoolkit.googleapis.com/v1/accounts:signUp
