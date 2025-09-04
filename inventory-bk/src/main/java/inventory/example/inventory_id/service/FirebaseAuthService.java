@@ -16,15 +16,19 @@ import io.github.cdimascio.dotenv.Dotenv;
 
 @Service
 public class FirebaseAuthService {
+  private final Dotenv dotenv;
   private static final Logger logger = LoggerFactory.getLogger(FirebaseAuthService.class);
   private static final String SIGN_UP_BASE_URL = "https://identitytoolkit.googleapis.com";
   private static final String API_KEY_PARAM = "key";
-  private final Dotenv dotenv = Dotenv.configure()
-      .filename(".env")
-      .load();
+
+  private String FIREBASE_API_KEY = "FIREBASE_API_KEY";
+
+  public FirebaseAuthService(Dotenv dotenv) {
+    this.dotenv = dotenv;
+  }
 
   public String getApiKey() {
-    return dotenv.get("FIREBASE_API_KEY");
+    return dotenv.get(FIREBASE_API_KEY);
   }
 
   public String verifyToken(String idToken) throws FirebaseAuthException {
@@ -34,6 +38,7 @@ public class FirebaseAuthService {
   }
 
   public FirebaseSignUpResponse anonymouslySignUp() {
+
     FirebaseSignUpRequest requestBody = new FirebaseSignUpRequest(true);
     try {
       return RestClient.create(SIGN_UP_BASE_URL)
