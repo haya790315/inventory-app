@@ -61,4 +61,14 @@ class CategoryRequestValidationTest {
     Set<ConstraintViolation<CategoryRequest>> violations = validator.validate(request);
     assertFalse(violations.isEmpty());
   }
+
+  @Test
+  @DisplayName("カテゴリリクエストのバリデーション成功 - 名前が50文字")
+  void testNameExactly50Characters() {
+    CategoryRequest request = new CategoryRequest();
+    request.setName("A".repeat(50)); // 50文字
+
+    Set<ConstraintViolation<CategoryRequest>> violations = validator.validate(request);
+    assertTrue(violations.isEmpty());
+  }
 }
