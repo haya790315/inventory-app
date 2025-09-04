@@ -8,6 +8,7 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.when;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
@@ -130,7 +131,7 @@ class ItemControllerTest {
   @Tag("POST: /api/item")
   @DisplayName("アイテム作成-400 Bad Request カテゴリー名入力がない")
   void createItem_badRequest_categoryNameMissing() throws Exception {
-    ItemRequest req = new ItemRequest("", "", 1);
+    ItemRequest req = new ItemRequest("test", "", 1);
     mockMvc.perform(post("/api/item")
         .contentType(MediaType.APPLICATION_JSON)
         .content(objectMapper.writeValueAsString(req)))
@@ -313,6 +314,49 @@ class ItemControllerTest {
         .param("item_id", itemId.toString())
         .contentType(MediaType.APPLICATION_JSON)
         .content(objectMapper.writeValueAsString(req)))
+        .andExpect(status().isInternalServerError())
+        .andExpect(content().json("{\"message\":\"" + serverErrorMsg + "\"}"));
+  }
+
+  @Test
+  @Tag("DELETE: /api/item")
+  @DisplayName("アイテム削除-202 Accepted")
+  void deleteItem_success() throws Exception {
+    UUID itemId = UUID.randomUUID();
+    doNothing().when(itemService).deleteItem(anyInt(), eq(itemId));
+    mockMvc.perform(delete("/api/item")
+        .param("item_id", itemId.toString()))
+        .andExpect(status().isOk())
+        .andExpect(content().json("{\"message\":\"アイテムの削除が完了しました\"}"));
+  }
+
+  @Test
+  @Tag("DELETE: /api/item")
+  @DisplayName("アイテム削除-404 Not Found")
+  void deleteItem_notFound() throws Exception {
+    UUID itemId = UUID.randomUUID();
+    doThrow(new ResponseStatusException(HttpStatus.NOT_FOUND, itemNotFoundMsg))
+        .when(itemService).deleteItem(
+            anyInt(),
+            eq(itemId));
+    mockMvc.perform(delete("/api/item")
+        .param("item_id", itemId.toString()))
+        .andExpect(status().isNotFound())
+        .andExpect(content().json("{\"message\":\"" + itemNotFoundMsg + "\"}"));
+  }
+
+  @Test
+  @Tag("DELETE: /api/item")
+  @DisplayName("アイテム削除-500 サーバーエラー")
+  void deleteItem_throws500() throws Exception {
+    UUID itemId = UUID.randomUUID();
+    doThrow(new RuntimeException(serverErrorMsg))
+        .when(itemService)
+        .deleteItem(
+            anyInt(),
+            eq(itemId));
+    mockMvc.perform(delete("/api/item")
+        .param("item_id", itemId.toString()))
         .andExpect(status().isInternalServerError())
         .andExpect(content().json("{\"message\":\"" + serverErrorMsg + "\"}"));
   }

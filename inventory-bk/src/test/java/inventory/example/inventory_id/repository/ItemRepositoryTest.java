@@ -2,6 +2,8 @@ package inventory.example.inventory_id.repository;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
 
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -103,6 +105,44 @@ public class ItemRepositoryTest {
     List<Item> result = itemRepository.getActiveByCategoryName(
         List.of(userId, systemUserId),
         "deleted");
+    assertThat(result).isEmpty();
+  }
+
+  @Test
+  @DisplayName("getActiveItemWithId 正しいアイテムを取得できる")
+  void testGetActiveItemWithId() {
+    // カテゴリのセットアップ
+    Category category = new Category("Laptop", 999);
+    categoryRepository.save(category);
+
+    // ユーザ1アイテムのセットアップ
+    Item existedItem = new Item("Notebook", 123, category, 5, false);
+    itemRepository.save(existedItem);
+
+    // ユーザ2アイテムのセットアップ
+    Item notExitedItem = new Item("Macbook", 123, category, 1, true);
+    itemRepository.save(notExitedItem);
+
+    Item differUserItem = new Item("Notebook", 321, category, 10, false);
+    differUserItem.setCategory(category);
+    differUserItem.setQuantity(10);
+    itemRepository.save(differUserItem);
+
+    Optional<Item> resultExisted = itemRepository.getActiveItemWithId(List.of(123, 999), existedItem.getId());
+    assertThat(resultExisted).isPresent();
+    assertThat(resultExisted.get().getName()).isEqualTo("Notebook");
+    assertThat(resultExisted.get().getCategoryName()).isEqualTo("Laptop");
+    assertThat(resultExisted.get().getQuantity()).isEqualTo(5);
+    assertThat(resultExisted.get().isDeletedFlag()).isFalse();
+
+    Optional<Item> resultNotExisted = itemRepository.getActiveItemWithId(List.of(123, 999), notExitedItem.getId());
+    assertThat(resultNotExisted).isEmpty();
+  }
+
+  @Test
+  @DisplayName("getActiveItemWithId（テストゼロ件）")
+  void testGetActiveItemWithIdNotFound() {
+    Optional<Item> result = itemRepository.getActiveItemWithId(List.of(999), UUID.randomUUID());
     assertThat(result).isEmpty();
   }
 }
