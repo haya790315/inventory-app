@@ -8,6 +8,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -23,10 +24,12 @@ import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.dao.DataAccessException;
+import org.springframework.http.HttpStatus;
 import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.web.server.ResponseStatusException;
 
 import inventory.example.inventory_id.dto.CategoryDto;
+import inventory.example.inventory_id.dto.ItemDto;
 import inventory.example.inventory_id.model.Category;
 import inventory.example.inventory_id.model.Item;
 import inventory.example.inventory_id.repository.CategoryRepository;
@@ -83,8 +86,11 @@ public class CategoryServiceTest {
     when(categoryRepository.findNotDeleted(List.of(userId, defaultSystemId)))
         .thenReturn(List.of());
 
-    List<CategoryDto> result = categoryService.getAllCategories(userId);
-    assertTrue(result.isEmpty());
+    ResponseStatusException exception = assertThrows(ResponseStatusException.class, () -> {
+      categoryService.getAllCategories(userId);
+    });
+    assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, exception.getStatusCode());
+    assertEquals("サーバーエラーが発生しました", exception.getReason());
   }
 
   @Test
@@ -93,16 +99,27 @@ public class CategoryServiceTest {
   void testGetCategoryItemsSuccess() {
     UUID categoryId = UUID.randomUUID();
     String userId = testUserId;
-    Category category = new Category();
+    String otherUserId = "otherUserId";
+    Category category = new Category("TestCategory", defaultSystemId);
     category.setId(categoryId);
-    category.setUserId(userId);
-    category.setItems(List.of(new Item("Item1")));
+
+    Item userNewItem = new Item("userNewItem", userId, category, 10, false);
+    userNewItem.setUpdatedAt(LocalDateTime.now());
+    Item userOldItem = new Item("userOldItem", userId, category, 8, false);
+    userOldItem.setUpdatedAt(LocalDateTime.now().minusDays(1));
+    Item userDeletedItem = new Item("userDeletedItem", userId, category, 8, true);
+    userOldItem.setUpdatedAt(LocalDateTime.now().minusDays(1));
+    Item otherUserItem = new Item("otherUserItem", otherUserId, category, 5, false);
+
+    category.setItems(new ArrayList<>(List.of(userNewItem,
+        userOldItem, userDeletedItem, otherUserItem)));
     when(categoryRepository.findNotDeleted(List.of(userId, defaultSystemId)))
         .thenReturn(List.of(category));
 
-    List<Item> result = categoryService.getCategoryItems(testUserId, categoryId);
-    assertFalse(result.isEmpty());
-    assertEquals(category.getItems(), result);
+    List<ItemDto> result = categoryService.getCategoryItems(testUserId, categoryId);
+    assertEquals(2, result.size());
+    assertEquals("userNewItem", result.get(0).getName());
+    assertEquals("userOldItem", result.get(1).getName());
   }
 
   @Test
@@ -114,10 +131,11 @@ public class CategoryServiceTest {
     Category category = new Category();
     category.setId(categoryId);
     category.setUserId(userId);
+    category.setItems(new ArrayList<>());
     when(categoryRepository.findNotDeleted(List.of(userId, defaultSystemId)))
         .thenReturn(List.of(category));
 
-    List<Item> result = categoryService.getCategoryItems(testUserId, categoryId);
+    List<ItemDto> result = categoryService.getCategoryItems(testUserId, categoryId);
     assertTrue(result.isEmpty());
   }
 

@@ -12,6 +12,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
 import inventory.example.inventory_id.dto.CategoryDto;
+import inventory.example.inventory_id.dto.ItemDto;
 import inventory.example.inventory_id.model.Category;
 import inventory.example.inventory_id.model.Item;
 import inventory.example.inventory_id.repository.CategoryRepository;
@@ -28,20 +29,27 @@ public class CategoryService {
   private String categoryNotFoundMsg = "カテゴリーが見つかりません";
 
   public List<CategoryDto> getAllCategories(String userId) {
-    // ユーザとデフォルトのカテゴリを取得
-    return categoryRepository.findNotDeleted(List.of(userId, systemUserId)).stream()
+    List<Category> categories = categoryRepository.findNotDeleted(List.of(userId, systemUserId));
+    if (categories.isEmpty()) {
+      throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "サーバーエラーが発生しました");
+    }
+    return categories.stream()
         .sorted(Comparator.comparing(Category::getName))
         .map(category -> new CategoryDto(category.getName()))
         .toList();
   }
 
-  public List<Item> getCategoryItems(String userId, UUID categoryId) {
+  public List<ItemDto> getCategoryItems(String userId, UUID categoryId) {
     List<Category> categories = categoryRepository.findNotDeleted(List.of(userId, systemUserId));
     return categories.stream()
         .filter(category -> category.getId().equals(categoryId))
         .findFirst()
-        .map(Category::getItems)
-        .orElse(List.of()); // アイテムが見つからない場合は空リストを返す
+        .map(c -> c.getItems().stream().filter(i -> i.getUserId().equals(userId) && !i.isDeletedFlag())
+            .sorted(Comparator.comparing(Item::getUpdatedAt).reversed())
+            .map(i -> new ItemDto(i.getName(), i.getCategoryName(), i.getQuantity()))
+            .toList())
+        .orElse(List.of());
+
   }
 
   public Category createCategory(CategoryRequest categoryRequest, String userId) {

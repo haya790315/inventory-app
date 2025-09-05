@@ -46,7 +46,7 @@ public class ItemService {
 
     // 同じ名前のアイテムが存在し、削除されていない場合はエラーを投げる
     cate.getItems().stream()
-        .filter(i -> i.getName().equals(itemRequest.getName()) && !i.isDeletedFlag())
+        .filter(i -> i.getName().equals(itemRequest.getName()) && !i.isDeletedFlag() && i.getUserId().equals(userId))
         .findAny()
         .ifPresent(i -> {
           throw new ResponseStatusException(HttpStatus.CONFLICT,

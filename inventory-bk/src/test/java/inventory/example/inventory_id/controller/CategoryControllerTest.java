@@ -37,8 +37,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 import inventory.example.inventory_id.dto.CategoryDto;
 import inventory.example.inventory_id.exception.ValidationException;
+import inventory.example.inventory_id.dto.ItemDto;
 import inventory.example.inventory_id.model.Category;
-import inventory.example.inventory_id.model.Item;
 import inventory.example.inventory_id.request.CategoryRequest;
 import inventory.example.inventory_id.service.CategoryService;
 
@@ -95,7 +95,7 @@ class CategoryControllerTest {
   @DisplayName("カテゴリーアイテム取得-200 OK")
   void getCategoryItems_returnsItems() throws Exception {
     UUID categoryId = UUID.randomUUID();
-    List<Item> items = Arrays.asList(new Item(), new Item());
+    List<ItemDto> items = Arrays.asList(new ItemDto(), new ItemDto());
     when(categoryService.getCategoryItems(anyString(), any(UUID.class))).thenReturn(items);
     mockMvc.perform(get("/api/category/items").param("categoryId", categoryId.toString()))
         .andExpect(status().isOk())
