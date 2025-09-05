@@ -78,11 +78,13 @@ public class CategoryService {
 
   public Category updateCategory(UUID categoryId, CategoryRequest categoryRequest, String userId) {
     Optional<Category> categoryOpt = categoryRepository.findUserCategory(List.of(userId, systemUserId), categoryId);
+
     if (!categoryOpt.isPresent()) {
       throw new IllegalArgumentException(categoryNotFoundMsg);
     }
     Category category = categoryOpt.get();
-    if (category.getUserId() != userId) {
+
+    if (!category.getUserId().equals(userId)) {
       throw new IllegalArgumentException("デフォルトカテゴリは編集できません");
     }
     List<Category> exsitCategory = categoryRepository
@@ -106,7 +108,7 @@ public class CategoryService {
         .findFirst()
         .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, categoryNotFoundMsg));
 
-    if (category.getUserId() != userId) {
+    if (!category.getUserId().equals(userId)) {
       throw new IllegalArgumentException("デフォルトカテゴリは削除できません");
     }
     if (category.getItems().isEmpty()) {

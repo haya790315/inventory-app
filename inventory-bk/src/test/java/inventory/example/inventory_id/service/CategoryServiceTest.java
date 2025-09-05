@@ -268,7 +268,7 @@ public class CategoryServiceTest {
     String userId = testUserId;
 
     Category category = new Category("OldName");
-    category.setUserId(userId);
+    category.setUserId(new String(testUserId));
     when(categoryRepository.findUserCategory(List.of(userId, defaultSystemId), categoryId))
         .thenReturn(Optional.of(category));
     when(categoryRepository.save(any(Category.class))).thenReturn(category);
@@ -350,7 +350,7 @@ public class CategoryServiceTest {
     String userId = testUserId;
     Category category = new Category();
     category.setId(categoryId);
-    category.setUserId(userId);
+    category.setUserId(new String(userId));
     category.setItems(new ArrayList<>());
     when(categoryRepository.findNotDeleted(List.of(userId, defaultSystemId)))
         .thenReturn(List.of(category));
