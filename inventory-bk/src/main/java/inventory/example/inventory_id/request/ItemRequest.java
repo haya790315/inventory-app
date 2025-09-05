@@ -21,6 +21,7 @@ public class ItemRequest {
 
   @NotBlank(message = "カテゴリは必須です")
   @Pattern(regexp = nonEmptyStringRegex, message = "カテゴリは必須です")
+  @Size(max = 50, message = "アイテム名は50文字以内で入力してください")
   private String categoryName;
 
   @PositiveOrZero(message = "数量は0以上の整数で入力してください")

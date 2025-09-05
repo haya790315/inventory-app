@@ -4,8 +4,8 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doNothing;
-import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -36,6 +36,7 @@ import org.springframework.web.server.ResponseStatusException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import inventory.example.inventory_id.dto.CategoryDto;
+import inventory.example.inventory_id.exception.ValidationException;
 import inventory.example.inventory_id.model.Category;
 import inventory.example.inventory_id.model.Item;
 import inventory.example.inventory_id.request.CategoryRequest;
@@ -60,8 +61,10 @@ class CategoryControllerTest {
 
   @BeforeEach
   void setUp() {
-    doReturn(testUserId).when(categoryController).fetchUserIdFromToken();
-    mockMvc = MockMvcBuilders.standaloneSetup(categoryController).build();
+    lenient().doReturn(testUserId).when(categoryController).fetchUserIdFromToken();
+    mockMvc = MockMvcBuilders.standaloneSetup(categoryController)
+        .setControllerAdvice(new ValidationException())
+        .build();
   }
 
   @Test
@@ -159,6 +162,32 @@ class CategoryControllerTest {
         .content(objectMapper.writeValueAsString(req)))
         .andExpect(status().isConflict())
         .andExpect(content().json("{\"message\":\"カテゴリー名はすでに存在します\"}"));
+  }
+
+  @Test
+  @Tag("POST: /api/category")
+  @DisplayName("カテゴリー作成-失敗 400 カテゴリー名が50文字を超える")
+  void createCategory_badRequest_nameTooLong() throws Exception {
+    CategoryRequest req = new CategoryRequest();
+    req.setName("A".repeat(51)); // 51文字
+    mockMvc.perform(post("/api/category")
+        .contentType(MediaType.APPLICATION_JSON)
+        .content(objectMapper.writeValueAsString(req)))
+        .andExpect(status().isBadRequest())
+        .andExpect(content().json("{\"error\":\"カテゴリ名は50文字以内\"}"));
+  }
+
+  @Test
+  @Tag("POST: /api/category")
+  @DisplayName("カテゴリー作成-失敗 400 カテゴリー名が空文字")
+  void createCategory_badRequest_nameEmpty() throws Exception {
+    CategoryRequest req = new CategoryRequest();
+    req.setName("　　　　　　"); // 空文字
+    mockMvc.perform(post("/api/category")
+        .contentType(MediaType.APPLICATION_JSON)
+        .content(objectMapper.writeValueAsString(req)))
+        .andExpect(status().isBadRequest())
+        .andExpect(content().json("{\"error\":\"カテゴリ名は必須\"}"));
   }
 
   @Test
