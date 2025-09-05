@@ -1,7 +1,6 @@
 package inventory.example.inventory_id.controller;
 
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyString;
 
 import static org.mockito.ArgumentMatchers.eq;
@@ -55,7 +54,7 @@ class ItemControllerTest {
   private MockMvc mockMvc;
   private ObjectMapper objectMapper = new ObjectMapper();
 
-  private int testUserId = 111;
+  private String testUserId = "testUserId";
   private String categoryNotFoundMsg = "カテゴリーが見つかりません";
   private String itemNotFoundMsg = "アイテムが見つかりません";
   private String serverErrorMsg = "サーバーエラーが発生しました";
@@ -73,7 +72,7 @@ class ItemControllerTest {
   @DisplayName("アイテム作成-201 Created")
   void createItem_success() throws Exception {
     ItemRequest req = new ItemRequest("itemName", "category", 1);
-    doNothing().when(itemService).createItem(anyInt(), any(ItemRequest.class));
+    doNothing().when(itemService).createItem(anyString(), any(ItemRequest.class));
     mockMvc.perform(post("/api/item")
         .contentType(MediaType.APPLICATION_JSON)
         .content(objectMapper.writeValueAsString(req)))
@@ -88,7 +87,7 @@ class ItemControllerTest {
     ItemRequest req = new ItemRequest("itemName", "category", 1);
     doThrow(new IllegalArgumentException(categoryNotFoundMsg))
         .when(itemService)
-        .createItem(anyInt(), any(ItemRequest.class));
+        .createItem(anyString(), any(ItemRequest.class));
     mockMvc.perform(post("/api/item")
         .contentType(MediaType.APPLICATION_JSON)
         .content(objectMapper.writeValueAsString(req)))
@@ -105,7 +104,7 @@ class ItemControllerTest {
         HttpStatus.CONFLICT,
         String.format("アイテム名 '%s' は既に存在します", req.getName())))
         .when(itemService)
-        .createItem(anyInt(), any(ItemRequest.class));
+        .createItem(anyString(), any(ItemRequest.class));
     mockMvc.perform(post("/api/item")
         .contentType(MediaType.APPLICATION_JSON)
         .content(objectMapper.writeValueAsString(req)))
@@ -159,7 +158,7 @@ class ItemControllerTest {
     doThrow(new RuntimeException(
         serverErrorMsg))
         .when(itemService)
-        .createItem(anyInt(), any(ItemRequest.class));
+        .createItem(anyString(), any(ItemRequest.class));
     mockMvc.perform(post("/api/item")
         .contentType(MediaType.APPLICATION_JSON)
         .content(objectMapper.writeValueAsString(req)))
@@ -172,7 +171,7 @@ class ItemControllerTest {
   @DisplayName("アイテム一覧取得-200 OK")
   void getItems_success() throws Exception {
     List<ItemDto> items = Arrays.asList(new ItemDto(), new ItemDto());
-    when(itemService.getItems(anyInt(), anyString())).thenReturn(items);
+    when(itemService.getItems(anyString(), anyString())).thenReturn(items);
     mockMvc.perform(get("/api/item")
         .param("category_name", "test"))
         .andExpect(status().isOk())
@@ -183,7 +182,7 @@ class ItemControllerTest {
   @Tag("GET: /api/item")
   @DisplayName("アイテム一覧取得-400 不正な引数")
   void getItems_throws400() throws Exception {
-    when(itemService.getItems(anyInt(), anyString()))
+    when(itemService.getItems(anyString(), anyString()))
         .thenThrow(new IllegalArgumentException(categoryNotFoundMsg));
     mockMvc.perform(get("/api/item")
         .param("category_name", "test"))
@@ -195,7 +194,7 @@ class ItemControllerTest {
   @Tag("GET: /api/item")
   @DisplayName("アイテム一覧取得-404 アイテムが見つからない")
   void getItems_throws404() throws Exception {
-    when(itemService.getItems(anyInt(), anyString()))
+    when(itemService.getItems(anyString(), anyString()))
         .thenThrow(new ResponseStatusException(HttpStatus.NOT_FOUND, itemNotFoundMsg));
     mockMvc.perform(get("/api/item")
         .param("category_name", "test"))
@@ -207,7 +206,7 @@ class ItemControllerTest {
   @Tag("GET: /api/item")
   @DisplayName("アイテム一覧取得-500 サーバーエラー")
   void getItems_throws500() throws Exception {
-    when(itemService.getItems(anyInt(), anyString()))
+    when(itemService.getItems(anyString(), anyString()))
         .thenThrow(new RuntimeException(serverErrorMsg));
     mockMvc.perform(get("/api/item")
         .param("category_name", "test"))
@@ -222,7 +221,7 @@ class ItemControllerTest {
     UUID itemId = UUID.randomUUID();
     ItemRequest req = new ItemRequest("itemName", "category", 1);
     doNothing().when(itemService).updateItem(
-        anyInt(),
+        anyString(),
         eq(itemId),
         any(ItemRequest.class));
     mockMvc.perform(put("/api/item")
@@ -241,7 +240,7 @@ class ItemControllerTest {
     ItemRequest req = new ItemRequest("itemName", "category", 1);
     doThrow(new ResponseStatusException(HttpStatus.NOT_FOUND, itemNotFoundMsg))
         .when(itemService).updateItem(
-            anyInt(),
+            anyString(),
             eq(itemId),
             any(ItemRequest.class));
     mockMvc.perform(put("/api/item")
@@ -261,7 +260,7 @@ class ItemControllerTest {
     doThrow(new ResponseStatusException(HttpStatus.BAD_REQUEST, "アイテム名は既に登録されています"))
         .when(itemService)
         .updateItem(
-            anyInt(),
+            anyString(),
             eq(itemId),
             any(ItemRequest.class));
     mockMvc.perform(put("/api/item")
@@ -307,7 +306,7 @@ class ItemControllerTest {
     UUID itemId = UUID.randomUUID();
     ItemRequest req = new ItemRequest("itemName", "category", 1);
     doThrow(new RuntimeException(serverErrorMsg)).when(itemService).updateItem(
-        anyInt(),
+        anyString(),
         eq(itemId),
         any(ItemRequest.class));
     mockMvc.perform(put("/api/item")
@@ -323,7 +322,7 @@ class ItemControllerTest {
   @DisplayName("アイテム削除-202 Accepted")
   void deleteItem_success() throws Exception {
     UUID itemId = UUID.randomUUID();
-    doNothing().when(itemService).deleteItem(anyInt(), eq(itemId));
+    doNothing().when(itemService).deleteItem(anyString(), eq(itemId));
     mockMvc.perform(delete("/api/item")
         .param("item_id", itemId.toString()))
         .andExpect(status().isOk())
@@ -337,7 +336,7 @@ class ItemControllerTest {
     UUID itemId = UUID.randomUUID();
     doThrow(new ResponseStatusException(HttpStatus.NOT_FOUND, itemNotFoundMsg))
         .when(itemService).deleteItem(
-            anyInt(),
+            anyString(),
             eq(itemId));
     mockMvc.perform(delete("/api/item")
         .param("item_id", itemId.toString()))
@@ -353,7 +352,7 @@ class ItemControllerTest {
     doThrow(new RuntimeException(serverErrorMsg))
         .when(itemService)
         .deleteItem(
-            anyInt(),
+            anyString(),
             eq(itemId));
     mockMvc.perform(delete("/api/item")
         .param("item_id", itemId.toString()))

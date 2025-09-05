@@ -25,30 +25,24 @@ public class CategoryRepositoryTest {
   private Category existedCategory;
   private Category deletedCategory;
   private Category sameNameDiffUser;
-  private int userId1 = 1;
-  private int userId2 = 2;
+  private String userId1 = "userId1";
+  private String userId2 = "userId2";
   private String book = "book";
   private String electronics = "electronics";
 
   @BeforeEach
   void setUp() {
     categoryRepository.deleteAll();
-    Category category1 = new Category();
-    category1.setUserId(userId1);
-    category1.setName(book);
-    category1.setDeletedFlag(false);
+    Category user1Book = new Category(book, userId1);
+    user1Book.setDeletedFlag(false);
 
-    Category category2 = new Category();
-    category2.setUserId(userId1);
-    category2.setName(electronics);
-    category2.setDeletedFlag(true);
+    Category user1Electronics = new Category(electronics, userId1);
+    user1Electronics.setDeletedFlag(true);
 
-    Category category3 = new Category();
-    category3.setUserId(userId2);
-    category3.setName(electronics);
-    category3.setDeletedFlag(false);
+    Category user2Electronics = new Category(electronics, userId2);
+    user2Electronics.setDeletedFlag(false);
 
-    List<Category> saved = categoryRepository.saveAll(Arrays.asList(category1, category2, category3));
+    List<Category> saved = categoryRepository.saveAll(Arrays.asList(user1Book, user1Electronics, user2Electronics));
     existedCategory = saved.get(0);
     deletedCategory = saved.get(1);
     sameNameDiffUser = saved.get(2);

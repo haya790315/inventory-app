@@ -44,22 +44,21 @@ class ItemServiceTest {
 
   private String categoryNotFoundMsg = "カテゴリーが見つかりません";
   private String itemsNotFoundMsg = "アイテムが見つかりません";
-  private int defaultUserId = 111;
-
-  private int defaultSystemUserId = 999;
+  private String testUserId = "testUserId";
+  private String defaultSystemId = "systemId";
 
   @BeforeEach
   void setup() {
     MockitoAnnotations.openMocks(this);
-    ReflectionTestUtils.setField(itemService, "systemUserId", defaultSystemUserId);
+    ReflectionTestUtils.setField(itemService, "systemUserId", defaultSystemId);
   }
 
   @Test
   @Tag("createItem")
   @DisplayName("アイテム作成成功")
   void testCreateItemSuccess() {
-    int userId = defaultUserId;
-    int systemUserId = defaultSystemUserId;
+    String userId = testUserId;
+    String systemUserId = defaultSystemId;
     String categoryName = "Laptop";
     String itemName = "Notebook";
     int quantity = 5;
@@ -84,8 +83,8 @@ class ItemServiceTest {
   @Tag("createItem")
   @DisplayName("アイテム作成失敗- カテゴリーが見つからない")
   void testCreateItemCategoryNotFound() {
-    int userId = defaultUserId;
-    int systemUserId = defaultSystemUserId;
+    String userId = testUserId;
+    String systemUserId = defaultSystemId;
     String categoryName = "Books";
 
     ItemRequest request = new ItemRequest("Notebook", categoryName, 5);
@@ -103,8 +102,8 @@ class ItemServiceTest {
   @Tag("createItem")
   @DisplayName("アイテム作成失敗 - 同じ名前のアイテムが存在する")
   void testCreateItemAlreadyExists() {
-    int userId = defaultUserId;
-    int systemUserId = defaultSystemUserId;
+    String userId = testUserId;
+    String systemUserId = defaultSystemId;
     String categoryName = "Laptop";
     String itemName = "Notebook";
 
@@ -131,8 +130,8 @@ class ItemServiceTest {
   @Tag("createItem")
   @DisplayName("アイテム作成 - 同じ名前のアイテムが存在するが削除フラグが立っている場合")
   void testCreateItemThatHasDeletedFlag() {
-    int userId = defaultUserId;
-    int systemUserId = defaultSystemUserId;
+    String userId = testUserId;
+    String systemUserId = defaultSystemId;
     String categoryName = "Laptop";
     String itemName = "Notebook";
 
@@ -159,8 +158,8 @@ class ItemServiceTest {
   @Tag("createItem")
   @DisplayName("アイテム作成 - 名前が違うアイテムが存在するが削除フラグが立っている場合")
   void testCreateItemThatHasDeletedFlagButDifferentName() {
-    int userId = defaultUserId;
-    int systemUserId = defaultSystemUserId;
+    String userId = testUserId;
+    String systemUserId = defaultSystemId;
     String categoryName = "Laptop";
     String itemName = "Notebook";
     String differentItemName = "Tablet";
@@ -188,8 +187,8 @@ class ItemServiceTest {
   @Tag("getItem")
   @DisplayName("アイテム取得成功")
   void testGetItemsSortedByUpdatedAtDescending() {
-    int userId = defaultUserId;
-    int systemUserId = defaultSystemUserId;
+    String userId = testUserId;
+    String systemUserId = defaultSystemId;
     String categoryName = "pc";
 
     Category category = new Category(categoryName);
@@ -224,8 +223,8 @@ class ItemServiceTest {
   @Tag("getItem")
   @DisplayName("アイテム取得失敗 - アイテムが見つかりません")
   void testGetItemsNotExist() {
-    int userId = defaultUserId;
-    int systemUserId = defaultSystemUserId;
+    String userId = testUserId;
+    String systemUserId = defaultSystemId;
     String categoryName = "Food";
 
     when(itemRepository
@@ -241,8 +240,8 @@ class ItemServiceTest {
   @Tag("updateItem")
   @DisplayName("アイテム更新成功")
   void testUpdateItemSuccess() {
-    int userId = defaultUserId;
-    int systemUserId = defaultSystemUserId;
+    String userId = testUserId;
+    String systemUserId = defaultSystemId;
     String categoryName = "Laptop";
     String newItemName = "Notebook";
     int newQuantity = 5;
@@ -250,7 +249,7 @@ class ItemServiceTest {
 
     Item existingItem = new Item(
         "OldName",
-        defaultUserId,
+        testUserId,
         null,
         1,
         false);
@@ -276,8 +275,8 @@ class ItemServiceTest {
   @Tag("updateItem")
   @DisplayName("アイテム更新失敗 - アイテム名重複")
   void testUpdateItemNameDuplicate() {
-    int userId = defaultUserId;
-    int systemUserId = defaultSystemUserId;
+    String userId = testUserId;
+    String systemUserId = defaultSystemId;
     String categoryName = "Laptop";
     UUID itemId = UUID.randomUUID();
 
@@ -302,8 +301,8 @@ class ItemServiceTest {
   @Tag("updateItem")
   @DisplayName("アイテム更新失敗 - アイテムが見つからない")
   void testUpdateItemNotFound() {
-    int userId = defaultUserId;
-    int systemUserId = defaultSystemUserId;
+    String userId = testUserId;
+    String systemUserId = defaultSystemId;
     String categoryName = "Laptop";
     UUID itemId = UUID.randomUUID();
 
@@ -322,8 +321,8 @@ class ItemServiceTest {
   @Tag("updateItem")
   @DisplayName("アイテム更新失敗 - アイテムIdが見つからないエラー")
   void testUpdateItemIdNotFound() {
-    int userId = defaultUserId;
-    int systemUserId = defaultSystemUserId;
+    String userId = testUserId;
+    String systemUserId = defaultSystemId;
     String categoryName = "Laptop";
     UUID itemId = UUID.randomUUID();
     Category category = new Category(categoryName);
@@ -350,14 +349,14 @@ class ItemServiceTest {
   @Tag("deleteItem")
   @DisplayName("アイテム削除成功")
   void testDeleteItemSuccess() {
-    int userId = defaultUserId;
+    String userId = testUserId;
     UUID itemId = UUID.randomUUID();
     Item item = new Item();
     item.setId(itemId);
     item.setUserId(userId);
 
     when(itemRepository
-        .getActiveItemWithId(List.of(userId, defaultSystemUserId), itemId))
+        .getActiveItemWithId(List.of(userId, defaultSystemId), itemId))
         .thenReturn(Optional.of(item));
 
     when(itemRepository.save(any(Item.class))).thenReturn(item);
@@ -371,10 +370,10 @@ class ItemServiceTest {
   @Tag("deleteItem")
   @DisplayName("アイテム削除失敗 - アイテムが見つからない")
   void testDeleteItemNotFound() {
-    int userId = defaultUserId;
+    String userId = testUserId;
     UUID itemId = UUID.randomUUID();
     when(itemRepository
-        .getActiveItemWithId(List.of(userId, defaultSystemUserId), itemId))
+        .getActiveItemWithId(List.of(userId, defaultSystemId), itemId))
         .thenReturn(Optional.empty());
 
     Exception ex = assertThrows(ResponseStatusException.class,
@@ -387,7 +386,7 @@ class ItemServiceTest {
   @Tag("DB error")
   @DisplayName("アイテム取得失敗 - DBエラー")
   void selectItem_dbError() {
-    int userId = defaultUserId;
+    String userId = testUserId;
     UUID itemId = UUID.randomUUID();
     Item item = new Item();
     item.setId(itemId);
@@ -404,14 +403,14 @@ class ItemServiceTest {
   @Tag("DB error")
   @DisplayName("アイテム保存失敗 - DBエラー")
   void saveItem_dbError() {
-    int userId = defaultUserId;
+    String userId = testUserId;
     UUID itemId = UUID.randomUUID();
     Item item = new Item();
     item.setId(itemId);
     item.setUserId(userId);
 
     when(itemRepository
-        .getActiveItemWithId(List.of(userId, defaultSystemUserId), itemId))
+        .getActiveItemWithId(List.of(userId, defaultSystemId), itemId))
         .thenReturn(Optional.of(item));
     when(itemRepository.save(any(Item.class)))
         .thenThrow(new DataAccessException("DB エラー") {

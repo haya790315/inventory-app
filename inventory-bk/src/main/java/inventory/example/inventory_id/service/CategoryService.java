@@ -23,11 +23,11 @@ public class CategoryService {
   private CategoryRepository categoryRepository;
 
   @Value("${system.userid}")
-  private int systemUserId;
+  private String systemUserId;
 
   private String categoryNotFoundMsg = "カテゴリーが見つかりません";
 
-  public List<CategoryDto> getAllCategories(int userId) {
+  public List<CategoryDto> getAllCategories(String userId) {
     // ユーザとデフォルトのカテゴリを取得
     return categoryRepository.findNotDeleted(List.of(userId, systemUserId)).stream()
         .sorted(Comparator.comparing(Category::getName))
@@ -35,7 +35,7 @@ public class CategoryService {
         .toList();
   }
 
-  public List<Item> getCategoryItems(int userId, UUID categoryId) {
+  public List<Item> getCategoryItems(String userId, UUID categoryId) {
     List<Category> categories = categoryRepository.findNotDeleted(List.of(userId, systemUserId));
     return categories.stream()
         .filter(category -> category.getId().equals(categoryId))
@@ -44,12 +44,12 @@ public class CategoryService {
         .orElse(List.of()); // アイテムが見つからない場合は空リストを返す
   }
 
-  public Category createCategory(CategoryRequest categoryRequest, int userId) {
+  public Category createCategory(CategoryRequest categoryRequest, String userId) {
 
     List<Category> categoryList = categoryRepository.findNotDeleted(List.of(userId, systemUserId));
 
     List<Category> userCategories = categoryList.stream()
-        .filter(category -> category.getUserId() == userId)
+        .filter(category -> category.getUserId().equals(userId))
         .toList();
 
     // ユーザカテゴリーの上限は50件まで
@@ -68,7 +68,7 @@ public class CategoryService {
     return categoryRepository.save(category);
   }
 
-  public Category updateCategory(UUID categoryId, CategoryRequest categoryRequest, int userId) {
+  public Category updateCategory(UUID categoryId, CategoryRequest categoryRequest, String userId) {
     Optional<Category> categoryOpt = categoryRepository.findUserCategory(List.of(userId, systemUserId), categoryId);
     if (!categoryOpt.isPresent()) {
       throw new IllegalArgumentException(categoryNotFoundMsg);
@@ -88,7 +88,7 @@ public class CategoryService {
     return categoryRepository.save(category);
   }
 
-  public void deleteCategory(UUID id, int userId) {
+  public void deleteCategory(UUID id, String userId) {
     List<Category> categoryList = categoryRepository.findNotDeleted(List.of(userId, systemUserId));
     if (categoryList.isEmpty()) {
       throw new ResponseStatusException(HttpStatus.NOT_FOUND, categoryNotFoundMsg);
