@@ -98,7 +98,7 @@ public class CategoryService {
         .findFirst()
         .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, categoryNotFoundMsg));
 
-    if (category.getUserId() != userId) {
+    if (!category.getUserId().equals(userId)) {
       throw new IllegalArgumentException("デフォルトカテゴリは削除できません");
     }
     if (category.getItems().isEmpty()) {

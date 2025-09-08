@@ -330,9 +330,8 @@ public class CategoryServiceTest {
   void testDeleteCategorySuccess() {
     UUID categoryId = UUID.randomUUID();
     String userId = testUserId;
-    Category category = new Category();
+    Category category = new Category("ToBeDeleted", new String(userId));
     category.setId(categoryId);
-    category.setUserId(userId);
     category.setItems(new ArrayList<>());
     when(categoryRepository.findNotDeleted(List.of(userId, defaultSystemId)))
         .thenReturn(List.of(category));
