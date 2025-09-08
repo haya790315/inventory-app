@@ -1,0 +1,434 @@
+openapi: 3.0.4
+info:
+  title: 在庫管理システムAPI仕様書
+  description: 在庫管理APIの説明
+  version: "1.0"
+servers:
+  - url: http://localhost:8080
+    description: Generated server url
+tags:
+  - name: カテゴリ
+    description: カテゴリ操作のためのAPI
+  - name: アイテム
+    description: アイテム操作のためのAPI
+  - name: 認証
+    description: ユーザー認証操作のためのAPI
+paths:
+  /api/item:
+    get:
+      tags:
+        - アイテム
+      summary: アイテム一覧の取得
+      description: 指定したカテゴリーに属するアイテム一覧を取得します
+      operationId: getItems
+      parameters:
+        - name: category_name
+          in: query
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: アイテム一覧の取得に成功しました
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ItemDto"
+        "400":
+          description: カテゴリーが見つかりません
+          content:
+            application/json:
+              example:
+                message: カテゴリーが見つかりません
+        "404":
+          description: アイテムが登録されていません
+          content:
+            application/json:
+              example:
+                message: アイテムが登録されていません
+        "500":
+          description: サーバーエラーが発生しました
+          content:
+            application/json:
+              example:
+                message: サーバーエラーが発生しました
+    put:
+      tags:
+        - アイテム
+      summary: アイテムの更新
+      description: 指定したアイテムの情報を更新します
+      operationId: updateItem
+      parameters:
+        - name: item_id
+          in: query
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ItemRequest"
+        required: true
+      responses:
+        "200":
+          description: アイテムの更新が完了しました
+          content:
+            application/json:
+              example:
+                message: アイテムの更新が完了しました
+        "400":
+          description: アイテム名は既に登録されています
+          content:
+            application/json:
+              example:
+                message: アイテム名は既に登録されています
+        "404":
+          description: アイテムが見つかりません
+          content:
+            application/json:
+              example:
+                message: アイテムが見つかりません
+        "500":
+          description: サーバーエラーが発生しました
+          content:
+            application/json:
+              example:
+                message: サーバーエラーが発生しました
+    post:
+      tags:
+        - アイテム
+      summary: アイテムの作成
+      description: 新しいアイテムを作成します
+      operationId: createItem
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ItemRequest"
+        required: true
+      responses:
+        "201":
+          description: アイテムの作成が完了しました
+          content:
+            application/json:
+              example:
+                message: アイテムの作成が完了しました
+        "400":
+          description: カテゴリーが見つかりません
+          content:
+            application/json:
+              example:
+                message: カテゴリーが見つかりません
+        "409":
+          description: アイテム名は既に存在します
+          content:
+            application/json:
+              example:
+                message: アイテム名は既に存在します
+        "500":
+          description: サーバーエラーが発生しました
+          content:
+            application/json:
+              example:
+                message: サーバーエラーが発生しました
+    delete:
+      tags:
+        - アイテム
+      summary: アイテムの削除
+      description: 指定したアイテムを削除します
+      operationId: deleteItem
+      parameters:
+        - name: item_id
+          in: query
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: アイテムの削除が完了しました
+          content:
+            application/json:
+              example:
+                message: アイテムの削除が完了しました
+        "404":
+          description: アイテムが見つかりません
+          content:
+            application/json:
+              example:
+                message: アイテムが見つかりません
+        "500":
+          description: サーバーエラーが発生しました
+          content:
+            application/json:
+              example:
+                message: サーバーエラーが発生しました
+  /api/category:
+    get:
+      tags:
+        - カテゴリ
+      summary: 全てのカテゴリを取得
+      description: ユーザーのカテゴリ一覧を取得します
+      operationId: getAllCategories
+      responses:
+        "200":
+          description: カテゴリー取得成功
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/CategoryDto"
+        "500":
+          description: サーバーエラーが発生しました
+          content:
+            application/json:
+              example:
+                message: サーバーエラーが発生しました
+    put:
+      tags:
+        - カテゴリ
+      summary: カスタムカテゴリの更新
+      description: 指定したカスタムカテゴリを更新します
+      operationId: putMethodName
+      parameters:
+        - name: category_id
+          in: query
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CategoryRequest"
+        required: true
+      responses:
+        "200":
+          description: カスタムカテゴリの更新が完了しました
+          content:
+            application/json:
+              example:
+                message: カスタムカテゴリの更新が完了しました
+        "400":
+          description: デフォルトカテゴリは編集できません
+          content:
+            application/json:
+              example:
+                message: デフォルトカテゴリは編集できません
+        "409":
+          description: カテゴリー名はすでに存在します
+          content:
+            application/json:
+              example:
+                message: カテゴリー名はすでに存在します
+        "500":
+          description: サーバーエラーが発生しました
+          content:
+            application/json:
+              example:
+                message: サーバーエラーが発生しました
+    post:
+      tags:
+        - カテゴリ
+      summary: カスタムカテゴリの作成
+      description: 新しいカスタムカテゴリを作成します
+      operationId: createCategory
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CategoryRequest"
+        required: true
+      responses:
+        "201":
+          description: カスタムカテゴリの作成が完了しました
+          content:
+            application/json:
+              example:
+                message: カスタムカテゴリの作成が完了しました
+        "409":
+          description: 登録できるカテゴリの上限に達しています
+          content:
+            application/json:
+              example:
+                message: 登録できるカテゴリの上限に達しています
+        "500":
+          description: サーバーエラーが発生しました
+          content:
+            application/json:
+              example:
+                message: サーバーエラーが発生しました
+    delete:
+      tags:
+        - カテゴリ
+      summary: カスタムカテゴリの削除
+      description: 指定したカスタムカテゴリを削除します
+      operationId: deleteCategory
+      parameters:
+        - name: category_id
+          in: query
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: カスタムカテゴリの削除が完了しました
+          content:
+            application/json:
+              example:
+                message: カスタムカテゴリの削除が完了しました
+        "400":
+          description: デフォルトカテゴリは削除できません
+          content:
+            application/json:
+              example:
+                message: デフォルトカテゴリは削除できません
+        "404":
+          description: 指定したカテゴリが見つかりません
+          content:
+            application/json:
+              example:
+                message: 指定したカテゴリが見つかりません
+        "500":
+          description: サーバーエラーが発生しました
+          content:
+            application/json:
+              example:
+                message: サーバーエラーが発生しました
+  /api/signUp:
+    post:
+      tags:
+        - 認証
+      summary: ユーザー登録
+      description: 新しいユーザーを登録します
+      operationId: signUp
+      responses:
+        "200":
+          description: ユーザー登録成功
+          content:
+            application/json:
+              example:
+                message: ユーザー登録が完了しました
+        "401":
+          description: サーバーエラーが発生しました
+          content:
+            application/json:
+              example:
+                message: ユーザー登録に失敗しました
+        "500":
+          description: サーバーエラーが発生しました
+          content:
+            application/json:
+              example:
+                message: サーバーエラーが発生しました
+  /health:
+    get:
+      tags:
+        - hello
+      operationId: health
+      responses:
+        "200":
+          description: OK
+          content:
+            "*/*":
+              schema:
+                type: string
+  /api/category/items:
+    get:
+      tags:
+        - カテゴリ
+      summary: カテゴリに属するアイテム一覧を取得
+      description: 指定したカテゴリに属するアイテム一覧を取得します
+      operationId: getCategoryItems
+      parameters:
+        - name: categoryId
+          in: query
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: カテゴリー取得成功
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ItemDto"
+        "500":
+          description: サーバーエラーが発生しました
+          content:
+            application/json:
+              example:
+                message: サーバーエラーが発生しました
+components:
+  schemas:
+    ItemRequest:
+      type: object
+      properties:
+        nonEmptyStringRegex:
+          type: string
+        name:
+          type: string
+          description: アイテム名
+          example: 鉛筆
+          maxLength: 50
+          minLength: 0
+          pattern: .*[^\s　].*
+        categoryName:
+          type: string
+          description: カテゴリ名
+          example: 文房具
+          minLength: 1
+          pattern: .*[^\s　].*
+        quantity:
+          type: integer
+          format: int32
+          description: 数量
+          example: 10
+          minimum: 0
+      required:
+        - categoryName
+        - name
+    CategoryRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          description: カテゴリ名
+          example: 文房具
+          maxLength: 50
+          minLength: 0
+      required:
+        - name
+    ItemDto:
+      type: object
+      properties:
+        name:
+          type: string
+          description: アイテム名
+          example: 鉛筆
+        categoryName:
+          type: string
+          description: カテゴリ名
+          example: 文房具
+        quantity:
+          type: integer
+          format: int32
+          description: 数量
+          example: 10
+    CategoryDto:
+      type: object
+      properties:
+        name:
+          type: string
+          description: カテゴリ名
+          example: 文房具
