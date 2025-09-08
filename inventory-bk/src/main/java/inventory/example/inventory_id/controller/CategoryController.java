@@ -34,6 +34,8 @@ public class CategoryController extends BaseController {
       String userId = fetchUserIdFromToken();
       List<CategoryDto> categories = categoryService.getAllCategories(userId);
       return response(HttpStatus.OK, categories);
+    } catch (ResponseStatusException e) {
+      return response(HttpStatus.valueOf(e.getStatusCode().value()), e.getReason());
     } catch (Exception e) {
       return response(HttpStatus.INTERNAL_SERVER_ERROR, e.getMessage());
     }

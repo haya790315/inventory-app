@@ -29,7 +29,11 @@ public class CategoryService {
 
   public List<CategoryDto> getAllCategories(String userId) {
     // ユーザとデフォルトのカテゴリを取得
-    return categoryRepository.findNotDeleted(List.of(userId, systemUserId)).stream()
+    List<Category> categories = categoryRepository.findNotDeleted(List.of(userId, systemUserId));
+    if (categories.isEmpty()) {
+      throw new ResponseStatusException(HttpStatus.NOT_FOUND, categoryNotFoundMsg);
+    }
+    return categories.stream()
         .sorted(Comparator.comparing(Category::getName))
         .map(category -> new CategoryDto(category.getName()))
         .toList();

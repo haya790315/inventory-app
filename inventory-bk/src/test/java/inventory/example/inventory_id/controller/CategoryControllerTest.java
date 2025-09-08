@@ -78,6 +78,20 @@ class CategoryControllerTest {
 
   @Test
   @Tag("GET: /api/category")
+  @DisplayName("カテゴリー一覧取得-404 カテゴリーがゼロ件")
+  void fetchAllCategories_throws404() throws Exception {
+    when(categoryService.getAllCategories(anyString()))
+        .thenThrow(new ResponseStatusException(
+            HttpStatus.NOT_FOUND,
+            categoryNotFoundMsg));
+
+    mockMvc.perform(get("/api/category"))
+        .andExpect(status().isNotFound())
+        .andExpect(content().json("{\"message\":\"" + categoryNotFoundMsg + "\"}"));
+  }
+
+  @Test
+  @Tag("GET: /api/category")
   @DisplayName("カテゴリー一覧取得-500 サーバーエラー")
   void fetchAllCategories_throws500() throws Exception {
     when(categoryService.getAllCategories(anyString())).thenThrow(new RuntimeException(serverErrorMsg));
