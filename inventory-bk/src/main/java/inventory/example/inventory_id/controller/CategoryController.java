@@ -33,16 +33,16 @@ import jakarta.validation.Valid;
 
 @RestController
 @RequestMapping("/api/category")
-@Tag(name = "カテゴリ", description = "カテゴリ操作のためのAPI")
+@Tag(name = "カテゴリ", description = "カテゴリ管理用APIです。ユーザーはカテゴリの新規作成、更新、削除、取得が可能です。システムには複数のデフォルトカテゴリが用意されており、これらは全ユーザーが利用できますが、デフォルトカテゴリは編集・削除できません。ユーザー自身が作成したカスタムカテゴリについては、自由に編集・削除が可能です。カテゴリ取得時にはデフォルトカテゴリとユーザー作成カテゴリの両方が一覧で返されます。")
 public class CategoryController extends BaseController {
   @Autowired
   private CategoryService categoryService;
 
   @GetMapping()
-  @Operation(summary = "全てのカテゴリを取得", description = "ユーザーのカテゴリ一覧を取得します")
+  @Operation(summary = "カテゴリの取得", description = "システムのデフォルトカテゴリも含めてユーザ自分のカテゴリ一覧を取得、辞書順に表示する")
   @ApiResponses({
-      @ApiResponse(responseCode = "200", description = "カテゴリー取得成功", content = @Content(mediaType = "application/json", array = @ArraySchema(schema = @Schema(implementation = CategoryDto.class)))),
-      @ApiResponse(responseCode = "500", description = "サーバーエラーが発生しました", content = @Content(mediaType = "application/json", examples = @ExampleObject(value = "{ \"message\": \"サーバーエラーが発生しました\" }")))
+      @ApiResponse(responseCode = "200", description = "カテゴリ一覧取得、辞書順に表示する", content = @Content(mediaType = "application/json", array = @ArraySchema(schema = @Schema(implementation = CategoryDto.class)))),
+      @ApiResponse(responseCode = "500", description = "サーバーエラーが発生時のレスポンス", content = @Content(mediaType = "application/json", examples = @ExampleObject(value = "{ \"message\": \"サーバーエラーが発生しました\" }")))
   })
   public ResponseEntity<Object> getAllCategories() {
     try {
@@ -55,10 +55,10 @@ public class CategoryController extends BaseController {
   }
 
   @GetMapping("/items")
-  @Operation(summary = "カテゴリに属するアイテム一覧を取得", description = "指定したカテゴリに属するアイテム一覧を取得します")
+  @Operation(summary = "カテゴリに属するアイテム一覧を取得", description = "指定したカテゴリに属するアイテム一覧を取得します、更新日時の降順で表示します")
   @ApiResponses({
-      @ApiResponse(responseCode = "200", description = "カテゴリー取得成功", content = @Content(mediaType = "application/json", array = @ArraySchema(schema = @Schema(implementation = ItemDto.class)))),
-      @ApiResponse(responseCode = "500", description = "サーバーエラーが発生しました", content = @Content(mediaType = "application/json", examples = @ExampleObject(value = "{ \"message\": \"サーバーエラーが発生しました\" }")))
+      @ApiResponse(responseCode = "200", description = "カテゴリー取得成功時のレスポンス", content = @Content(mediaType = "application/json", array = @ArraySchema(schema = @Schema(implementation = ItemDto.class)))),
+      @ApiResponse(responseCode = "500", description = "サーバーエラーが発生時のレスポンス", content = @Content(mediaType = "application/json", examples = @ExampleObject(value = "{ \"message\": \"サーバーエラーが発生しました\" }")))
   })
   public ResponseEntity<Object> getCategoryItems(@RequestParam UUID categoryId) {
     try {
@@ -71,11 +71,11 @@ public class CategoryController extends BaseController {
   }
 
   @PostMapping()
-  @Operation(summary = "カスタムカテゴリの作成", description = "新しいカスタムカテゴリを作成します")
+  @Operation(summary = "カスタムカテゴリの作成", description = "新しいカスタムカテゴリを作成します\n- 各ユーザは最大50個のカスタムカテゴリを作成できます\n- カテゴリ名は重複できません。")
   @ApiResponses({
-      @ApiResponse(responseCode = "201", description = "カスタムカテゴリの作成が完了しました", content = @Content(mediaType = "application/json", examples = @ExampleObject(value = "{ \"message\": \"カスタムカテゴリの作成が完了しました\" }"))),
-      @ApiResponse(responseCode = "409", description = "登録できるカテゴリの上限に達しています", content = @Content(mediaType = "application/json", examples = @ExampleObject(value = "{ \"message\": \"登録できるカテゴリの上限に達しています\" }"))),
-      @ApiResponse(responseCode = "500", description = "サーバーエラーが発生しました", content = @Content(mediaType = "application/json", examples = @ExampleObject(value = "{ \"message\": \"サーバーエラーが発生しました\" }")))
+      @ApiResponse(responseCode = "201", description = "カスタムカテゴリ作成成功時のレスポンス", content = @Content(mediaType = "application/json", examples = @ExampleObject(value = "{ \"message\": \"カスタムカテゴリの作成が完了しました\" }"))),
+      @ApiResponse(responseCode = "409", description = "カテゴリ作成失敗時のレスポンス", content = @Content(mediaType = "application/json", examples = @ExampleObject(value = "{ \"message\": \"登録できるカテゴリの上限に達しています\" }"))),
+      @ApiResponse(responseCode = "500", description = "サーバーエラーが発生時のレスポンス", content = @Content(mediaType = "application/json", examples = @ExampleObject(value = "{ \"message\": \"サーバーエラーが発生しました\" }")))
   })
   public ResponseEntity<Object> createCategory(@RequestBody @Valid CategoryRequest categoryRequest) {
     try {
@@ -90,12 +90,12 @@ public class CategoryController extends BaseController {
   }
 
   @PutMapping()
-  @Operation(summary = "カスタムカテゴリの更新", description = "指定したカスタムカテゴリを更新します")
+  @Operation(summary = "カスタムカテゴリの更新", description = "指定のカスタムカテゴリを更新します\n- デフォルトカテゴリは編集できません\n- 変更するカテゴリ名は重複できません")
   @ApiResponses({
-      @ApiResponse(responseCode = "200", description = "カスタムカテゴリの更新が完了しました", content = @Content(mediaType = "application/json", examples = @ExampleObject(value = "{ \"message\": \"カスタムカテゴリの更新が完了しました\" }"))),
-      @ApiResponse(responseCode = "400", description = "デフォルトカテゴリは編集できません", content = @Content(mediaType = "application/json", examples = @ExampleObject(value = "{ \"message\": \"デフォルトカテゴリは編集できません\" }"))),
-      @ApiResponse(responseCode = "409", description = "カテゴリー名はすでに存在します", content = @Content(mediaType = "application/json", examples = @ExampleObject(value = "{ \"message\": \"カテゴリー名はすでに存在します\" }"))),
-      @ApiResponse(responseCode = "500", description = "サーバーエラーが発生しました", content = @Content(mediaType = "application/json", examples = @ExampleObject(value = "{ \"message\": \"サーバーエラーが発生しました\" }")))
+      @ApiResponse(responseCode = "200", description = "カテゴリ更新成功時のレスポンス", content = @Content(mediaType = "application/json", examples = @ExampleObject(value = "{ \"message\": \"カスタムカテゴリの更新が完了しました\" }"))),
+      @ApiResponse(responseCode = "400", description = "デフォルトカテゴリは更新不可", content = @Content(mediaType = "application/json", examples = @ExampleObject(value = "{ \"message\": \"デフォルトカテゴリは編集できません\" }"))),
+      @ApiResponse(responseCode = "409", description = "カテゴリ更新失敗時のレスポンス", content = @Content(mediaType = "application/json", examples = @ExampleObject(value = "{ \"message\": \"カテゴリー名はすでに存在します\" }"))),
+      @ApiResponse(responseCode = "500", description = "サーバーエラーが発生時のレスポンス", content = @Content(mediaType = "application/json", examples = @ExampleObject(value = "{ \"message\": \"サーバーエラーが発生しました\" }")))
   })
   public ResponseEntity<Object> putMethodName(
       @RequestParam UUID category_id,
@@ -114,11 +114,11 @@ public class CategoryController extends BaseController {
   }
 
   @DeleteMapping()
-  @Operation(summary = "カスタムカテゴリの削除", description = "指定したカスタムカテゴリを削除します")
+  @Operation(summary = "カスタムカテゴリの削除", description = "指定のカスタムカテゴリを削除します\n- デフォルトカテゴリは削除できません\n- 指定のカテゴリにアイテムが存在する場合は削除できません")
   @ApiResponses({
-      @ApiResponse(responseCode = "200", description = "カスタムカテゴリの削除が完了しました", content = @Content(mediaType = "application/json", examples = @ExampleObject(value = "{ \"message\": \"カスタムカテゴリの削除が完了しました\" }"))),
-      @ApiResponse(responseCode = "400", description = "デフォルトカテゴリは削除できません", content = @Content(mediaType = "application/json", examples = @ExampleObject(value = "{ \"message\": \"デフォルトカテゴリは削除できません\" }"))),
-      @ApiResponse(responseCode = "404", description = "指定したカテゴリが見つかりません", content = @Content(mediaType = "application/json", examples = @ExampleObject(value = "{ \"message\": \"指定したカテゴリが見つかりません\" }"))),
+      @ApiResponse(responseCode = "200", description = "カスタムカテゴリ削除時のレスポンス", content = @Content(mediaType = "application/json", examples = @ExampleObject(value = "{ \"message\": \"カスタムカテゴリの削除が完了しました\" }"))),
+      @ApiResponse(responseCode = "400", description = "デフォルトカテゴリは削除不可", content = @Content(mediaType = "application/json", examples = @ExampleObject(value = "{ \"message\": \"デフォルトカテゴリは削除できません\" }"))),
+      @ApiResponse(responseCode = "404", description = "指定のカテゴリがない時のレスポンス", content = @Content(mediaType = "application/json", examples = @ExampleObject(value = "{ \"message\": \"指定したカテゴリが見つかりません\" }"))),
       @ApiResponse(responseCode = "500", description = "サーバーエラーが発生しました", content = @Content(mediaType = "application/json", examples = @ExampleObject(value = "{ \"message\": \"サーバーエラーが発生しました\" }")))
   })
   public ResponseEntity<Object> deleteCategory(@RequestParam UUID category_id) {

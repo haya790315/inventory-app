@@ -31,19 +31,19 @@ import jakarta.validation.Valid;
 
 @RestController
 @RequestMapping("/api/item")
-@Tag(name = "アイテム", description = "アイテム操作のためのAPI")
+@Tag(name = "アイテム", description = "アイテム管理用APIです。ユーザーはアイテムの新規作成、更新、削除、取得が可能です。各アイテムは指定のカテゴリに属して作成します。")
 public class ItemController extends BaseController {
 
   @Autowired
   private ItemService itemService;
 
   @PostMapping()
-  @Operation(summary = "アイテムの作成", description = "新しいアイテムを作成します")
+  @Operation(summary = "アイテムの作成", description = "新しいアイテムを作成します\n- 各アイテムは指定のカテゴリに属します\n- アイテム名は同じカテゴリ内で重複できません\n- quantityが入力しない場合、デフォルトは0になります")
   @ApiResponses({
-      @ApiResponse(responseCode = "201", description = "アイテムの作成が完了しました", content = @Content(mediaType = "application/json", examples = @ExampleObject(value = "{ \"message\": \"アイテムの作成が完了しました\" }"))),
-      @ApiResponse(responseCode = "400", description = "カテゴリーが見つかりません", content = @Content(mediaType = "application/json", examples = @ExampleObject(value = "{ \"message\": \"カテゴリーが見つかりません\" }"))),
-      @ApiResponse(responseCode = "409", description = "アイテム名は既に存在します", content = @Content(mediaType = "application/json", examples = @ExampleObject(value = "{ \"message\": \"アイテム名は既に存在します\" }"))),
-      @ApiResponse(responseCode = "500", description = "サーバーエラーが発生しました", content = @Content(mediaType = "application/json", examples = @ExampleObject(value = "{ \"message\": \"サーバーエラーが発生しました\" }")))
+      @ApiResponse(responseCode = "201", description = "アイテム作成成功時のレスポンス", content = @Content(mediaType = "application/json", examples = @ExampleObject(value = "{ \"message\": \"アイテムの作成が完了しました\" }"))),
+      @ApiResponse(responseCode = "400", description = "カテゴリーがない時のレスポンス", content = @Content(mediaType = "application/json", examples = @ExampleObject(value = "{ \"message\": \"カテゴリーが見つかりません\" }"))),
+      @ApiResponse(responseCode = "409", description = "アイテム名は重複時のレスポンス", content = @Content(mediaType = "application/json", examples = @ExampleObject(value = "{ \"message\": \"アイテム名は既に存在します\" }"))),
+      @ApiResponse(responseCode = "500", description = "サーバーエラーが発生時のレスポンス", content = @Content(mediaType = "application/json", examples = @ExampleObject(value = "{ \"message\": \"サーバーエラーが発生しました\" }")))
   })
   public ResponseEntity<Object> createItem(@RequestBody @Valid ItemRequest itemRequest) {
     try {
@@ -60,12 +60,12 @@ public class ItemController extends BaseController {
   }
 
   @GetMapping()
-  @Operation(summary = "アイテム一覧の取得", description = "指定したカテゴリーに属するアイテム一覧を取得します")
+  @Operation(summary = "アイテム一覧の取得", description = "指定したカテゴリに属するユーザのアイテム一覧を取得します、更新日時の降順で表示します")
   @ApiResponses({
-      @ApiResponse(responseCode = "200", description = "アイテム一覧の取得に成功しました", content = @Content(mediaType = "application/json", array = @ArraySchema(schema = @Schema(implementation = ItemDto.class)))),
-      @ApiResponse(responseCode = "400", description = "カテゴリーが見つかりません", content = @Content(mediaType = "application/json", examples = @ExampleObject(value = "{ \"message\": \"カテゴリーが見つかりません\" }"))),
-      @ApiResponse(responseCode = "404", description = "アイテムが登録されていません", content = @Content(mediaType = "application/json", examples = @ExampleObject(value = "{ \"message\": \"アイテムが登録されていません\" }"))),
-      @ApiResponse(responseCode = "500", description = "サーバーエラーが発生しました", content = @Content(mediaType = "application/json", examples = @ExampleObject(value = "{ \"message\": \"サーバーエラーが発生しました\" }")))
+      @ApiResponse(responseCode = "200", description = "アイテム一覧取得成功のレスポンス", content = @Content(mediaType = "application/json", array = @ArraySchema(schema = @Schema(implementation = ItemDto.class)))),
+      @ApiResponse(responseCode = "400", description = "指定のカテゴリがない時のレスポンス", content = @Content(mediaType = "application/json", examples = @ExampleObject(value = "{ \"message\": \"カテゴリーが見つかりません\" }"))),
+      @ApiResponse(responseCode = "404", description = "指定のカテゴリに属するアイテムがない時のレスポンス", content = @Content(mediaType = "application/json", examples = @ExampleObject(value = "{ \"message\": \"アイテムが登録されていません\" }"))),
+      @ApiResponse(responseCode = "500", description = "サーバーエラーが発生時のレスポンス", content = @Content(mediaType = "application/json", examples = @ExampleObject(value = "{ \"message\": \"サーバーエラーが発生しました\" }")))
   })
   public ResponseEntity<Object> getItems(@RequestParam("category_name") String categoryName) {
     try {
@@ -82,12 +82,12 @@ public class ItemController extends BaseController {
   }
 
   @PutMapping()
-  @Operation(summary = "アイテムの更新", description = "指定したアイテムの情報を更新します")
+  @Operation(summary = "アイテムの更新", description = "指定したアイテムの情報を更新します。\n\n- アイテム名を変更の場合は同じカテゴリ内で重複できません\n- アイテムの属するカテゴリ変更はできません\n- quantityが入力しない場合、デフォルトは0になります")
   @ApiResponses({
-      @ApiResponse(responseCode = "200", description = "アイテムの更新が完了しました", content = @Content(mediaType = "application/json", examples = @ExampleObject(value = "{ \"message\": \"アイテムの更新が完了しました\" }"))),
-      @ApiResponse(responseCode = "400", description = "アイテム名は既に登録されています", content = @Content(mediaType = "application/json", examples = @ExampleObject(value = "{ \"message\": \"アイテム名は既に登録されています\" }"))),
-      @ApiResponse(responseCode = "404", description = "アイテムが見つかりません", content = @Content(mediaType = "application/json", examples = @ExampleObject(value = "{ \"message\": \"アイテムが見つかりません\" }"))),
-      @ApiResponse(responseCode = "500", description = "サーバーエラーが発生しました", content = @Content(mediaType = "application/json", examples = @ExampleObject(value = "{ \"message\": \"サーバーエラーが発生しました\" }")))
+      @ApiResponse(responseCode = "200", description = "アイテム更新成功時のレスポンス", content = @Content(mediaType = "application/json", examples = @ExampleObject(value = "{ \"message\": \"アイテムの更新が完了しました\" }"))),
+      @ApiResponse(responseCode = "400", description = "アイテム名を変更は重複時のレスポンス", content = @Content(mediaType = "application/json", examples = @ExampleObject(value = "{ \"message\": \"アイテム名は既に登録されています\" }"))),
+      @ApiResponse(responseCode = "404", description = "アイテムが見つからない時のレスポンス", content = @Content(mediaType = "application/json", examples = @ExampleObject(value = "{ \"message\": \"アイテムが見つかりません\" }"))),
+      @ApiResponse(responseCode = "500", description = "サーバーエラーが発生時のレスポンス", content = @Content(mediaType = "application/json", examples = @ExampleObject(value = "{ \"message\": \"サーバーエラーが発生しました\" }")))
   })
   public ResponseEntity<Object> updateItem(
       @RequestBody @Valid ItemRequest itemRequest,
@@ -109,9 +109,9 @@ public class ItemController extends BaseController {
   @DeleteMapping()
   @Operation(summary = "アイテムの削除", description = "指定したアイテムを削除します")
   @ApiResponses({
-      @ApiResponse(responseCode = "200", description = "アイテムの削除が完了しました", content = @Content(mediaType = "application/json", examples = @ExampleObject(value = "{ \"message\": \"アイテムの削除が完了しました\" }"))),
-      @ApiResponse(responseCode = "404", description = "アイテムが見つかりません", content = @Content(mediaType = "application/json", examples = @ExampleObject(value = "{ \"message\": \"アイテムが見つかりません\" }"))),
-      @ApiResponse(responseCode = "500", description = "サーバーエラーが発生しました", content = @Content(mediaType = "application/json", examples = @ExampleObject(value = "{ \"message\": \"サーバーエラーが発生しました\" }")))
+      @ApiResponse(responseCode = "200", description = "アイテム削除成功時のレスポンス", content = @Content(mediaType = "application/json", examples = @ExampleObject(value = "{ \"message\": \"アイテムの削除が完了しました\" }"))),
+      @ApiResponse(responseCode = "404", description = "アイテムが見つかりません時のレスポンス", content = @Content(mediaType = "application/json", examples = @ExampleObject(value = "{ \"message\": \"アイテムが見つかりません\" }"))),
+      @ApiResponse(responseCode = "500", description = "サーバーエラーが発生時のレスポンス", content = @Content(mediaType = "application/json", examples = @ExampleObject(value = "{ \"message\": \"サーバーエラーが発生しました\" }")))
   })
   public ResponseEntity<Object> deleteItem(@RequestParam("item_id") UUID itemId) {
     try {
