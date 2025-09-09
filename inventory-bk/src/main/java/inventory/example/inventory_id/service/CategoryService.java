@@ -101,7 +101,8 @@ public class CategoryService {
     if (!category.getUserId().equals(userId)) {
       throw new IllegalArgumentException("デフォルトカテゴリは削除できません");
     }
-    if (category.getItems().isEmpty()) {
+    if (category.getItems().isEmpty() ||
+        category.getItems().stream().allMatch(item -> item.isDeletedFlag())) {
       // アイテムが存在しない場合のみ削除フラグを立てる
       category.setDeletedFlag(true);
       categoryRepository.save(category);
