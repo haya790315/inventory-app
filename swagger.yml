@@ -7,19 +7,19 @@ servers:
   - url: http://localhost:8080
     description: Generated server url
 tags:
-  - name: カテゴリ
-    description: カテゴリ操作のためのAPI
   - name: アイテム
-    description: アイテム操作のためのAPI
+    description: アイテム管理用APIです。ユーザーはアイテムの新規作成、更新、削除、取得が可能です。各アイテムは指定のカテゴリに属して作成します。
   - name: 認証
     description: ユーザー認証操作のためのAPI
+  - name: カテゴリ
+    description: カテゴリ管理用APIです。ユーザーはカテゴリの新規作成、更新、削除、取得が可能です。システムには複数のデフォルトカテゴリが用意されており、これらは全ユーザーが利用できますが、デフォルトカテゴリは編集・削除できません。ユーザー自身が作成したカスタムカテゴリについては、自由に編集・削除が可能です。カテゴリ取得時にはデフォルトカテゴリとユーザー作成カテゴリの両方が一覧で返されます。
 paths:
   /api/item:
     get:
       tags:
         - アイテム
       summary: アイテム一覧の取得
-      description: 指定したカテゴリーに属するアイテム一覧を取得します
+      description: 指定したカテゴリに属するユーザのアイテム一覧を取得します、更新日時の降順で表示します
       operationId: getItems
       parameters:
         - name: category_name
@@ -29,7 +29,7 @@ paths:
             type: string
       responses:
         "200":
-          description: アイテム一覧の取得に成功しました
+          description: アイテム一覧取得成功のレスポンス
           content:
             application/json:
               schema:
@@ -37,19 +37,19 @@ paths:
                 items:
                   $ref: "#/components/schemas/ItemDto"
         "400":
-          description: カテゴリーが見つかりません
+          description: 指定のカテゴリがない時のレスポンス
           content:
             application/json:
               example:
                 message: カテゴリーが見つかりません
         "404":
-          description: アイテムが登録されていません
+          description: 指定のカテゴリに属するアイテムがない時のレスポンス
           content:
             application/json:
               example:
                 message: アイテムが登録されていません
         "500":
-          description: サーバーエラーが発生しました
+          description: サーバーエラーが発生時のレスポンス
           content:
             application/json:
               example:
@@ -58,7 +58,12 @@ paths:
       tags:
         - アイテム
       summary: アイテムの更新
-      description: 指定したアイテムの情報を更新します
+      description: |-
+        指定したアイテムの情報を更新します。
+
+        - アイテム名を変更の場合は同じカテゴリ内で重複できません
+        - アイテムの属するカテゴリ変更はできません
+        - quantityが入力しない場合、デフォルトは0になります
       operationId: updateItem
       parameters:
         - name: item_id
@@ -75,25 +80,25 @@ paths:
         required: true
       responses:
         "200":
-          description: アイテムの更新が完了しました
+          description: アイテム更新成功時のレスポンス
           content:
             application/json:
               example:
                 message: アイテムの更新が完了しました
         "400":
-          description: アイテム名は既に登録されています
+          description: アイテム名を変更は重複時のレスポンス
           content:
             application/json:
               example:
                 message: アイテム名は既に登録されています
         "404":
-          description: アイテムが見つかりません
+          description: アイテムが見つからない時のレスポンス
           content:
             application/json:
               example:
                 message: アイテムが見つかりません
         "500":
-          description: サーバーエラーが発生しました
+          description: サーバーエラーが発生時のレスポンス
           content:
             application/json:
               example:
@@ -102,7 +107,11 @@ paths:
       tags:
         - アイテム
       summary: アイテムの作成
-      description: 新しいアイテムを作成します
+      description: |-
+        新しいアイテムを作成します
+        - 各アイテムは指定のカテゴリに属します
+        - アイテム名は同じカテゴリ内で重複できません
+        - quantityが入力しない場合、デフォルトは0になります
       operationId: createItem
       requestBody:
         content:
@@ -112,25 +121,25 @@ paths:
         required: true
       responses:
         "201":
-          description: アイテムの作成が完了しました
+          description: アイテム作成成功時のレスポンス
           content:
             application/json:
               example:
                 message: アイテムの作成が完了しました
         "400":
-          description: カテゴリーが見つかりません
+          description: カテゴリーがない時のレスポンス
           content:
             application/json:
               example:
                 message: カテゴリーが見つかりません
         "409":
-          description: アイテム名は既に存在します
+          description: アイテム名は重複時のレスポンス
           content:
             application/json:
               example:
                 message: アイテム名は既に存在します
         "500":
-          description: サーバーエラーが発生しました
+          description: サーバーエラーが発生時のレスポンス
           content:
             application/json:
               example:
@@ -150,19 +159,19 @@ paths:
             format: uuid
       responses:
         "200":
-          description: アイテムの削除が完了しました
+          description: アイテム削除成功時のレスポンス
           content:
             application/json:
               example:
                 message: アイテムの削除が完了しました
         "404":
-          description: アイテムが見つかりません
+          description: アイテムが見つかりません時のレスポンス
           content:
             application/json:
               example:
                 message: アイテムが見つかりません
         "500":
-          description: サーバーエラーが発生しました
+          description: サーバーエラーが発生時のレスポンス
           content:
             application/json:
               example:
@@ -171,12 +180,12 @@ paths:
     get:
       tags:
         - カテゴリ
-      summary: 全てのカテゴリを取得
-      description: ユーザーのカテゴリ一覧を取得します
+      summary: カテゴリの取得
+      description: システムのデフォルトカテゴリも含めてユーザ自分のカテゴリ一覧を取得、辞書順に表示する
       operationId: getAllCategories
       responses:
         "200":
-          description: カテゴリー取得成功
+          description: カテゴリ一覧取得、辞書順に表示する
           content:
             application/json:
               schema:
@@ -184,7 +193,7 @@ paths:
                 items:
                   $ref: "#/components/schemas/CategoryDto"
         "500":
-          description: サーバーエラーが発生しました
+          description: サーバーエラーが発生時のレスポンス
           content:
             application/json:
               example:
@@ -193,7 +202,10 @@ paths:
       tags:
         - カテゴリ
       summary: カスタムカテゴリの更新
-      description: 指定したカスタムカテゴリを更新します
+      description: |-
+        指定のカスタムカテゴリを更新します
+        - デフォルトカテゴリは編集できません
+        - 変更するカテゴリ名は重複できません
       operationId: putMethodName
       parameters:
         - name: category_id
@@ -210,25 +222,25 @@ paths:
         required: true
       responses:
         "200":
-          description: カスタムカテゴリの更新が完了しました
+          description: カテゴリ更新成功時のレスポンス
           content:
             application/json:
               example:
                 message: カスタムカテゴリの更新が完了しました
         "400":
-          description: デフォルトカテゴリは編集できません
+          description: デフォルトカテゴリは更新不可
           content:
             application/json:
               example:
                 message: デフォルトカテゴリは編集できません
         "409":
-          description: カテゴリー名はすでに存在します
+          description: カテゴリ更新失敗時のレスポンス
           content:
             application/json:
               example:
                 message: カテゴリー名はすでに存在します
         "500":
-          description: サーバーエラーが発生しました
+          description: サーバーエラーが発生時のレスポンス
           content:
             application/json:
               example:
@@ -237,7 +249,10 @@ paths:
       tags:
         - カテゴリ
       summary: カスタムカテゴリの作成
-      description: 新しいカスタムカテゴリを作成します
+      description: |-
+        新しいカスタムカテゴリを作成します
+        - 各ユーザは最大50個のカスタムカテゴリを作成できます
+        - カテゴリ名は重複できません。
       operationId: createCategory
       requestBody:
         content:
@@ -247,19 +262,19 @@ paths:
         required: true
       responses:
         "201":
-          description: カスタムカテゴリの作成が完了しました
+          description: カスタムカテゴリ作成成功時のレスポンス
           content:
             application/json:
               example:
                 message: カスタムカテゴリの作成が完了しました
         "409":
-          description: 登録できるカテゴリの上限に達しています
+          description: カテゴリ作成失敗時のレスポンス
           content:
             application/json:
               example:
                 message: 登録できるカテゴリの上限に達しています
         "500":
-          description: サーバーエラーが発生しました
+          description: サーバーエラーが発生時のレスポンス
           content:
             application/json:
               example:
@@ -268,7 +283,10 @@ paths:
       tags:
         - カテゴリ
       summary: カスタムカテゴリの削除
-      description: 指定したカスタムカテゴリを削除します
+      description: |-
+        指定のカスタムカテゴリを削除します
+        - デフォルトカテゴリは削除できません
+        - 指定のカテゴリにアイテムが存在する場合は削除できません
       operationId: deleteCategory
       parameters:
         - name: category_id
@@ -279,19 +297,19 @@ paths:
             format: uuid
       responses:
         "200":
-          description: カスタムカテゴリの削除が完了しました
+          description: カスタムカテゴリ削除時のレスポンス
           content:
             application/json:
               example:
                 message: カスタムカテゴリの削除が完了しました
         "400":
-          description: デフォルトカテゴリは削除できません
+          description: デフォルトカテゴリは削除不可
           content:
             application/json:
               example:
                 message: デフォルトカテゴリは削除できません
         "404":
-          description: 指定したカテゴリが見つかりません
+          description: 指定のカテゴリがない時のレスポンス
           content:
             application/json:
               example:
@@ -328,24 +346,12 @@ paths:
             application/json:
               example:
                 message: サーバーエラーが発生しました
-  /health:
-    get:
-      tags:
-        - hello
-      operationId: health
-      responses:
-        "200":
-          description: OK
-          content:
-            "*/*":
-              schema:
-                type: string
   /api/category/items:
     get:
       tags:
         - カテゴリ
       summary: カテゴリに属するアイテム一覧を取得
-      description: 指定したカテゴリに属するアイテム一覧を取得します
+      description: 指定したカテゴリに属するアイテム一覧を取得します、更新日時の降順で表示します
       operationId: getCategoryItems
       parameters:
         - name: categoryId
@@ -356,7 +362,7 @@ paths:
             format: uuid
       responses:
         "200":
-          description: カテゴリー取得成功
+          description: カテゴリー取得成功時のレスポンス
           content:
             application/json:
               schema:
@@ -364,7 +370,7 @@ paths:
                 items:
                   $ref: "#/components/schemas/ItemDto"
         "500":
-          description: サーバーエラーが発生しました
+          description: サーバーエラーが発生時のレスポンス
           content:
             application/json:
               example:
@@ -374,8 +380,6 @@ components:
     ItemRequest:
       type: object
       properties:
-        nonEmptyStringRegex:
-          type: string
         name:
           type: string
           description: アイテム名
