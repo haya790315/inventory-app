@@ -110,7 +110,7 @@ class ItemServiceTest {
     Category category = new Category(categoryName);
     category.setUserId(userId);
 
-    Item existingItem = new Item(itemName);
+    Item existingItem = new Item(itemName, userId, category, 5, false);
 
     category.setItems(List.of(existingItem));
 
@@ -124,6 +124,33 @@ class ItemServiceTest {
     ResponseStatusException ex = assertThrows(ResponseStatusException.class,
         () -> itemService.createItem(userId, request));
     assertEquals(String.format("アイテム名 '%s' は既に存在します", itemName), ex.getReason());
+  }
+
+  @Test
+  @Tag("createItem")
+  @DisplayName("アイテム作成成功 - 別ユーザがデフォルトのカテゴリに同じ名前のアイテムを持っている場合")
+  void testCreateItemWhenOtherUserHasTheSameNameInDefaultCategory() {
+    String userId = testUserId;
+    String otherUserId = "otherUserId";
+    String systemUserId = defaultSystemId;
+    String categoryName = "Laptop";
+    String itemName = "Notebook";
+
+    Category category = new Category(categoryName, systemUserId);
+
+    Item otherUserItem = new Item(itemName, otherUserId, category, 5, false);
+
+    category.setItems(new ArrayList<>(List.of(otherUserItem)));
+
+    ItemRequest request = new ItemRequest(itemName, categoryName, 5);
+
+    when(categoryRepository
+        .findActiveCateByName(List.of(userId,
+            systemUserId), categoryName))
+        .thenReturn(List.of(category));
+
+    assertDoesNotThrow(() -> itemService.createItem(userId, request));
+    verify(categoryRepository).save(any(Category.class));
   }
 
   @Test
