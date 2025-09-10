@@ -23,6 +23,7 @@ import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.dao.DataAccessException;
+import org.springframework.http.HttpStatus;
 import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.web.server.ResponseStatusException;
 
@@ -82,9 +83,11 @@ public class CategoryServiceTest {
     String userId = testUserId;
     when(categoryRepository.findNotDeleted(List.of(userId, defaultSystemId)))
         .thenReturn(List.of());
-
-    List<CategoryDto> result = categoryService.getAllCategories(userId);
-    assertTrue(result.isEmpty());
+    ResponseStatusException exception = assertThrows(ResponseStatusException.class, () -> {
+      categoryService.getAllCategories(userId);
+    });
+    assertEquals(HttpStatus.NOT_FOUND, exception.getStatusCode());
+    assertEquals(categoryNotFoundMsg, exception.getReason());
   }
 
   @Test
