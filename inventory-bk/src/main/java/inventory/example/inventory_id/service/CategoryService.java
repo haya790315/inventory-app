@@ -78,7 +78,7 @@ public class CategoryService {
       throw new IllegalArgumentException(categoryNotFoundMsg);
     }
     Category category = categoryOpt.get();
-    if (category.getUserId() != userId) {
+    if (!category.getUserId().equals(userId)) {
       throw new IllegalArgumentException("デフォルトカテゴリは編集できません");
     }
     List<Category> exsitCategory = categoryRepository

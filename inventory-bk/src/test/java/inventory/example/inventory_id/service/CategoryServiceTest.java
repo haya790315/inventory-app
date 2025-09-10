@@ -252,8 +252,8 @@ public class CategoryServiceTest {
     request.setName("UpdatedName");
     String userId = testUserId;
 
-    Category category = new Category("OldName");
-    category.setUserId(userId);
+    Category category = new Category("OldName", new String(testUserId));
+
     when(categoryRepository.findUserCategory(List.of(userId, defaultSystemId), categoryId))
         .thenReturn(Optional.of(category));
     when(categoryRepository.save(any(Category.class))).thenReturn(category);
@@ -311,13 +311,12 @@ public class CategoryServiceTest {
     request.setName("Update");
     String userId = testUserId; // Default user ID
 
-    Category category = new Category("target");
-    category.setUserId(defaultSystemId);
-    category.setUserId(userId);
+    Category category = new Category("target", new String(userId));
+
     when(categoryRepository.findUserCategory(List.of(userId, defaultSystemId), categoryId))
         .thenReturn(Optional.of(category));
     when(categoryRepository.findActiveCateByName(List.of(userId, defaultSystemId), request.getName()))
-        .thenReturn(List.of(new Category(request.getName())));
+        .thenReturn(List.of(new Category(request.getName(), new String(userId))));
 
     ResponseStatusException exception = assertThrows(ResponseStatusException.class, () -> {
       categoryService.updateCategory(categoryId, request, userId);
