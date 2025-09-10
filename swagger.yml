@@ -9,10 +9,10 @@ servers:
 tags:
   - name: アイテム
     description: アイテム管理用APIです。ユーザーはアイテムの新規作成、更新、削除、取得が可能です。各アイテムは指定のカテゴリに属して作成します。
+  - name: カテゴリ
+    description: カテゴリ管理用APIです。ユーザーはカテゴリの新規作成、更新、削除、取得が可能です。システムには複数のデフォルトカテゴリが用意されており、これらは全ユーザーが利用できますが、デフォルトカテゴリは編集・削除できません。ユーザー自身が作成したカスタムカテゴリについては、自由に編集・削除が可能です。カテゴリ取得時にはデフォルトカテゴリとユーザー作成カテゴリが辞書順一覧で返されます。
   - name: 認証
     description: ユーザー認証操作のためのAPI
-  - name: カテゴリ
-    description: カテゴリ管理用APIです。ユーザーはカテゴリの新規作成、更新、削除、取得が可能です。システムには複数のデフォルトカテゴリが用意されており、これらは全ユーザーが利用できますが、デフォルトカテゴリは編集・削除できません。ユーザー自身が作成したカスタムカテゴリについては、自由に編集・削除が可能です。カテゴリ取得時にはデフォルトカテゴリとユーザー作成カテゴリの両方が一覧で返されます。
 paths:
   /api/item:
     get:
@@ -86,11 +86,30 @@ paths:
               example:
                 message: アイテムの更新が完了しました
         "400":
-          description: アイテム名を変更は重複時のレスポンス
+          description: インプットが不正な時のレスポンス
           content:
             application/json:
-              example:
-                message: アイテム名は既に登録されています
+              examples:
+                カテゴリ名がない:
+                  description: カテゴリ名がない場合のレスポンス
+                  value:
+                    error: カテゴリは必須です
+                カテゴリ名が長すぎる:
+                  description: カテゴリ名が50文字超える場合のレスポンス
+                  value:
+                    error: カテゴリは50文字以内で入力してください
+                アイテム名がない:
+                  description: アイテム名がない場合のレスポンス
+                  value:
+                    error: アイテム名は必須です
+                アイテム名が長すぎる:
+                  description: アイテム名が50文字超える場合のレスポンス
+                  value:
+                    error: アイテム名は50文字以内で入力してください
+                数量がマイナス:
+                  description: 数量がマイナスの場合のレスポンス
+                  value:
+                    error: 数量は0以上の整数で入力してください
         "404":
           description: アイテムが見つからない時のレスポンス
           content:
@@ -127,7 +146,32 @@ paths:
               example:
                 message: アイテムの作成が完了しました
         "400":
-          description: カテゴリーがない時のレスポンス
+          description: インプットが不正な時のレスポンス
+          content:
+            application/json:
+              examples:
+                カテゴリ名がない:
+                  description: カテゴリ名がない場合のレスポンス
+                  value:
+                    error: カテゴリは必須です
+                カテゴリ名が長すぎる:
+                  description: カテゴリ名が50文字超える場合のレスポンス
+                  value:
+                    error: カテゴリは50文字以内で入力してください
+                アイテム名がない:
+                  description: アイテム名がない場合のレスポンス
+                  value:
+                    error: アイテム名は必須です
+                アイテム名が長すぎる:
+                  description: アイテム名が50文字超える場合のレスポンス
+                  value:
+                    error: アイテム名は50文字以内で入力してください
+                数量がマイナス:
+                  description: 数量がマイナスの場合のレスポンス
+                  value:
+                    error: 数量は0以上の整数で入力してください
+        "404":
+          description: カテゴリ名が見つからない時のレスポンス
           content:
             application/json:
               example:
@@ -228,11 +272,18 @@ paths:
               example:
                 message: カスタムカテゴリの更新が完了しました
         "400":
-          description: デフォルトカテゴリは更新不可
+          description: インプットが不正な時のレスポンス
           content:
             application/json:
-              example:
-                message: デフォルトカテゴリは編集できません
+              examples:
+                カテゴリ名がない:
+                  description: カテゴリ名がない場合のレスポンス
+                  value:
+                    error: カテゴリ名は必須
+                カテゴリ名が長すぎる:
+                  description: カテゴリ名が50文字を超える場合のレスポンス
+                  value:
+                    error: カテゴリ名は50文字以内
         "409":
           description: カテゴリ更新失敗時のレスポンス
           content:
@@ -267,6 +318,19 @@ paths:
             application/json:
               example:
                 message: カスタムカテゴリの作成が完了しました
+        "400":
+          description: インプットが不正な時のレスポンス
+          content:
+            application/json:
+              examples:
+                カテゴリ名がない:
+                  description: カテゴリ名がない場合のレスポンス
+                  value:
+                    error: カテゴリ名は必須
+                カテゴリ名が長すぎる:
+                  description: カテゴリ名が50文字を超える場合のレスポンス
+                  value:
+                    error: カテゴリ名は50文字以内
         "409":
           description: カテゴリ作成失敗時のレスポンス
           content:
@@ -303,11 +367,18 @@ paths:
               example:
                 message: カスタムカテゴリの削除が完了しました
         "400":
-          description: デフォルトカテゴリは削除不可
+          description: カテゴリを削除不可のレスポンス
           content:
             application/json:
-              example:
-                message: デフォルトカテゴリは削除できません
+              examples:
+                デフォルトカテゴリを削除:
+                  description: デフォルトカテゴリを削除しようとした場合のレスポンス
+                  value:
+                    message: デフォルトカテゴリは削除できません
+                アイテムが存在のカテゴリを削除:
+                  description: 指定のカテゴリにアイテムが存在する場合のレスポンス
+                  value:
+                    message: アイテムが存在するため削除できません
         "404":
           description: 指定のカテゴリがない時のレスポンス
           content:
@@ -391,7 +462,8 @@ components:
           type: string
           description: カテゴリ名
           example: 文房具
-          minLength: 1
+          maxLength: 50
+          minLength: 0
           pattern: .*[^\s　].*
         quantity:
           type: integer
@@ -411,6 +483,7 @@ components:
           example: 文房具
           maxLength: 50
           minLength: 0
+          pattern: .*[^\s　].*
       required:
         - name
     ItemDto:

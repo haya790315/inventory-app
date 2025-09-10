@@ -33,7 +33,7 @@ import jakarta.validation.Valid;
 
 @RestController
 @RequestMapping("/api/category")
-@Tag(name = "カテゴリ", description = "カテゴリ管理用APIです。ユーザーはカテゴリの新規作成、更新、削除、取得が可能です。システムには複数のデフォルトカテゴリが用意されており、これらは全ユーザーが利用できますが、デフォルトカテゴリは編集・削除できません。ユーザー自身が作成したカスタムカテゴリについては、自由に編集・削除が可能です。カテゴリ取得時にはデフォルトカテゴリとユーザー作成カテゴリの両方が一覧で返されます。")
+@Tag(name = "カテゴリ", description = "カテゴリ管理用APIです。ユーザーはカテゴリの新規作成、更新、削除、取得が可能です。システムには複数のデフォルトカテゴリが用意されており、これらは全ユーザーが利用できますが、デフォルトカテゴリは編集・削除できません。ユーザー自身が作成したカスタムカテゴリについては、自由に編集・削除が可能です。カテゴリ取得時にはデフォルトカテゴリとユーザー作成カテゴリが辞書順一覧で返されます。")
 public class CategoryController extends BaseController {
   @Autowired
   private CategoryService categoryService;
@@ -76,6 +76,10 @@ public class CategoryController extends BaseController {
   @Operation(summary = "カスタムカテゴリの作成", description = "新しいカスタムカテゴリを作成します\n- 各ユーザは最大50個のカスタムカテゴリを作成できます\n- カテゴリ名は重複できません。")
   @ApiResponses({
       @ApiResponse(responseCode = "201", description = "カスタムカテゴリ作成成功時のレスポンス", content = @Content(mediaType = "application/json", examples = @ExampleObject(value = "{ \"message\": \"カスタムカテゴリの作成が完了しました\" }"))),
+      @ApiResponse(responseCode = "400", description = "インプットが不正な時のレスポンス", content = @Content(mediaType = "application/json", examples = {
+          @ExampleObject(name = "カテゴリ名がない", value = "{ \"error\": \"カテゴリ名は必須\" }", description = "カテゴリ名がない場合のレスポンス"),
+          @ExampleObject(name = "カテゴリ名が長すぎる", value = "{ \"error\": \"カテゴリ名は50文字以内\" }", description = "カテゴリ名が50文字を超える場合のレスポンス")
+      })),
       @ApiResponse(responseCode = "409", description = "カテゴリ作成失敗時のレスポンス", content = @Content(mediaType = "application/json", examples = @ExampleObject(value = "{ \"message\": \"登録できるカテゴリの上限に達しています\" }"))),
       @ApiResponse(responseCode = "500", description = "サーバーエラーが発生時のレスポンス", content = @Content(mediaType = "application/json", examples = @ExampleObject(value = "{ \"message\": \"サーバーエラーが発生しました\" }")))
   })
@@ -96,6 +100,10 @@ public class CategoryController extends BaseController {
   @ApiResponses({
       @ApiResponse(responseCode = "200", description = "カテゴリ更新成功時のレスポンス", content = @Content(mediaType = "application/json", examples = @ExampleObject(value = "{ \"message\": \"カスタムカテゴリの更新が完了しました\" }"))),
       @ApiResponse(responseCode = "400", description = "デフォルトカテゴリは更新不可", content = @Content(mediaType = "application/json", examples = @ExampleObject(value = "{ \"message\": \"デフォルトカテゴリは編集できません\" }"))),
+      @ApiResponse(responseCode = "400", description = "インプットが不正な時のレスポンス", content = @Content(mediaType = "application/json", examples = {
+          @ExampleObject(name = "カテゴリ名がない", value = "{ \"error\": \"カテゴリ名は必須\" }", description = "カテゴリ名がない場合のレスポンス"),
+          @ExampleObject(name = "カテゴリ名が長すぎる", value = "{ \"error\": \"カテゴリ名は50文字以内\" }", description = "カテゴリ名が50文字を超える場合のレスポンス")
+      })),
       @ApiResponse(responseCode = "409", description = "カテゴリ更新失敗時のレスポンス", content = @Content(mediaType = "application/json", examples = @ExampleObject(value = "{ \"message\": \"カテゴリー名はすでに存在します\" }"))),
       @ApiResponse(responseCode = "500", description = "サーバーエラーが発生時のレスポンス", content = @Content(mediaType = "application/json", examples = @ExampleObject(value = "{ \"message\": \"サーバーエラーが発生しました\" }")))
   })
@@ -119,7 +127,9 @@ public class CategoryController extends BaseController {
   @Operation(summary = "カスタムカテゴリの削除", description = "指定のカスタムカテゴリを削除します\n- デフォルトカテゴリは削除できません\n- 指定のカテゴリにアイテムが存在する場合は削除できません")
   @ApiResponses({
       @ApiResponse(responseCode = "200", description = "カスタムカテゴリ削除時のレスポンス", content = @Content(mediaType = "application/json", examples = @ExampleObject(value = "{ \"message\": \"カスタムカテゴリの削除が完了しました\" }"))),
-      @ApiResponse(responseCode = "400", description = "デフォルトカテゴリは削除不可", content = @Content(mediaType = "application/json", examples = @ExampleObject(value = "{ \"message\": \"デフォルトカテゴリは削除できません\" }"))),
+      @ApiResponse(responseCode = "400", description = "カテゴリを削除不可のレスポンス", content = @Content(mediaType = "application/json", examples = {
+          @ExampleObject(name = "デフォルトカテゴリを削除", value = "{ \"message\": \"デフォルトカテゴリは削除できません\" }", description = "デフォルトカテゴリを削除しようとした場合のレスポンス"),
+          @ExampleObject(name = "アイテムが存在のカテゴリを削除", value = "{ \"message\": \"アイテムが存在するため削除できません\" }", description = "指定のカテゴリにアイテムが存在する場合のレスポンス") })),
       @ApiResponse(responseCode = "404", description = "指定のカテゴリがない時のレスポンス", content = @Content(mediaType = "application/json", examples = @ExampleObject(value = "{ \"message\": \"指定したカテゴリが見つかりません\" }"))),
       @ApiResponse(responseCode = "500", description = "サーバーエラーが発生しました", content = @Content(mediaType = "application/json", examples = @ExampleObject(value = "{ \"message\": \"サーバーエラーが発生しました\" }")))
   })
