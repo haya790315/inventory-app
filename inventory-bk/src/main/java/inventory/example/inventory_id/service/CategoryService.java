@@ -42,14 +42,27 @@ public class CategoryService {
 
   public List<ItemDto> getCategoryItems(String userId, UUID categoryId) {
     List<Category> categories = categoryRepository.findNotDeleted(List.of(userId, systemUserId));
-    return categories.stream()
+    // ユーザのカテゴリを取得
+    Optional<Category> categoryOpt = categories.stream()
         .filter(category -> category.getId().equals(categoryId))
-        .findFirst()
-        .map(c -> c.getItems().stream().filter(i -> i.getUserId().equals(userId) && !i.isDeletedFlag())
-            .sorted(Comparator.comparing(Item::getUpdatedAt).reversed())
-            .map(i -> new ItemDto(i.getName(), i.getCategoryName(), i.getQuantity()))
-            .toList())
-        .orElse(List.of());
+        .findFirst();
+
+    if (categoryOpt.isEmpty()) {
+      return List.of();
+    }
+
+    Category category = categoryOpt.get();
+    // ユーザのアイテムを更新日時の降順で取得
+    List<Item> sortedUserItems = category.getItems().stream()
+        .filter(item -> item.getUserId().equals(userId) && !item.isDeletedFlag())
+        .sorted(Comparator.comparing(Item::getUpdatedAt).reversed())
+        .toList();
+    // アイテムDTOのリストを作成
+    List<ItemDto> itemDtos = sortedUserItems.stream()
+        .map(item -> new ItemDto(item.getName(), item.getCategoryName(), item.getQuantity()))
+        .toList();
+
+    return itemDtos;
   }
 
   public Category createCategory(CategoryRequest categoryRequest, String userId) {
