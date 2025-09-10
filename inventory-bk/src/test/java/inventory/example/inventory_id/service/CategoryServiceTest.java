@@ -24,6 +24,7 @@ import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.dao.DataAccessException;
+import org.springframework.http.HttpStatus;
 import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.web.server.ResponseStatusException;
 
@@ -84,9 +85,11 @@ public class CategoryServiceTest {
     String userId = testUserId;
     when(categoryRepository.findNotDeleted(List.of(userId, defaultSystemId)))
         .thenReturn(List.of());
-
-    List<CategoryDto> result = categoryService.getAllCategories(userId);
-    assertTrue(result.isEmpty());
+    ResponseStatusException exception = assertThrows(ResponseStatusException.class, () -> {
+      categoryService.getAllCategories(userId);
+    });
+    assertEquals(HttpStatus.NOT_FOUND, exception.getStatusCode());
+    assertEquals(categoryNotFoundMsg, exception.getReason());
   }
 
   @Test
@@ -262,8 +265,8 @@ public class CategoryServiceTest {
     request.setName("UpdatedName");
     String userId = testUserId;
 
-    Category category = new Category("OldName");
-    category.setUserId(userId);
+    Category category = new Category("OldName", new String(testUserId));
+
     when(categoryRepository.findUserCategory(List.of(userId, defaultSystemId), categoryId))
         .thenReturn(Optional.of(category));
     when(categoryRepository.save(any(Category.class))).thenReturn(category);
@@ -321,13 +324,12 @@ public class CategoryServiceTest {
     request.setName("Update");
     String userId = testUserId; // Default user ID
 
-    Category category = new Category("target");
-    category.setUserId(defaultSystemId);
-    category.setUserId(userId);
+    Category category = new Category("target", new String(userId));
+
     when(categoryRepository.findUserCategory(List.of(userId, defaultSystemId), categoryId))
         .thenReturn(Optional.of(category));
     when(categoryRepository.findActiveCateByName(List.of(userId, defaultSystemId), request.getName()))
-        .thenReturn(List.of(new Category(request.getName())));
+        .thenReturn(List.of(new Category(request.getName(), new String(userId))));
 
     ResponseStatusException exception = assertThrows(ResponseStatusException.class, () -> {
       categoryService.updateCategory(categoryId, request, userId);

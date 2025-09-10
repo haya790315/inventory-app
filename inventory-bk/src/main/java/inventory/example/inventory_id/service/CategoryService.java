@@ -30,7 +30,11 @@ public class CategoryService {
 
   public List<CategoryDto> getAllCategories(String userId) {
     // ユーザとデフォルトのカテゴリを取得
-    return categoryRepository.findNotDeleted(List.of(userId, systemUserId)).stream()
+    List<Category> categories = categoryRepository.findNotDeleted(List.of(userId, systemUserId));
+    if (categories.isEmpty()) {
+      throw new ResponseStatusException(HttpStatus.NOT_FOUND, categoryNotFoundMsg);
+    }
+    return categories.stream()
         .sorted(Comparator.comparing(Category::getName))
         .map(category -> new CategoryDto(category.getName()))
         .toList();
@@ -78,7 +82,7 @@ public class CategoryService {
       throw new IllegalArgumentException(categoryNotFoundMsg);
     }
     Category category = categoryOpt.get();
-    if (category.getUserId() != userId) {
+    if (!category.getUserId().equals(userId)) {
       throw new IllegalArgumentException("デフォルトカテゴリは編集できません");
     }
     List<Category> exsitCategory = categoryRepository
