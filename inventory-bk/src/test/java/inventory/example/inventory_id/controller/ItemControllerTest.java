@@ -82,6 +82,20 @@ class ItemControllerTest {
 
   @Test
   @Tag("POST: /api/item")
+  @DisplayName("アイテム作成-201 数量が入力されていない場合も作成できる")
+  void createItem_badRequest_quantityMissing() throws Exception {
+    ItemRequest req = new ItemRequest();
+    req.setCategoryName("category");
+    req.setName("itemName");
+    mockMvc.perform(post("/api/item")
+        .contentType(MediaType.APPLICATION_JSON)
+        .content(objectMapper.writeValueAsString(req)))
+        .andExpect(status().isCreated())
+        .andExpect(content().json("{\"message\":\"アイテムの作成が完了しました\"}"));
+  }
+
+  @Test
+  @Tag("POST: /api/item")
   @DisplayName("アイテム作成-400 Bad Request カテゴリーが見つからない")
   void createItem_badRequest_categoryNotFound() throws Exception {
     ItemRequest req = new ItemRequest("itemName", "category", 1);

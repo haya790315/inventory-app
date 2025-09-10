@@ -81,6 +81,37 @@ class ItemServiceTest {
 
   @Test
   @Tag("createItem")
+  @DisplayName("アイテム作成成功- 数量が入力されていない場合は0として保存する")
+  void testCreateItemSuccessWithNoQuantity() {
+    String userId = testUserId;
+    String systemUserId = defaultSystemId;
+    String categoryName = "Laptop";
+    String itemName = "Notebook";
+
+    Category category = new Category(categoryName);
+    category.setUserId(userId);
+    category.setItems(new ArrayList<>());
+
+    ItemRequest request = new ItemRequest();
+    request.setName(itemName);
+    request.setCategoryName(categoryName);
+    // 数量は設定しない、デフォルトの0になる
+
+    when(categoryRepository
+        .findActiveCateByName(List.of(userId, systemUserId), categoryName))
+        .thenReturn(List.of(category));
+
+    when(categoryRepository.save(any(Category.class))).thenReturn(category);
+
+    assertDoesNotThrow(() -> itemService.createItem(userId, request));
+    verify(categoryRepository).save(any(Category.class));
+
+    assertEquals(1, category.getItems().size());
+    assertEquals(0, category.getItems().get(0).getQuantity());
+  }
+
+  @Test
+  @Tag("createItem")
   @DisplayName("アイテム作成失敗- カテゴリーが見つからない")
   void testCreateItemCategoryNotFound() {
     String userId = testUserId;
@@ -295,6 +326,42 @@ class ItemServiceTest {
     assertDoesNotThrow(() -> itemService.updateItem(userId, itemId, request));
     assertEquals(newItemName, existingItem.getName());
     assertEquals(newQuantity, existingItem.getQuantity());
+    verify(itemRepository).save(existingItem);
+  }
+
+  @Test
+  @Tag("updateItem")
+  @DisplayName("アイテム更新成功- 数量が入力されていない場合は0として保存する")
+  void testUpdateItemSuccessWithEmptyQuantity() {
+    String userId = testUserId;
+    String systemUserId = defaultSystemId;
+    String categoryName = "Laptop";
+    String newItemName = "Notebook";
+    UUID itemId = UUID.randomUUID();
+
+    Item existingItem = new Item(
+        "OldName",
+        testUserId,
+        null,
+        100,
+        false);
+    existingItem.setId(itemId);
+
+    ItemRequest request = new ItemRequest();
+    request.setName(newItemName);
+    request.setCategoryName(categoryName);
+    // 数量は設定しない、デフォルトの0になる
+
+    List<Item> items = new ArrayList<>();
+    items.add(existingItem);
+
+    when(itemRepository.getActiveByCategoryName(
+        List.of(userId, systemUserId), categoryName))
+        .thenReturn(items);
+    when(itemRepository.save(any(Item.class))).thenReturn(existingItem);
+
+    assertDoesNotThrow(() -> itemService.updateItem(userId, itemId, request));
+    assertEquals(0, existingItem.getQuantity());
     verify(itemRepository).save(existingItem);
   }
 
