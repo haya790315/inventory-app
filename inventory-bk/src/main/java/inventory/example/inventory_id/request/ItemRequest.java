@@ -22,6 +22,7 @@ public class ItemRequest {
 
   @NotBlank(message = "カテゴリは必須です")
   @Pattern(regexp = ".*[^\\s　].*", message = "カテゴリは必須です")
+  @Size(max = 50, message = "カテゴリ名は50文字以内で入力してください")
   @Schema(example = "文房具", description = "カテゴリ名")
   private String categoryName;
 
