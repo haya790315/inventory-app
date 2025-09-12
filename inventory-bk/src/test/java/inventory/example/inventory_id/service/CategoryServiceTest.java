@@ -8,6 +8,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -28,6 +29,7 @@ import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.web.server.ResponseStatusException;
 
 import inventory.example.inventory_id.dto.CategoryDto;
+import inventory.example.inventory_id.dto.ItemDto;
 import inventory.example.inventory_id.model.Category;
 import inventory.example.inventory_id.model.Item;
 import inventory.example.inventory_id.repository.CategoryRepository;
@@ -96,16 +98,27 @@ public class CategoryServiceTest {
   void testGetCategoryItemsSuccess() {
     UUID categoryId = UUID.randomUUID();
     String userId = testUserId;
-    Category category = new Category();
+    String otherUserId = "otherUserId";
+    Category category = new Category("TestCategory", defaultSystemId);
     category.setId(categoryId);
-    category.setUserId(userId);
-    category.setItems(List.of(new Item("Item1")));
+
+    LocalDateTime now = LocalDateTime.now();
+
+    Item userNewItem = new Item("userNewItem", userId, category, 10, false, now);
+    Item userOldItem = new Item("userOldItem", userId, category, 8, false, now.minusDays(1));
+    Item userDeletedItem = new Item("userDeletedItem", userId, category, 8, true, now.minusDays(1));
+
+    Item otherUserItem = new Item("otherUserItem", otherUserId, category, 5, false);
+
+    category.setItems(new ArrayList<>(List.of(userNewItem,
+        userOldItem, userDeletedItem, otherUserItem)));
     when(categoryRepository.findNotDeleted(List.of(userId, defaultSystemId)))
         .thenReturn(List.of(category));
 
-    List<Item> result = categoryService.getCategoryItems(testUserId, categoryId);
-    assertFalse(result.isEmpty());
-    assertEquals(category.getItems(), result);
+    List<ItemDto> result = categoryService.getCategoryItems(testUserId, categoryId);
+    assertEquals(2, result.size());
+    assertEquals("userNewItem", result.get(0).getName());
+    assertEquals("userOldItem", result.get(1).getName());
   }
 
   @Test
@@ -114,13 +127,13 @@ public class CategoryServiceTest {
   void testGetCategoryItemsEmpty() {
     UUID categoryId = UUID.randomUUID();
     String userId = testUserId;
-    Category category = new Category();
+    Category category = new Category("TestCategory", new String(userId));
     category.setId(categoryId);
-    category.setUserId(userId);
+    category.setItems(new ArrayList<>());
     when(categoryRepository.findNotDeleted(List.of(userId, defaultSystemId)))
         .thenReturn(List.of(category));
 
-    List<Item> result = categoryService.getCategoryItems(testUserId, categoryId);
+    List<ItemDto> result = categoryService.getCategoryItems(testUserId, categoryId);
     assertTrue(result.isEmpty());
   }
 
@@ -332,10 +345,32 @@ public class CategoryServiceTest {
   void testDeleteCategorySuccess() {
     UUID categoryId = UUID.randomUUID();
     String userId = testUserId;
-    Category category = new Category();
+    Category category = new Category("ToBeDeleted", new String(userId));
     category.setId(categoryId);
-    category.setUserId(userId);
-    category.setItems(new ArrayList<>());
+    category.setItems(new ArrayList<Item>());
+
+    when(categoryRepository.findNotDeleted(List.of(userId, defaultSystemId)))
+        .thenReturn(List.of(category));
+
+    assertDoesNotThrow(() -> categoryService.deleteCategory(categoryId, userId));
+    assertTrue(category.isDeletedFlag());
+  }
+
+  @Test
+  @Tag("deleteCategory")
+  @DisplayName("カテゴリー削除成功- 削除したアイテムが存在する場合")
+  void testDeleteCategorySuccessWithDeletedItems() {
+    UUID categoryId = UUID.randomUUID();
+    String userId = testUserId;
+    Category category = new Category("ToBeDeleted", new String(userId));
+    category.setId(categoryId);
+    category.setItems(new ArrayList<Item>(List.of(new Item(
+        "DeletedItem",
+        new String(userId),
+        category,
+        1,
+        true))));
+
     when(categoryRepository.findNotDeleted(List.of(userId, defaultSystemId)))
         .thenReturn(List.of(category));
 

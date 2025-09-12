@@ -18,7 +18,7 @@ import org.springframework.web.server.ResponseStatusException;
 
 import inventory.example.inventory_id.dto.CategoryDto;
 import inventory.example.inventory_id.dto.ItemDto;
-import inventory.example.inventory_id.model.Item;
+
 import inventory.example.inventory_id.request.CategoryRequest;
 import inventory.example.inventory_id.service.CategoryService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -65,7 +65,7 @@ public class CategoryController extends BaseController {
   public ResponseEntity<Object> getCategoryItems(@RequestParam UUID categoryId) {
     try {
       String userId = fetchUserIdFromToken();
-      List<Item> items = categoryService.getCategoryItems(userId, categoryId);
+      List<ItemDto> items = categoryService.getCategoryItems(userId, categoryId);
       return response(HttpStatus.OK, items);
     } catch (Exception e) {
       return response(HttpStatus.INTERNAL_SERVER_ERROR, e.getMessage());

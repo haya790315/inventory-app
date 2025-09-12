@@ -12,6 +12,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
 import inventory.example.inventory_id.dto.CategoryDto;
+import inventory.example.inventory_id.dto.ItemDto;
 import inventory.example.inventory_id.model.Category;
 import inventory.example.inventory_id.model.Item;
 import inventory.example.inventory_id.repository.CategoryRepository;
@@ -39,13 +40,29 @@ public class CategoryService {
         .toList();
   }
 
-  public List<Item> getCategoryItems(String userId, UUID categoryId) {
+  public List<ItemDto> getCategoryItems(String userId, UUID categoryId) {
     List<Category> categories = categoryRepository.findNotDeleted(List.of(userId, systemUserId));
-    return categories.stream()
+    // ユーザのカテゴリを取得
+    Optional<Category> categoryOpt = categories.stream()
         .filter(category -> category.getId().equals(categoryId))
-        .findFirst()
-        .map(Category::getItems)
-        .orElse(List.of()); // アイテムが見つからない場合は空リストを返す
+        .findFirst();
+
+    if (categoryOpt.isEmpty()) {
+      return List.of();
+    }
+
+    Category category = categoryOpt.get();
+    // ユーザのアイテムを更新日時の降順で取得
+    List<Item> sortedUserItems = category.getItems().stream()
+        .filter(item -> item.getUserId().equals(userId) && !item.isDeletedFlag())
+        .sorted(Comparator.comparing(Item::getUpdatedAt).reversed())
+        .toList();
+    // アイテムDTOのリストを作成
+    List<ItemDto> itemDtos = sortedUserItems.stream()
+        .map(item -> new ItemDto(item.getName(), item.getCategoryName(), item.getQuantity()))
+        .toList();
+
+    return itemDtos;
   }
 
   public Category createCategory(CategoryRequest categoryRequest, String userId) {
@@ -102,10 +119,11 @@ public class CategoryService {
         .findFirst()
         .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, categoryNotFoundMsg));
 
-    if (category.getUserId() != userId) {
+    if (!category.getUserId().equals(userId)) {
       throw new IllegalArgumentException("デフォルトカテゴリは削除できません");
     }
-    if (category.getItems().isEmpty()) {
+    if (category.getItems().isEmpty() ||
+        category.getItems().stream().allMatch(item -> item.isDeletedFlag())) {
       // アイテムが存在しない場合のみ削除フラグを立てる
       category.setDeletedFlag(true);
       categoryRepository.save(category);
