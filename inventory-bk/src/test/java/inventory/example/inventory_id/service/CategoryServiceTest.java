@@ -345,10 +345,32 @@ public class CategoryServiceTest {
   void testDeleteCategorySuccess() {
     UUID categoryId = UUID.randomUUID();
     String userId = testUserId;
-    Category category = new Category();
+    Category category = new Category("ToBeDeleted", new String(userId));
     category.setId(categoryId);
-    category.setUserId(userId);
-    category.setItems(new ArrayList<>());
+    category.setItems(new ArrayList<Item>());
+
+    when(categoryRepository.findNotDeleted(List.of(userId, defaultSystemId)))
+        .thenReturn(List.of(category));
+
+    assertDoesNotThrow(() -> categoryService.deleteCategory(categoryId, userId));
+    assertTrue(category.isDeletedFlag());
+  }
+
+  @Test
+  @Tag("deleteCategory")
+  @DisplayName("カテゴリー削除成功- 削除したアイテムが存在する場合")
+  void testDeleteCategorySuccessWithDeletedItems() {
+    UUID categoryId = UUID.randomUUID();
+    String userId = testUserId;
+    Category category = new Category("ToBeDeleted", new String(userId));
+    category.setId(categoryId);
+    category.setItems(new ArrayList<Item>(List.of(new Item(
+        "DeletedItem",
+        new String(userId),
+        category,
+        1,
+        true))));
+
     when(categoryRepository.findNotDeleted(List.of(userId, defaultSystemId)))
         .thenReturn(List.of(category));
 
