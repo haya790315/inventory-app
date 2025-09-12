@@ -63,4 +63,19 @@ public class Item {
     this.quantity = quantity;
     this.deletedFlag = deletedFlag;
   }
+
+  public Item(
+      String name,
+      String userId,
+      Category category,
+      int quantity,
+      boolean deletedFlag,
+      LocalDateTime updatedAt) {
+    this.name = name;
+    this.userId = userId;
+    this.category = category;
+    this.quantity = quantity;
+    this.deletedFlag = deletedFlag;
+    this.updatedAt = updatedAt;
+  }
 }
