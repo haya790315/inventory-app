@@ -19,7 +19,9 @@ paths:
       tags:
         - アイテム
       summary: アイテム一覧の取得
-      description: 指定したカテゴリに属するユーザのアイテム一覧を取得します、更新日時の降順で表示します
+      description: |-
+        指定したカテゴリ名に属する、現在ログイン中のユーザーが所有する全てのアイテムを取得します。
+        取得したアイテムは、各アイテムの更新日時（updated_at）を基準に新しい順で並べて返します。
       operationId: getItems
       parameters:
         - name: category_name
@@ -61,7 +63,8 @@ paths:
       description: |-
         指定したアイテムの情報を更新します。
 
-        - アイテム名を変更の場合は同じカテゴリ内で重複できません
+        - アイテム名を変更する場合、変更後の名称が既に登録しているものと重複した場合は更新できません
+
         - アイテムの属するカテゴリ変更はできません
         - quantityが入力しない場合、デフォルトは0になります
       operationId: updateItem
@@ -129,7 +132,7 @@ paths:
       description: |-
         新しいアイテムを作成します
         - 各アイテムは指定のカテゴリに属します
-        - アイテム名は同じカテゴリ内で重複できません
+        - 同じカテゴリに属するアイテムは、アイテム名が重複して登録できません
         - quantityが入力しない場合、デフォルトは0になります
       operationId: createItem
       requestBody:
@@ -225,7 +228,14 @@ paths:
       tags:
         - カテゴリ
       summary: カテゴリの取得
-      description: システムのデフォルトカテゴリも含めてユーザ自分のカテゴリ一覧を取得、辞書順に表示する
+      description: |
+        システムのデフォルトカテゴリも含めてユーザ自分のカテゴリ一覧を取得、辞書順に表示する。
+        具体的には以下の優先度で比較・整列されます。
+        1. 数字 (0–9)
+        2. 英字 (A–Z, a–z)
+        3. ひらがな
+        4. カタカナ
+        5. 漢字
       operationId: getAllCategories
       responses:
         "200":
@@ -236,6 +246,13 @@ paths:
                 type: array
                 items:
                   $ref: "#/components/schemas/CategoryDto"
+              example:
+                - name: 123Food
+                - name: Apple
+                - name: banana
+                - name: あさひ
+                - name: カタログ
+                - name: 東京
         "500":
           description: サーバーエラーが発生時のレスポンス
           content:
@@ -249,7 +266,7 @@ paths:
       description: |-
         指定のカスタムカテゴリを更新します
         - デフォルトカテゴリは編集できません
-        - 変更するカテゴリ名は重複できません
+        - すでに存在するカテゴリ名に変更しようとした場合、更新はできません
       operationId: putMethodName
       parameters:
         - name: category_id
@@ -303,7 +320,7 @@ paths:
       description: |-
         新しいカスタムカテゴリを作成します
         - 各ユーザは最大50個のカスタムカテゴリを作成できます
-        - カテゴリ名は重複できません。
+        - 同じユーザーが所有するカテゴリ内では、カテゴリ名は一意である必要があります
       operationId: createCategory
       requestBody:
         content:

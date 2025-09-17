@@ -39,9 +39,28 @@ public class CategoryController extends BaseController {
   private CategoryService categoryService;
 
   @GetMapping()
-  @Operation(summary = "カテゴリの取得", description = "システムのデフォルトカテゴリも含めてユーザ自分のカテゴリ一覧を取得、辞書順に表示する")
+  @Operation(summary = "カテゴリの取得", description = """
+      システムのデフォルトカテゴリも含めてユーザ自分のカテゴリ一覧を取得、辞書順に表示する。
+      具体的には以下の優先度で比較・整列されます。
+      1. 数字 (0–9)
+      2. 英字 (A–Z, a–z)
+      3. ひらがな
+      4. カタカナ
+      5. 漢字
+      """)
   @ApiResponses({
-      @ApiResponse(responseCode = "200", description = "カテゴリ一覧取得、辞書順に表示する", content = @Content(mediaType = "application/json", array = @ArraySchema(schema = @Schema(implementation = CategoryDto.class)))),
+      @ApiResponse(responseCode = "200", description = "カテゴリ一覧取得、辞書順に表示する", content = @Content(mediaType = "application/json", array = @ArraySchema(schema = @Schema(implementation = CategoryDto.class)), examples = {
+          @ExampleObject(value = """
+              [
+                { "name": "123Food" },
+                { "name": "Apple" },
+                { "name": "banana" },
+                { "name": "あさひ" },
+                { "name": "カタログ" },
+                { "name": "東京" }
+              ]
+              """)
+      })),
       @ApiResponse(responseCode = "500", description = "サーバーエラーが発生時のレスポンス", content = @Content(mediaType = "application/json", examples = @ExampleObject(value = "{ \"message\": \"サーバーエラーが発生しました\" }")))
   })
   public ResponseEntity<Object> getAllCategories() {
@@ -73,7 +92,7 @@ public class CategoryController extends BaseController {
   }
 
   @PostMapping()
-  @Operation(summary = "カスタムカテゴリの作成", description = "新しいカスタムカテゴリを作成します\n- 各ユーザは最大50個のカスタムカテゴリを作成できます\n- カテゴリ名は重複できません。")
+  @Operation(summary = "カスタムカテゴリの作成", description = "新しいカスタムカテゴリを作成します\n- 各ユーザは最大50個のカスタムカテゴリを作成できます\n- 同じユーザーが所有するカテゴリ内では、カテゴリ名は一意である必要があります")
   @ApiResponses({
       @ApiResponse(responseCode = "201", description = "カスタムカテゴリ作成成功時のレスポンス", content = @Content(mediaType = "application/json", examples = @ExampleObject(value = "{ \"message\": \"カスタムカテゴリの作成が完了しました\" }"))),
       @ApiResponse(responseCode = "400", description = "インプットが不正な時のレスポンス", content = @Content(mediaType = "application/json", examples = {
@@ -96,7 +115,7 @@ public class CategoryController extends BaseController {
   }
 
   @PutMapping()
-  @Operation(summary = "カスタムカテゴリの更新", description = "指定のカスタムカテゴリを更新します\n- デフォルトカテゴリは編集できません\n- 変更するカテゴリ名は重複できません")
+  @Operation(summary = "カスタムカテゴリの更新", description = "指定のカスタムカテゴリを更新します\n- デフォルトカテゴリは編集できません\n- すでに存在するカテゴリ名に変更しようとした場合、更新はできません")
   @ApiResponses({
       @ApiResponse(responseCode = "200", description = "カテゴリ更新成功時のレスポンス", content = @Content(mediaType = "application/json", examples = @ExampleObject(value = "{ \"message\": \"カスタムカテゴリの更新が完了しました\" }"))),
       @ApiResponse(responseCode = "400", description = "デフォルトカテゴリは更新不可", content = @Content(mediaType = "application/json", examples = @ExampleObject(value = "{ \"message\": \"デフォルトカテゴリは編集できません\" }"))),
