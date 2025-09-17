@@ -69,9 +69,6 @@ public class ItemService {
       String userId,
       String categoryName) {
     List<Item> items = itemRepository.getActiveByCategoryName(List.of(userId, systemUserId), categoryName);
-    if (items.isEmpty()) {
-      throw new ResponseStatusException(HttpStatus.NOT_FOUND, itemsNotFoundMsg);
-    }
     return items.stream()
         .map(item -> new ItemDto(
             item.getName(),

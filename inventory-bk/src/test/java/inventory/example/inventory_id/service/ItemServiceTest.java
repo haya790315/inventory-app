@@ -3,6 +3,7 @@ package inventory.example.inventory_id.service;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.Mockito.verify;
@@ -248,7 +249,7 @@ class ItemServiceTest {
 
   @Test
   @Tag("getItem")
-  @DisplayName("アイテム取得失敗 - アイテムが見つかりません")
+  @DisplayName("アイテム取得成功 - アイテムがない場合は空のリストを返す")
   void testGetItemsNotExist() {
     String userId = testUserId;
     String systemUserId = defaultSystemId;
@@ -258,9 +259,8 @@ class ItemServiceTest {
         .getActiveByCategoryName(List.of(userId, systemUserId), categoryName))
         .thenReturn(new ArrayList<>());
 
-    ResponseStatusException ex = assertThrows(ResponseStatusException.class,
-        () -> itemService.getItems(userId, categoryName));
-    assertEquals(itemsNotFoundMsg, ex.getReason());
+    List<ItemDto> result = assertDoesNotThrow(() -> itemService.getItems(userId, categoryName));
+    assertTrue(result.isEmpty());
   }
 
   @Test

@@ -2,7 +2,6 @@ package inventory.example.inventory_id.controller;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
-
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.doThrow;
@@ -14,6 +13,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
@@ -180,6 +180,18 @@ class ItemControllerTest {
 
   @Test
   @Tag("GET: /api/item")
+  @DisplayName("アイテム一覧取得-200 アイテムがない場合は空のリストを返す")
+  void getItems_throws404() throws Exception {
+    when(itemService.getItems(anyString(), anyString()))
+        .thenReturn(new ArrayList<>());
+    mockMvc.perform(get("/api/item")
+        .param("category_name", "test"))
+        .andExpect(status().isOk())
+        .andExpect(content().json("[]"));
+  }
+
+  @Test
+  @Tag("GET: /api/item")
   @DisplayName("アイテム一覧取得-400 不正な引数")
   void getItems_throws400() throws Exception {
     when(itemService.getItems(anyString(), anyString()))
@@ -188,18 +200,6 @@ class ItemControllerTest {
         .param("category_name", "test"))
         .andExpect(status().isBadRequest())
         .andExpect(content().json("{\"message\":\"" + categoryNotFoundMsg + "\"}"));
-  }
-
-  @Test
-  @Tag("GET: /api/item")
-  @DisplayName("アイテム一覧取得-404 アイテムが見つからない")
-  void getItems_throws404() throws Exception {
-    when(itemService.getItems(anyString(), anyString()))
-        .thenThrow(new ResponseStatusException(HttpStatus.NOT_FOUND, itemNotFoundMsg));
-    mockMvc.perform(get("/api/item")
-        .param("category_name", "test"))
-        .andExpect(status().isNotFound())
-        .andExpect(content().json("{\"message\":\"" + itemNotFoundMsg + "\"}"));
   }
 
   @Test
