@@ -2,7 +2,6 @@ package inventory.example.inventory_id.request;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
-import jakarta.validation.constraints.PositiveOrZero;
 import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -22,7 +21,4 @@ public class ItemRequest {
   @NotBlank(message = "カテゴリは必須です")
   @Pattern(regexp = nonEmptyStringRegex, message = "カテゴリは必須です")
   private String categoryName;
-
-  @PositiveOrZero(message = "数量は0以上の整数で入力してください")
-  private int quantity = 0;
 }

@@ -67,7 +67,7 @@ class ItemServiceTest {
     category.setUserId(userId);
     category.setItems(new ArrayList<>());
 
-    ItemRequest request = new ItemRequest(itemName, categoryName, quantity);
+    ItemRequest request = new ItemRequest(itemName, categoryName);
 
     when(categoryRepository
         .findActiveCateByName(List.of(userId, systemUserId), categoryName))
@@ -87,7 +87,7 @@ class ItemServiceTest {
     String systemUserId = defaultSystemId;
     String categoryName = "Books";
 
-    ItemRequest request = new ItemRequest("Notebook", categoryName, 5);
+    ItemRequest request = new ItemRequest("Notebook", categoryName);
 
     when(categoryRepository
         .findActiveCateByName(List.of(userId, systemUserId), categoryName))
@@ -114,7 +114,7 @@ class ItemServiceTest {
 
     category.setItems(List.of(existingItem));
 
-    ItemRequest request = new ItemRequest(itemName, categoryName, 5);
+    ItemRequest request = new ItemRequest(itemName, categoryName);
 
     when(categoryRepository
         .findActiveCateByName(List.of(userId,
@@ -142,7 +142,7 @@ class ItemServiceTest {
 
     category.setItems(new ArrayList<>(List.of(otherUserItem)));
 
-    ItemRequest request = new ItemRequest(itemName, categoryName, 5);
+    ItemRequest request = new ItemRequest(itemName, categoryName);
 
     when(categoryRepository
         .findActiveCateByName(List.of(userId,
@@ -171,7 +171,7 @@ class ItemServiceTest {
 
     category.setItems(new ArrayList<>(List.of(existingItem)));
 
-    ItemRequest request = new ItemRequest(itemName, categoryName, 5);
+    ItemRequest request = new ItemRequest(itemName, categoryName);
 
     when(categoryRepository
         .findActiveCateByName(List.of(userId, systemUserId), categoryName))
@@ -200,7 +200,7 @@ class ItemServiceTest {
 
     category.setItems(new ArrayList<>(List.of(existingItem)));
 
-    ItemRequest request = new ItemRequest(itemName, categoryName, 5);
+    ItemRequest request = new ItemRequest(itemName, categoryName);
 
     when(categoryRepository
         .findActiveCateByName(List.of(userId, systemUserId), categoryName))
@@ -302,7 +302,7 @@ class ItemServiceTest {
         false);
     existingItem.setId(itemId);
 
-    ItemRequest request = new ItemRequest(newItemName, categoryName, newQuantity);
+    ItemRequest request = new ItemRequest(newItemName, categoryName);
 
     List<Item> items = new ArrayList<>();
     items.add(existingItem);
@@ -332,7 +332,7 @@ class ItemServiceTest {
     Item diffUserNotebook = new Item("Notebook");
     diffUserNotebook.setId(UUID.randomUUID());
 
-    ItemRequest request = new ItemRequest("Notebook", categoryName, 10);
+    ItemRequest request = new ItemRequest("Notebook", categoryName);
 
     List<Item> items = List.of(userNotebook, diffUserNotebook);
     when(itemRepository.getActiveByCategoryName(List.of(userId, systemUserId), categoryName))
@@ -352,7 +352,7 @@ class ItemServiceTest {
     String categoryName = "Laptop";
     UUID itemId = UUID.randomUUID();
 
-    ItemRequest request = new ItemRequest("Notebook", categoryName, 10);
+    ItemRequest request = new ItemRequest("Notebook", categoryName);
 
     when(itemRepository
         .getActiveByCategoryName(List.of(userId, systemUserId), categoryName))
@@ -373,7 +373,7 @@ class ItemServiceTest {
     UUID itemId = UUID.randomUUID();
     Category category = new Category(categoryName);
 
-    ItemRequest request = new ItemRequest("Notebook", categoryName, 10);
+    ItemRequest request = new ItemRequest("Notebook", categoryName);
 
     Item existingItem = new Item(
         "Notebook",
