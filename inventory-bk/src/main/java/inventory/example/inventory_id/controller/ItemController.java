@@ -38,7 +38,7 @@ public class ItemController extends BaseController {
   private ItemService itemService;
 
   @PostMapping()
-  @Operation(summary = "アイテムの作成", description = "新しいアイテムを作成します\n- 各アイテムは指定のカテゴリに属します\n- 同じカテゴリに属するアイテムは、アイテム名が重複して登録できません\n- quantityが入力しない場合、デフォルトは0になります")
+  @Operation(summary = "アイテムの作成", description = "新しいアイテムを作成します\n- 各アイテムは指定のカテゴリに属します\n- 同じカテゴリに属するアイテムは、アイテム名が重複して登録できません")
   @ApiResponses({
       @ApiResponse(responseCode = "201", description = "アイテム作成成功時のレスポンス", content = @Content(mediaType = "application/json", examples = @ExampleObject(value = "{ \"message\": \"アイテムの作成が完了しました\" }"))),
       @ApiResponse(responseCode = "404", description = "カテゴリ名が見つからない時のレスポンス", content = @Content(mediaType = "application/json", examples = @ExampleObject(value = "{ \"message\": \"カテゴリーが見つかりません\" }"))),
@@ -47,7 +47,6 @@ public class ItemController extends BaseController {
           @ExampleObject(name = "カテゴリ名が長すぎる", value = "{ \"error\": \"カテゴリは50文字以内で入力してください\" }", description = "カテゴリ名が50文字超える場合のレスポンス"),
           @ExampleObject(name = "アイテム名がない", value = "{ \"error\": \"アイテム名は必須です\" }", description = "アイテム名がない場合のレスポンス"),
           @ExampleObject(name = "アイテム名が長すぎる", value = "{ \"error\": \"アイテム名は50文字以内で入力してください\" }", description = "アイテム名が50文字超える場合のレスポンス"),
-          @ExampleObject(name = "数量がマイナス", value = "{ \"error\": \"数量は0以上の整数で入力してください\" }", description = "数量がマイナスの場合のレスポンス")
       })),
       @ApiResponse(responseCode = "409", description = "アイテム名は重複時のレスポンス", content = @Content(mediaType = "application/json", examples = @ExampleObject(value = "{ \"message\": \"アイテム名は既に存在します\" }"))),
       @ApiResponse(responseCode = "500", description = "サーバーエラーが発生時のレスポンス", content = @Content(mediaType = "application/json", examples = @ExampleObject(value = "{ \"message\": \"サーバーエラーが発生しました\" }")))
@@ -87,7 +86,7 @@ public class ItemController extends BaseController {
   }
 
   @PutMapping()
-  @Operation(summary = "アイテムの更新", description = "指定したアイテムの情報を更新します。\n\n- アイテム名を変更する場合、変更後の名称が既に登録しているものと重複した場合は更新できません\n\n- アイテムの属するカテゴリ変更はできません\n- quantityが入力しない場合、デフォルトは0になります")
+  @Operation(summary = "アイテムの更新", description = "指定したアイテムの情報を更新します。\n\n- アイテム名を変更する場合、変更後の名称が既に登録しているものと重複した場合は更新できません\n\n- アイテムの属するカテゴリ変更はできません")
   @ApiResponses({
       @ApiResponse(responseCode = "200", description = "アイテム更新成功時のレスポンス", content = @Content(mediaType = "application/json", examples = @ExampleObject(value = "{ \"message\": \"アイテムの更新が完了しました\" }"))),
       @ApiResponse(responseCode = "404", description = "アイテムが見つからない時のレスポンス", content = @Content(mediaType = "application/json", examples = @ExampleObject(value = "{ \"message\": \"アイテムが見つかりません\" }"))),
@@ -95,8 +94,7 @@ public class ItemController extends BaseController {
           @ExampleObject(name = "カテゴリ名がない", value = "{ \"error\": \"カテゴリは必須です\" }", description = "カテゴリ名がない場合のレスポンス"),
           @ExampleObject(name = "カテゴリ名が長すぎる", value = "{ \"error\": \"カテゴリは50文字以内で入力してください\" }", description = "カテゴリ名が50文字超える場合のレスポンス"),
           @ExampleObject(name = "アイテム名がない", value = "{ \"error\": \"アイテム名は必須です\" }", description = "アイテム名がない場合のレスポンス"),
-          @ExampleObject(name = "アイテム名が長すぎる", value = "{ \"error\": \"アイテム名は50文字以内で入力してください\" }", description = "アイテム名が50文字超える場合のレスポンス"),
-          @ExampleObject(name = "数量がマイナス", value = "{ \"error\": \"数量は0以上の整数で入力してください\" }", description = "数量がマイナスの場合のレスポンス")
+          @ExampleObject(name = "アイテム名が長すぎる", value = "{ \"error\": \"アイテム名は50文字以内で入力してください\" }", description = "アイテム名が50文字超える場合のレスポンス")
       })),
       @ApiResponse(responseCode = "500", description = "サーバーエラーが発生時のレスポンス", content = @Content(mediaType = "application/json", examples = @ExampleObject(value = "{ \"message\": \"サーバーエラーが発生しました\" }")))
   })
