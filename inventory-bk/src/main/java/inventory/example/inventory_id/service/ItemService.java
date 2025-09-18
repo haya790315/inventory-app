@@ -68,6 +68,13 @@ public class ItemService {
   public List<ItemDto> getItems(
       String userId,
       String categoryName) {
+    // カテゴリーが存在するかチェック
+    categoryRepository
+        .findActiveCateByName(List.of(userId, systemUserId), categoryName)
+        .stream()
+        .findFirst()
+        .orElseThrow(() -> new IllegalArgumentException(categoryNotFoundMsg));
+
     List<Item> items = itemRepository.getActiveByCategoryName(List.of(userId, systemUserId), categoryName);
     return items.stream()
         .map(item -> new ItemDto(

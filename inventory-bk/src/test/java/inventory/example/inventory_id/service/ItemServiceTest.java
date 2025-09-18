@@ -238,6 +238,10 @@ class ItemServiceTest {
 
     category.setItems(List.of(notebook, desktop));
 
+    when(categoryRepository
+        .findActiveCateByName(List.of(userId, systemUserId), categoryName))
+        .thenReturn(List.of(category));
+
     when(itemRepository
         .getActiveByCategoryName(List.of(userId, systemUserId), categoryName))
         .thenReturn(category.getItems());
@@ -255,12 +259,33 @@ class ItemServiceTest {
     String systemUserId = defaultSystemId;
     String categoryName = "Food";
 
+    when(categoryRepository
+        .findActiveCateByName(List.of(userId, systemUserId), categoryName))
+        .thenReturn(List.of(new Category(categoryName)));
+
     when(itemRepository
         .getActiveByCategoryName(List.of(userId, systemUserId), categoryName))
         .thenReturn(new ArrayList<>());
 
     List<ItemDto> result = assertDoesNotThrow(() -> itemService.getItems(userId, categoryName));
     assertTrue(result.isEmpty());
+  }
+
+  @Test
+  @Tag("getItem")
+  @DisplayName("アイテム取得失敗 - カテゴリーが見つからない")
+  void testGetItemsCategoryNotFound() {
+    String userId = testUserId;
+    String systemUserId = defaultSystemId;
+    String categoryName = "notexits";
+
+    when(categoryRepository
+        .findActiveCateByName(List.of(userId, systemUserId), categoryName))
+        .thenThrow(new IllegalArgumentException("カテゴリーが見つかりません"));
+
+    Exception ex = assertThrows(IllegalArgumentException.class,
+        () -> itemService.getItems(userId, categoryName));
+    assertEquals("カテゴリーが見つかりません", ex.getMessage());
   }
 
   @Test
