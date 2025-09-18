@@ -37,14 +37,12 @@ public class ItemRepositoryTest {
         "Notebook",
         testUserId,
         categoryPc,
-        10,
         false);
     existedNotebook.setUpdatedAt(LocalDateTime.now().minusDays(1));
     itemRepository.save(existedNotebook);
     Item existedDesktop = new Item("Desktop",
         testUserId,
         categoryPc,
-        5,
         false);
     existedDesktop.setUpdatedAt(LocalDateTime.now());
     itemRepository.save(existedDesktop);
@@ -53,7 +51,6 @@ public class ItemRepositoryTest {
         "Monitor",
         testUserId,
         categoryPc,
-        1,
         true);
     itemRepository.save(deletedMonitor);
 
@@ -61,7 +58,6 @@ public class ItemRepositoryTest {
         "Tablet",
         "anotherUserId",
         categoryPc,
-        3,
         false);
     itemRepository.save(anotherUserItem);
 
@@ -116,16 +112,15 @@ public class ItemRepositoryTest {
     categoryRepository.save(category);
 
     // ユーザ1アイテムのセットアップ
-    Item existedItem = new Item("Notebook", testUserId, category, 5, false);
+    Item existedItem = new Item("Notebook", testUserId, category, false);
     itemRepository.save(existedItem);
 
     // ユーザ2アイテムのセットアップ
-    Item notExitedItem = new Item("Macbook", testUserId, category, 1, true);
+    Item notExitedItem = new Item("Macbook", testUserId, category, true);
     itemRepository.save(notExitedItem);
 
-    Item differUserItem = new Item("Notebook", "anotherUserId", category, 10, false);
+    Item differUserItem = new Item("Notebook", "anotherUserId", category, false);
     differUserItem.setCategory(category);
-    differUserItem.setQuantity(10);
     itemRepository.save(differUserItem);
 
     Optional<Item> resultExisted = itemRepository.getActiveItemWithId(List.of(testUserId, defaultSystemId),
@@ -133,7 +128,6 @@ public class ItemRepositoryTest {
     assertThat(resultExisted).isPresent();
     assertThat(resultExisted.get().getName()).isEqualTo("Notebook");
     assertThat(resultExisted.get().getCategoryName()).isEqualTo("Laptop");
-    assertThat(resultExisted.get().getQuantity()).isEqualTo(5);
     assertThat(resultExisted.get().isDeletedFlag()).isFalse();
 
     Optional<Item> resultNotExisted = itemRepository.getActiveItemWithId(List.of(testUserId, defaultSystemId),

@@ -62,7 +62,6 @@ class ItemServiceTest {
     String systemUserId = defaultSystemId;
     String categoryName = "Laptop";
     String itemName = "Notebook";
-    int quantity = 5;
 
     Category category = new Category(categoryName);
     category.setUserId(userId);
@@ -111,7 +110,7 @@ class ItemServiceTest {
     Category category = new Category(categoryName);
     category.setUserId(userId);
 
-    Item existingItem = new Item(itemName, userId, category, 5, false);
+    Item existingItem = new Item(itemName, userId, category, false);
 
     category.setItems(List.of(existingItem));
 
@@ -139,7 +138,7 @@ class ItemServiceTest {
 
     Category category = new Category(categoryName, systemUserId);
 
-    Item otherUserItem = new Item(itemName, otherUserId, category, 5, false);
+    Item otherUserItem = new Item(itemName, otherUserId, category, false);
 
     category.setItems(new ArrayList<>(List.of(otherUserItem)));
 
@@ -226,14 +225,12 @@ class ItemServiceTest {
         "Notebook",
         userId,
         category,
-        5,
         false);
 
     Item desktop = new Item(
         "Desktop",
         userId,
         category,
-        10,
         false);
 
     category.setItems(List.of(notebook, desktop));
@@ -296,14 +293,12 @@ class ItemServiceTest {
     String systemUserId = defaultSystemId;
     String categoryName = "Laptop";
     String newItemName = "Notebook";
-    int newQuantity = 5;
     UUID itemId = UUID.randomUUID();
 
     Item existingItem = new Item(
         "OldName",
         testUserId,
         null,
-        1,
         false);
     existingItem.setId(itemId);
 
@@ -319,7 +314,6 @@ class ItemServiceTest {
 
     assertDoesNotThrow(() -> itemService.updateItem(userId, itemId, request));
     assertEquals(newItemName, existingItem.getName());
-    assertEquals(newQuantity, existingItem.getQuantity());
     verify(itemRepository).save(existingItem);
   }
 
@@ -384,7 +378,7 @@ class ItemServiceTest {
     Item existingItem = new Item(
         "Notebook",
         userId,
-        category, 5,
+        category,
         false);
     existingItem.setId(UUID.randomUUID());
 

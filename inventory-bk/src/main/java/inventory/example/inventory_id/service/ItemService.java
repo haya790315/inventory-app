@@ -59,7 +59,6 @@ public class ItemService {
         itemRequest.getName(),
         userId,
         cate,
-        itemRequest.getQuantity(),
         false);
     cate.getItems().add(item);
     categoryRepository.save(cate);

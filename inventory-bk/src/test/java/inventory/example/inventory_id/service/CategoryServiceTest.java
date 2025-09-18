@@ -104,11 +104,11 @@ public class CategoryServiceTest {
 
     LocalDateTime now = LocalDateTime.now();
 
-    Item userNewItem = new Item("userNewItem", userId, category, 10, false, now);
-    Item userOldItem = new Item("userOldItem", userId, category, 8, false, now.minusDays(1));
-    Item userDeletedItem = new Item("userDeletedItem", userId, category, 8, true, now.minusDays(1));
+    Item userNewItem = new Item("userNewItem", userId, category, false, now);
+    Item userOldItem = new Item("userOldItem", userId, category, false, now.minusDays(1));
+    Item userDeletedItem = new Item("userDeletedItem", userId, category, true, now.minusDays(1));
 
-    Item otherUserItem = new Item("otherUserItem", otherUserId, category, 5, false);
+    Item otherUserItem = new Item("otherUserItem", otherUserId, category, false);
 
     category.setItems(new ArrayList<>(List.of(userNewItem,
         userOldItem, userDeletedItem, otherUserItem)));
@@ -368,7 +368,6 @@ public class CategoryServiceTest {
         "DeletedItem",
         new String(userId),
         category,
-        1,
         true))));
 
     when(categoryRepository.findNotDeleted(List.of(userId, defaultSystemId)))
