@@ -79,7 +79,8 @@ public class ItemService {
         .map(item -> new ItemDto(
             item.getName(),
             categoryName,
-            item.getQuantity()))
+            0,
+            0))
         .toList();
   }
 

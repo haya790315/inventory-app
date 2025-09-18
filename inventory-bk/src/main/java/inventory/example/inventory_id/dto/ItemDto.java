@@ -11,4 +11,5 @@ public class ItemDto {
   private String name;
   private String categoryName;
   private int quantity;
+  private int totalPrice;
 }
