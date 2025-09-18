@@ -113,7 +113,6 @@ public class ItemService {
 
     Item item = matchItem.get();
     item.setName(itemRequest.getName());
-    item.setQuantity(itemRequest.getQuantity());
     itemRepository.save(item);
   }
 
