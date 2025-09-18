@@ -82,6 +82,20 @@ class ItemControllerTest {
 
   @Test
   @Tag("POST: /api/item")
+  @DisplayName("アイテム作成-201 数量が入力されていない場合も作成できる")
+  void createItem_badRequest_quantityMissing() throws Exception {
+    ItemRequest req = new ItemRequest();
+    req.setCategoryName("category");
+    req.setName("itemName");
+    mockMvc.perform(post("/api/item")
+        .contentType(MediaType.APPLICATION_JSON)
+        .content(objectMapper.writeValueAsString(req)))
+        .andExpect(status().isCreated())
+        .andExpect(content().json("{\"message\":\"アイテムの作成が完了しました\"}"));
+  }
+
+  @Test
+  @Tag("POST: /api/item")
   @DisplayName("アイテム作成-400 Bad Request カテゴリーが見つからない")
   void createItem_badRequest_categoryNotFound() throws Exception {
     ItemRequest req = new ItemRequest("itemName", "category");
@@ -208,6 +222,26 @@ class ItemControllerTest {
   void updateItem_success() throws Exception {
     UUID itemId = UUID.randomUUID();
     ItemRequest req = new ItemRequest("itemName", "category");
+    doNothing().when(itemService).updateItem(
+        anyString(),
+        eq(itemId),
+        any(ItemRequest.class));
+    mockMvc.perform(put("/api/item")
+        .param("item_id", itemId.toString())
+        .contentType(MediaType.APPLICATION_JSON)
+        .content(objectMapper.writeValueAsString(req)))
+        .andExpect(status().isOk())
+        .andExpect(content().json("{\"message\":\"アイテムの更新が完了しました\"}"));
+  }
+
+  @Tag("PUT: /api/item")
+  @DisplayName("アイテム更新-200 数量が入力されていない場合も更新できる")
+  void updateItem_successWithoutQuantity() throws Exception {
+    UUID itemId = UUID.randomUUID();
+    ItemRequest req = new ItemRequest();
+    req.setName("itemName");
+    req.setCategoryName("category");
+
     doNothing().when(itemService).updateItem(
         anyString(),
         eq(itemId),
