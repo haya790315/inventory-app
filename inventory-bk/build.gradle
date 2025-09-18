@@ -3,6 +3,27 @@ plugins {
 	id 'org.springframework.boot' version '3.5.4'
 	id 'io.spring.dependency-management' version '1.1.7'
 }
+// JaCoCo plugin for code coverage
+plugins {
+	id 'jacoco'
+}
+
+jacoco {
+	toolVersion = "0.8.10" // Use the latest stable version
+}
+
+test {
+	useJUnitPlatform()
+	finalizedBy jacocoTestReport // report is always generated after tests run
+}
+
+jacocoTestReport {
+	dependsOn test // tests are required to run before generating the report
+	reports {
+		xml.required = true
+		html.required = true
+	}
+}
 
 group = 'inventory.example'
 version = '0.0.1-SNAPSHOT'
@@ -31,6 +52,7 @@ dependencies {
   developmentOnly 'org.springframework.boot:spring-boot-devtools'
   implementation 'com.google.firebase:firebase-admin:9.5.0'
   implementation 'io.github.cdimascio:dotenv-java:3.0.0'
+  implementation "org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.11"
 }
 
 tasks.named('test') {
