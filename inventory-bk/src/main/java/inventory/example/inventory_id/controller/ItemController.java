@@ -81,8 +81,6 @@ public class ItemController extends BaseController {
       return response(HttpStatus.OK, items);
     } catch (IllegalArgumentException e) {
       return response(HttpStatus.BAD_REQUEST, e.getMessage());
-    } catch (ResponseStatusException e) {
-      return response(HttpStatus.valueOf(e.getStatusCode().value()), e.getReason());
     } catch (Exception e) {
       return response(HttpStatus.INTERNAL_SERVER_ERROR, e.getMessage());
     }
