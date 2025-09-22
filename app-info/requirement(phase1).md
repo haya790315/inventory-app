@@ -49,7 +49,7 @@
       - 数量：0以上の整数。
       - 単価：0以上の整数。
       - 更新日時：現在日時以下。
-      - 有効期限：現在か過去日時（任意）、Nullも可。
+      - 有効期限：YYYY-MM-DD形式日時（任意）、Nullも可。
 
 ### 3.4 要件4
 - **説明：**  アイテムの一覧を取得するAPIは、各アイテムの数量と価格の合計を含める。
@@ -81,7 +81,7 @@
   - **アイテム履歴作成**
     - エンドポイント：`POST /api/item/records`
     - リクエストボディ：JSON形式で、アイテムID、数量、単価、有効期限（任意）を含む。
-      - 例：　入庫
+      - 例： 入庫
       ```json
       {
         "item_id": "uuid",
@@ -91,12 +91,13 @@
         "expiration_date": "2024-12-31",
       }
       ```
-      - 例：　出庫
+      - 例： 出庫
       ```json
       {
+        "item_id": "uuid",
         "quantity": 10,
         "source": "OUT",
-        "relative_item_record_id": "uuid"
+        "item_record_id": "uuid"
       }
       ```
     - レスポンス:
@@ -161,12 +162,7 @@
     - レスポンス：指定されたアイテムIDに関連する全ての履歴の情報をJSON形式で返す。
       - response例：
         ```json
-        {
-          "item_name": "name",
-          "category_name": "category",
-          "quantity": 100,
-          "total_price": 5000,
-          "records": [
+        [
             {
               "record_id": "uuid",
               "quantity": 10,
@@ -178,10 +174,9 @@
               "record_id": "uuid",
               "quantity": 5,
               "source": "OUT",
-              "relative_item_record_id": "uuid"
+              "item_record_id": "uuid"
             }
           ]
-        }
         ```
     - エラーハンドリング：アイテムIDが存在しない場合は404エラーを返す。
   
@@ -218,7 +213,7 @@ erDiagram
     datetime updated_at "更新日時"
   }
 
-  ITEM_RECORDS {
+  ITEM_RECORD {
     uuid id PK "履歴ID(主キー)"
     uuid user_id FK "ユーザーID(外部キー)"
     uuid item_id FK "アイテムID(外部キー)"
@@ -227,12 +222,12 @@ erDiagram
     datetime expiration_date "有効期限"
     datetime updated_at "更新日時"
     enum source "入出庫区分(IN/OUT)"
-    uuid relative_item_record_id FK "関連履歴ID(外部キー,IN履歴を参照,削除時OUTも削除)"
+    uuid item_record_id FK "関連履歴ID(外部キー,IN履歴を参照,削除時OUTも削除)"
     }
 
   EXTERNAL_FIREBASE_USER ||--o{ CATEGORY : "作成"
   EXTERNAL_FIREBASE_USER ||--o{ ITEM : "作成"
-  EXTERNAL_FIREBASE_USER ||--o{ ITEM_RECORDS : "作成"
+  EXTERNAL_FIREBASE_USER ||--o{ ITEM_RECORD : "作成"
   CATEGORY ||--o{ ITEM : "カテゴリ"
-  ITEM ||--o{ ITEM_RECORDS : "履歴"
+  ITEM ||--o{ ITEM_RECORD : "履歴"
 ```

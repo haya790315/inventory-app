@@ -31,7 +31,7 @@ erDiagram
     datetime expiration_date "有効期限"
     datetime updated_at "更新日時"
       enum source "入出庫区分(IN/OUT)"
-      uuid relative_item_record_id FK "関連履歴ID(外部キー,IN履歴を参照,削除時OUTも削除)"
+      uuid item_record_id FK "関連履歴ID(外部キー,IN履歴を参照,削除時OUTも削除)"
   }
 
   EXTERNAL_FIREBASE_USER ||--o{ CATEGORY : "作成"
@@ -73,6 +73,6 @@ Table item_record {
   expiration_date datetime [note: '有効期限', default: null]
   updated_at datetime [note:"更新日時",default: `current_timestamp`]
   source enum('IN', 'OUT') [note: '入出庫区分', not null]
-  relative_item_record_id uuid [ref: > item_record.id, note: '関連履歴ID', default: null]
+  item_record_id uuid [ref: > item_record.id, note: '関連履歴ID', default: null]
 }
 ```
