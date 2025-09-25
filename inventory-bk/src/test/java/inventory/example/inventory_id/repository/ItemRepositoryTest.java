@@ -189,4 +189,17 @@ public class ItemRepositoryTest {
     assertThat(result.get().getCategoryName()).isEqualTo(defaultCategory.getName());
     assertThat(result.get().isDeletedFlag()).isFalse();
   }
+
+  @Test
+  @DisplayName("同じ名前とカテゴリのアクティブなアイテムを取得できる- ゼロ件の場合")
+  void testGetActiveWithSameNameAndCategory_NoItem() {
+    Category defaultCategory = new Category("DefaultCategory", defaultSystemId);
+    categoryRepository.save(defaultCategory);
+
+    Optional<Item> result = itemRepository.getActiveWithSameNameAndCategory(
+        List.of(testUserId, defaultSystemId),
+        "nonexistentItemName",
+        defaultCategory.getId());
+    assertThat(result).isEmpty();
+  }
 }

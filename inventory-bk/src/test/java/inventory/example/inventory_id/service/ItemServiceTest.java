@@ -326,6 +326,54 @@ class ItemServiceTest {
 
   @Test
   @Tag("updateItem")
+  @DisplayName("アイテム更新成功- 正常系(他のユーザがデフォルトカテゴリに同じ名前のアイテムを持っている場合)")
+  void testUpdateItemSuccess_WithOtherUser() {
+    String userId = testUserId;
+    String anotherUserId = "anotherUserId";
+    String systemUserId = defaultSystemId;
+    String oldCategoryName = "oldCategoryName";
+    String oldItemName = "oldItemName";
+    String newItemName = "newItemName";
+    UUID testItemId = UUID.randomUUID();
+    Category oldCategory = new Category(oldCategoryName, userId);
+    Category newCategory = new Category("newCategory", userId);
+
+    Item existingItem = new Item(
+        oldItemName,
+        testUserId,
+        oldCategory,
+        false);
+    existingItem.setId(testItemId);
+
+    Item otherUserItemInNewCategory = new Item(
+        newItemName,
+        anotherUserId,
+        newCategory,
+        false);
+    newCategory.setItems(List.of(otherUserItemInNewCategory));
+
+    ItemRequest request = new ItemRequest("newItemName", "newCategory");
+
+    when(itemRepository.getActiveItemWithId(List.of(userId, systemUserId), testItemId))
+        .thenReturn(Optional.of(existingItem));
+
+    when(categoryRepository.findActiveCateByName(List.of(userId, systemUserId),
+        "newCategory"))
+        .thenReturn(List.of(newCategory));
+
+    when(itemRepository.getActiveWithSameNameAndCategory(
+        List.of(userId, systemUserId), oldItemName, newCategory.getId())).thenReturn(Optional.empty());
+
+    when(itemRepository.save(any(Item.class))).thenReturn(existingItem);
+
+    assertDoesNotThrow(() -> itemService.updateItem(userId, testItemId, request));
+    assertEquals("newItemName", existingItem.getName());
+    assertEquals(newCategory, existingItem.getCategory());
+    verify(itemRepository).save(existingItem);
+  }
+
+  @Test
+  @Tag("updateItem")
   @DisplayName("アイテム更新失敗 - アイテム名変更時、アイテム名重複")
   void testUpdateItemNameDuplicate() {
     String userId = testUserId;
