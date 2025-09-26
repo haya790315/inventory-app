@@ -44,10 +44,10 @@ public class ItemRecordController extends BaseController {
   }
 
   @DeleteMapping()
-  public ResponseEntity<Object> deleteItemRecord(@RequestParam("item_id") UUID itemId) {
+  public ResponseEntity<Object> deleteItemRecord(@RequestParam("record_id") UUID recordId) {
     try {
       String userId = fetchUserIdFromToken();
-      itemRecordService.deleteItemRecord(itemId, userId);
+      itemRecordService.deleteItemRecord(recordId, userId);
       return response(HttpStatus.ACCEPTED, "入出庫履歴を削除しました");
     } catch (IllegalArgumentException e) {
       return response(HttpStatus.BAD_REQUEST, e.getMessage());
