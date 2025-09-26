@@ -233,4 +233,19 @@ public class ItemRecordRepositoryTest {
 
     assertThat(totalQuantity).isEqualTo(0);
   }
+
+  @Test
+  @DisplayName("IDとユーザーIDでレコードを取得成功")
+  void testFindByIdAndUserId_Success() {
+    Optional<ItemRecord> result = itemRecordRepository.findByIdAndUserId(testItemInRecord.getId(), testUserId);
+    assertThat(result).isPresent();
+    assertThat(result.get()).isEqualTo(testItemInRecord);
+  }
+
+  @Test
+  @DisplayName("IDとユーザーIDでレコードを取得失敗- ユーザーIDが異なる場合")
+  void testFindByIdAndUserId_Failure_DifferentUser() {
+    Optional<ItemRecord> result = itemRecordRepository.findByIdAndUserId(testItemInRecord.getId(), otherUserId);
+    assertThat(result).isNotPresent();
+  }
 }

@@ -395,4 +395,27 @@ public class ItemRecordServiceTest {
     assertThat(exception.getStatusCode()).isEqualTo(HttpStatus.CONFLICT);
     assertThat(exception.getReason()).isEqualTo("在庫数が不足しています。");
   }
+
+  @Test
+  @DisplayName("履歴削除 - 正常系")
+  void deleteItemRecord_success() {
+    when(itemRecordRepository.findByIdAndUserId(testItemRecordId, testUserId))
+        .thenReturn(Optional.of(testItemRecord));
+    assertDoesNotThrow(() -> itemRecordService.deleteItemRecord(testItemRecordId, testUserId));
+    verify(itemRecordRepository, times(1)).delete(testItemRecord);
+  }
+
+  @Test
+  @DisplayName("履歴削除 - ユーザIDと履歴の所有者が異なる場合")
+  void deleteItemRecord_throws_exception_when_record_not_found() {
+    String otherUserId = "other-user-ID";
+    when(itemRecordRepository.findByIdAndUserId(testItemRecordId, otherUserId))
+        .thenReturn(Optional.empty());
+    IllegalArgumentException exception = assertThrows(
+        IllegalArgumentException.class,
+        () -> itemRecordService.deleteItemRecord(testItemRecordId, otherUserId));
+    assertThat(exception.getMessage()).isEqualTo("指定のレコードが存在しません。");
+
+    verify(itemRecordRepository, times(0)).delete(any(ItemRecord.class));
+  }
 }
