@@ -3,8 +3,8 @@ package inventory.example.inventory_id.repository;
 import java.util.Optional;
 import java.util.UUID;
 
-import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
 import inventory.example.inventory_id.model.ItemRecord;
@@ -37,4 +37,9 @@ public interface ItemRecordRepository extends JpaRepository<ItemRecord, UUID> {
       SELECT COALESCE(SUM(CASE WHEN ir.source = 'IN' THEN ir.quantity WHEN ir.source = 'OUT' THEN -ir.quantity ELSE 0 END), 0) FROM item_record ir WHERE ir.item_id = :itemId
       """, nativeQuery = true)
   int getItemTotalQuantity(UUID itemId);
+
+  /**
+   * IDとユーザーIDでレコードを取得
+   */
+  Optional<ItemRecord> findByIdAndUserId(UUID id, String userId);
 }

@@ -1,6 +1,7 @@
 package inventory.example.inventory_id.service;
 
 import java.util.List;
+import java.util.UUID;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -62,5 +63,11 @@ public class ItemRecordService {
                 .orElseThrow(() -> new IllegalArgumentException(itemRecordNotFoundMsg))
             : null);
     itemRecordRepository.save(itemRecord);
+  }
+
+  public void deleteItemRecord(UUID id, String userId) {
+    ItemRecord itemRecord = itemRecordRepository.findByIdAndUserId(id, userId)
+        .orElseThrow(() -> new IllegalArgumentException(itemRecordNotFoundMsg));
+    itemRecordRepository.delete(itemRecord);
   }
 }

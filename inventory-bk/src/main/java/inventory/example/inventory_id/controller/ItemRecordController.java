@@ -1,10 +1,15 @@
 package inventory.example.inventory_id.controller;
 
+import java.util.UUID;
+
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.server.ResponseStatusException;
 
@@ -31,6 +36,19 @@ public class ItemRecordController extends BaseController {
           request.getSource().equals(ItemRecordRequest.Source.IN) ? "アイテム入庫しました。" : "アイテム出庫しました。");
     } catch (ResponseStatusException e) {
       return response(HttpStatus.valueOf(e.getStatusCode().value()), e.getReason());
+    } catch (IllegalArgumentException e) {
+      return response(HttpStatus.BAD_REQUEST, e.getMessage());
+    } catch (Exception e) {
+      return response(HttpStatus.INTERNAL_SERVER_ERROR, e.getMessage());
+    }
+  }
+
+  @DeleteMapping()
+  public ResponseEntity<Object> deleteItemRecord(@RequestParam("item_id") UUID itemId) {
+    try {
+      String userId = fetchUserIdFromToken();
+      itemRecordService.deleteItemRecord(itemId, userId);
+      return response(HttpStatus.ACCEPTED, "入出庫履歴を削除しました");
     } catch (IllegalArgumentException e) {
       return response(HttpStatus.BAD_REQUEST, e.getMessage());
     } catch (Exception e) {
