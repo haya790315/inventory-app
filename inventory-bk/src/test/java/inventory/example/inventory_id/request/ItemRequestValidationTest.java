@@ -46,13 +46,6 @@ class ItemRequestValidationTest {
     assertFalse(violations.isEmpty());
   }
 
-  @Test
-  @DisplayName("アイテムリクエストのバリデーション失敗 - 数量が負")
-  void testNegativeQuantity() {
-    ItemRequest request = new ItemRequest("", "category");
-    Set<ConstraintViolation<ItemRequest>> violations = validator.validate(request);
-    assertFalse(violations.isEmpty());
-  }
 
   @Test
   @DisplayName("アイテムリクエストのバリデーション失敗 - カテゴリー名が空")
