@@ -21,7 +21,8 @@ paths:
       summary: アイテム一覧の取得
       description: |-
         指定したカテゴリ名に属する、現在ログイン中のユーザーが所有する全てのアイテムを取得します。
-        取得したアイテムは、各アイテムの更新日時（updated_at）を基準に新しい順で並べて返します。
+
+         取得したアイテムは、各アイテムの更新日時（updated_at）を基準に新しい順で並べて返します。
       operationId: getItems
       parameters:
         - name: category_name
@@ -66,7 +67,6 @@ paths:
         - アイテム名を変更する場合、変更後の名称が既に登録しているものと重複した場合は更新できません
 
         - アイテムの属するカテゴリ変更はできません
-        - quantityが入力しない場合、デフォルトは0になります
       operationId: updateItem
       parameters:
         - name: item_id
@@ -109,10 +109,6 @@ paths:
                   description: アイテム名が50文字超える場合のレスポンス
                   value:
                     error: アイテム名は50文字以内で入力してください
-                数量がマイナス:
-                  description: 数量がマイナスの場合のレスポンス
-                  value:
-                    error: 数量は0以上の整数で入力してください
         "404":
           description: アイテムが見つからない時のレスポンス
           content:
@@ -133,7 +129,6 @@ paths:
         新しいアイテムを作成します
         - 各アイテムは指定のカテゴリに属します
         - 同じカテゴリに属するアイテムは、アイテム名が重複して登録できません
-        - quantityが入力しない場合、デフォルトは0になります
       operationId: createItem
       requestBody:
         content:
@@ -169,10 +164,6 @@ paths:
                   description: アイテム名が50文字超える場合のレスポンス
                   value:
                     error: アイテム名は50文字以内で入力してください
-                数量がマイナス:
-                  description: 数量がマイナスの場合のレスポンス
-                  value:
-                    error: 数量は0以上の整数で入力してください
         "404":
           description: カテゴリ名が見つからない時のレスポンス
           content:
@@ -482,12 +473,6 @@ components:
           maxLength: 50
           minLength: 0
           pattern: .*[^\s　].*
-        quantity:
-          type: integer
-          format: int32
-          description: 数量
-          example: 10
-          minimum: 0
       required:
         - categoryName
         - name
@@ -517,8 +502,13 @@ components:
         quantity:
           type: integer
           format: int32
-          description: 数量
+          description: 在庫総数量
           example: 10
+        totalPrice:
+          type: integer
+          format: int32
+          description: 在庫総金額
+          example: 500
     CategoryDto:
       type: object
       properties:
