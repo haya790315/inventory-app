@@ -365,12 +365,13 @@ class ItemRecordControllerTest {
   }
 
   @Test
-  @Tag("DELETE: /api/item-record/{id}")
+  @Tag("DELETE: /api/item-record")
   @DisplayName("アイテム記録削除-202 正常系")
   void deleteItemRecord_success() throws Exception {
     doNothing().when(itemRecordService).deleteItemRecord(any(UUID.class), anyString());
 
-    mockMvc.perform(delete("/api/item-record/{id}", UUID.randomUUID())
+    mockMvc.perform(delete("/api/item-record")
+        .param("record_id", UUID.randomUUID().toString())
         .contentType(MediaType.APPLICATION_JSON))
         .andExpect(status().isAccepted())
         .andExpect(content().json("""
@@ -379,14 +380,15 @@ class ItemRecordControllerTest {
   }
 
   @Test
-  @Tag("DELETE: /api/item-record/{id}")
+  @Tag("DELETE: /api/item-record")
   @DisplayName("アイテム記録削除失敗 - 指定のレコードが存在しません。")
   void deleteItemRecord_notFound() throws Exception {
     doThrow(new IllegalArgumentException("指定のレコードが存在しません。"))
         .when(itemRecordService).deleteItemRecord(any(UUID.class),
             anyString());
 
-    mockMvc.perform(delete("/api/item-record/{id}", UUID.randomUUID())
+    mockMvc.perform(delete("/api/item-record")
+        .param("record_id", UUID.randomUUID().toString())
         .contentType(MediaType.APPLICATION_JSON))
         .andExpect(status().isBadRequest())
         .andExpect(content().json("""
@@ -395,7 +397,7 @@ class ItemRecordControllerTest {
   }
 
   @Test
-  @Tag("DELETE: /api/item-record/{id}")
+  @Tag("DELETE: /api/item-record")
   @DisplayName("アイテム記録作成-500 サーバーエラーが発生しました")
   void deleteItemRecord_generalException() throws Exception {
     doThrow(new RuntimeException(
@@ -403,7 +405,8 @@ class ItemRecordControllerTest {
         .when(itemRecordService).deleteItemRecord(any(UUID.class),
             anyString());
 
-    mockMvc.perform(delete("/api/item-record/{id}", UUID.randomUUID())
+    mockMvc.perform(delete("/api/item-record")
+        .param("record_id", UUID.randomUUID().toString())
         .contentType(MediaType.APPLICATION_JSON))
         .andExpect(status().isInternalServerError())
         .andExpect(content().json("""
