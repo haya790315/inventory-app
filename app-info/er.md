@@ -29,7 +29,7 @@ erDiagram
     int quantity "数量"
     int price "単価"
     datetime expiration_date "有効期限"
-    datetime updated_at "更新日時"
+    datetime created_at "作成日時"
       enum source "入出庫区分(IN/OUT)"
       uuid item_record_id FK "関連履歴ID(外部キー,IN履歴を参照,削除時OUTも削除)"
   }
@@ -71,7 +71,7 @@ Table item_record {
   quantity int [note: '数量', default: 0]
   price int [note: '単価', default: 0]
   expiration_date datetime [note: '有効期限', default: null]
-  updated_at datetime [note:"更新日時",default: `current_timestamp`]
+  created_at datetime [note:"作成日時",default: `current_timestamp`]
   source enum('IN', 'OUT') [note: '入出庫区分', not null]
   item_record_id uuid [ref: > item_record.id, note: '関連履歴ID', default: null]
 }

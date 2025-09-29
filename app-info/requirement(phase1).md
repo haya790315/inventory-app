@@ -43,12 +43,11 @@
     - 数量（整数、必須）
     - 有効期限（日時、任意）
     - 単価（整数、必須）
-    - 更新日時（日時、必須）
+    - 作成日時（日時、必須）
     - 各属性の制約は以下の通りとする。
       - アイテムID：存在するアイテムのIDであること。
       - 数量：0以上の整数。
       - 単価：0以上の整数。
-      - 更新日時：現在日時以下。
       - 有効期限：YYYY-MM-DD形式日時（任意）、Nullも可。
 
 ### 3.4 要件4
@@ -220,7 +219,7 @@ erDiagram
     int quantity "数量"
     int price "単価"
     datetime expiration_date "有効期限"
-    datetime updated_at "更新日時"
+    datetime created_at "作成日時"
     enum source "入出庫区分(IN/OUT)"
     uuid item_record_id FK "関連履歴ID(外部キー,IN履歴を参照,削除時OUTも削除)"
     }
