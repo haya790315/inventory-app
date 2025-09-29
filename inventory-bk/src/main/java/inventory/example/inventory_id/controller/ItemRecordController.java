@@ -5,7 +5,7 @@ import java.util.UUID;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.server.ResponseStatusException;
 
+import inventory.example.inventory_id.dto.ItemRecordDto;
 import inventory.example.inventory_id.request.ItemRecordRequest;
 import inventory.example.inventory_id.service.ItemRecordService;
 import jakarta.validation.Valid;
@@ -49,6 +50,19 @@ public class ItemRecordController extends BaseController {
       String userId = fetchUserIdFromToken();
       itemRecordService.deleteItemRecord(recordId, userId);
       return response(HttpStatus.ACCEPTED, "入出庫履歴を削除しました");
+    } catch (IllegalArgumentException e) {
+      return response(HttpStatus.BAD_REQUEST, e.getMessage());
+    } catch (Exception e) {
+      return response(HttpStatus.INTERNAL_SERVER_ERROR, e.getMessage());
+    }
+  }
+
+  @GetMapping()
+  public ResponseEntity<Object> getItemRecord(@RequestParam("record_id") UUID recordId) {
+    try {
+      String userId = fetchUserIdFromToken();
+      ItemRecordDto itemRecord = itemRecordService.getItemRecord(recordId, userId);
+      return response(HttpStatus.OK, itemRecord);
     } catch (IllegalArgumentException e) {
       return response(HttpStatus.BAD_REQUEST, e.getMessage());
     } catch (Exception e) {

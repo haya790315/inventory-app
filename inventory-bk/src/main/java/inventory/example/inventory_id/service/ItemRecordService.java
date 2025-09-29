@@ -7,6 +7,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
+import inventory.example.inventory_id.dto.ItemRecordDto;
 import inventory.example.inventory_id.model.Item;
 import inventory.example.inventory_id.model.ItemRecord;
 import inventory.example.inventory_id.repository.ItemRecordRepository;
@@ -69,5 +70,16 @@ public class ItemRecordService {
     ItemRecord itemRecord = itemRecordRepository.findByIdAndUserId(id, userId)
         .orElseThrow(() -> new IllegalArgumentException(itemRecordNotFoundMsg));
     itemRecordRepository.delete(itemRecord);
+  }
+
+  public ItemRecordDto getItemRecord(UUID id, String userId) {
+    return itemRecordRepository.findByIdAndUserId(id, userId).stream().map(record -> new ItemRecordDto(
+        record.getItem().getName(),
+        record.getItem().getCategory().getName(),
+        record.getQuantity(),
+        record.getPrice(),
+        record.getSource(),
+        record.getExpirationDate() != null ? record.getExpirationDate().toString() : null)).findFirst()
+        .orElseThrow(() -> new IllegalArgumentException(itemRecordNotFoundMsg));
   }
 }
