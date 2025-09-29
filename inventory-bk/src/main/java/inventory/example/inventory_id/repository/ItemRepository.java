@@ -7,6 +7,7 @@ import java.util.UUID;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
+
 import org.springframework.stereotype.Repository;
 
 import inventory.example.inventory_id.model.Item;
@@ -37,16 +38,4 @@ public interface ItemRepository extends JpaRepository<Item, UUID> {
   Optional<Item> getActiveItemWithId(
       List<String> userIds,
       UUID itemId);
-
-  @Query(value = """
-      SELECT *
-      FROM item
-      WHERE user_id IN (:userIds)
-      AND name = :name
-      AND category_id = :categoryId
-      AND deleted_flag = FALSE
-      """, nativeQuery = true)
-  Optional<Item> getActiveWithSameNameAndCategory(
-      List<String> userIds,
-      String name, UUID categoryId);
 }

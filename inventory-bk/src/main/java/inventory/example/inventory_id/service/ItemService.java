@@ -88,32 +88,31 @@ public class ItemService {
       String userId,
       UUID itemId,
       ItemRequest itemRequest) {
-    // 編集するアイテムを取得
-    Item item = itemRepository.getActiveItemWithId(List.of(userId, systemUserId), itemId)
-        .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, itemsNotFoundMsg));
-
-    // リクエストのカテゴリー名からカテゴリーを取得
-    Category category = categoryRepository
-        .findActiveCateByName(List.of(userId, systemUserId), itemRequest.getCategoryName())
-        .stream()
-        .findFirst()
-        .orElseThrow(() -> new IllegalArgumentException(categoryNotFoundMsg));
-
-    // 同じ名前のアイテムが存在し、削除されていない場合はエラーを投げる
-    Optional<Item> sameNameItem = itemRepository.getActiveWithSameNameAndCategory(
+    // 自分とデフォルトのカテゴリーアイテムを取得
+    List<Item> items = itemRepository.getActiveByCategoryName(
         List.of(userId, systemUserId),
-        itemRequest.getName(),
-        category.getId());
+        itemRequest.getCategoryName());
+    // 編集したいアイテムを取得
+    Optional<Item> matchItem = items.stream()
+        .filter(i -> i.getId().equals(itemId))
+        .findFirst();
+    if (matchItem.isEmpty()) {
+      throw new ResponseStatusException(HttpStatus.NOT_FOUND, itemsNotFoundMsg);
+    }
 
-    // 同じ名前のアイテムが存在し、かつそれが自分自身でない場合はエラー
-    if (sameNameItem.isPresent() &&
-        !sameNameItem.get().getId().equals(item.getId())) {
+    // 編集したい名前は他のアイテムに重複かをチェック
+    List<Item> sameNamedItem = items.stream()
+        .filter(
+            i -> i.getName()
+                .equals(itemRequest.getName()) &&
+                !i.getId().equals(itemId))
+        .toList();
+    if (!sameNamedItem.isEmpty()) {
       throw new IllegalArgumentException("アイテム名は既に登録されています");
     }
 
-    // アイテムの名前とカテゴリーを更新して保存
+    Item item = matchItem.get();
     item.setName(itemRequest.getName());
-    item.setCategory(category);
     itemRepository.save(item);
   }
 
