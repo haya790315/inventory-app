@@ -53,6 +53,9 @@ public class ItemRecordServiceTest {
 
   private LocalDate timeNow;
 
+  private static String itemNotFoundMsg = "アイテムが見つかりません";
+  private static String itemRecordNotFoundMsg = "指定のレコードが存在しません。";
+
   @BeforeEach
   void setUp() {
     testUserId = "testUser";
@@ -67,7 +70,7 @@ public class ItemRecordServiceTest {
 
     testItem = new Item("Test Item", testUserId, testCategory, false);
     testItem.setId(testItemId);
-    // Create test item record (for OUT operations)
+
     testItemRecord = new ItemRecord(
         testItem,
         testUserId,
@@ -80,7 +83,7 @@ public class ItemRecordServiceTest {
   }
 
   @Test
-  @DisplayName("入庫記録作成 -　正常系")
+  @DisplayName("入庫記録作成 - 正常系")
   void createItemRecord_success_in() {
     ItemRecordRequest request = new ItemRecordRequest(
         testItemId,
@@ -194,8 +197,9 @@ public class ItemRecordServiceTest {
         IllegalArgumentException.class,
         () -> itemRecordService.createItemRecord(testUserId, request));
 
-    assertThat(exception.getMessage()).isEqualTo("アイテムが見つかりません");
-    verify(itemRecordRepository, times(0)).save(any(ItemRecord.class));
+    assertThat(exception.getMessage()).isEqualTo(itemNotFoundMsg);
+    verify(itemRecordRepository, times(0))
+        .save(any(ItemRecord.class));
   }
 
   @Test
@@ -277,7 +281,8 @@ public class ItemRecordServiceTest {
 
     assertThat(exception.getStatusCode()).isEqualTo(HttpStatus.CONFLICT);
     assertThat(exception.getReason()).isEqualTo("在庫数が不足しています。");
-    verify(itemRecordRepository, times(0)).save(any(ItemRecord.class));
+    verify(itemRecordRepository, times(0))
+        .save(any(ItemRecord.class));
   }
 
   @Test
@@ -312,8 +317,9 @@ public class ItemRecordServiceTest {
         ResponseStatusException.class,
         () -> itemRecordService.createItemRecord(testUserId, request));
     assertThat(exception.getStatusCode()).isEqualTo(HttpStatus.CONFLICT);
-    assertThat(exception.getReason()).isEqualTo("指定のレコードが存在しません。");
-    verify(itemRecordRepository, times(0)).save(any(ItemRecord.class));
+    assertThat(exception.getReason()).isEqualTo(itemRecordNotFoundMsg);
+    verify(itemRecordRepository, times(0))
+        .save(any(ItemRecord.class));
   }
 
   @Test
@@ -335,15 +341,20 @@ public class ItemRecordServiceTest {
         IllegalArgumentException.class,
         () -> itemRecordService.createItemRecord(testUserId, request));
 
-    assertThat(exception.getMessage()).isEqualTo("指定のレコードが存在しません。");
-    verify(itemRecordRepository, times(0)).save(any(ItemRecord.class));
+    assertThat(exception.getMessage()).isEqualTo(itemRecordNotFoundMsg);
+    verify(itemRecordRepository, times(0))
+        .save(any(ItemRecord.class));
   }
 
   @Test
   @DisplayName("出庫記録作成失敗 - アイテムIDとレコードIDが一致しない場合")
   void createItemRecord_throws_exception_when_itemId_and_recordId_do_not_match() {
     UUID anotherItemId = UUID.randomUUID();
-    Item anotherItem = new Item("Another Item", testUserId, testCategory, false);
+    Item anotherItem = new Item(
+        "Another Item",
+        testUserId,
+        testCategory,
+        false);
 
     ItemRecord outRecord = new ItemRecord(
         testItem,
@@ -369,7 +380,8 @@ public class ItemRecordServiceTest {
 
     assertThat(exception.getStatusCode()).isEqualTo(HttpStatus.CONFLICT);
     assertThat(exception.getReason()).isEqualTo("指定のアイテムIDとレコードIDが一致しません。");
-    verify(itemRecordRepository, times(0)).save(any(ItemRecord.class));
+    verify(itemRecordRepository, times(0))
+        .save(any(ItemRecord.class));
   }
 
   @Test
