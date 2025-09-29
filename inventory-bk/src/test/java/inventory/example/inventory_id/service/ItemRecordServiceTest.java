@@ -53,6 +53,9 @@ public class ItemRecordServiceTest {
 
   private LocalDate timeNow;
 
+  private static String itemNotFoundMsg = "アイテムが見つかりません";
+  private static String itemRecordNotFoundMsg = "指定のレコードが存在しません。";
+
   @BeforeEach
   void setUp() {
     testUserId = "testUser";
@@ -402,7 +405,8 @@ public class ItemRecordServiceTest {
     when(itemRecordRepository.findByIdAndUserId(testItemRecordId, testUserId))
         .thenReturn(Optional.of(testItemRecord));
     assertDoesNotThrow(() -> itemRecordService.deleteItemRecord(testItemRecordId, testUserId));
-    verify(itemRecordRepository, times(1)).delete(testItemRecord);
+    verify(itemRecordRepository, times(1))
+        .delete(testItemRecord);
   }
 
   @Test
@@ -414,8 +418,9 @@ public class ItemRecordServiceTest {
     IllegalArgumentException exception = assertThrows(
         IllegalArgumentException.class,
         () -> itemRecordService.deleteItemRecord(testItemRecordId, otherUserId));
-    assertThat(exception.getMessage()).isEqualTo("指定のレコードが存在しません。");
+    assertThat(exception.getMessage()).isEqualTo(itemRecordNotFoundMsg);
 
-    verify(itemRecordRepository, times(0)).delete(any(ItemRecord.class));
+    verify(itemRecordRepository, times(0))
+        .delete(any(ItemRecord.class));
   }
 }
