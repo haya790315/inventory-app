@@ -71,8 +71,22 @@ class ItemControllerTest {
   @Tag("POST: /api/item")
   @DisplayName("アイテム作成-201 Created")
   void createItem_success() throws Exception {
-    ItemRequest req = new ItemRequest("itemName", "category");
+    ItemRequest req = new ItemRequest("itemName", "category", 1);
     doNothing().when(itemService).createItem(anyString(), any(ItemRequest.class));
+    mockMvc.perform(post("/api/item")
+        .contentType(MediaType.APPLICATION_JSON)
+        .content(objectMapper.writeValueAsString(req)))
+        .andExpect(status().isCreated())
+        .andExpect(content().json("{\"message\":\"アイテムの作成が完了しました\"}"));
+  }
+
+  @Test
+  @Tag("POST: /api/item")
+  @DisplayName("アイテム作成-201 数量が入力されていない場合も作成できる")
+  void createItem_badRequest_quantityMissing() throws Exception {
+    ItemRequest req = new ItemRequest();
+    req.setCategoryName("category");
+    req.setName("itemName");
     mockMvc.perform(post("/api/item")
         .contentType(MediaType.APPLICATION_JSON)
         .content(objectMapper.writeValueAsString(req)))
@@ -84,7 +98,7 @@ class ItemControllerTest {
   @Tag("POST: /api/item")
   @DisplayName("アイテム作成-400 Bad Request カテゴリーが見つからない")
   void createItem_badRequest_categoryNotFound() throws Exception {
-    ItemRequest req = new ItemRequest("itemName", "category");
+    ItemRequest req = new ItemRequest("itemName", "category", 1);
     doThrow(new IllegalArgumentException(categoryNotFoundMsg))
         .when(itemService)
         .createItem(anyString(), any(ItemRequest.class));
@@ -99,7 +113,7 @@ class ItemControllerTest {
   @Tag("POST: /api/item")
   @DisplayName("アイテム作成-409 Conflict アイテム名が重複")
   void createItem_conflict_itemNameDuplicate() throws Exception {
-    ItemRequest req = new ItemRequest("itemName", "category");
+    ItemRequest req = new ItemRequest("itemName", "category", 1);
     doThrow(new ResponseStatusException(
         HttpStatus.CONFLICT,
         String.format("アイテム名 '%s' は既に存在します", req.getName())))
@@ -118,7 +132,7 @@ class ItemControllerTest {
   @Tag("POST: /api/item")
   @DisplayName("アイテム作成-400 Bad Request アイテム名入力がない")
   void createItem_badRequest_itemNameMissing() throws Exception {
-    ItemRequest req = new ItemRequest("", "category");
+    ItemRequest req = new ItemRequest("", "category", 1);
     mockMvc.perform(post("/api/item")
         .contentType(MediaType.APPLICATION_JSON)
         .content(objectMapper.writeValueAsString(req)))
@@ -130,7 +144,7 @@ class ItemControllerTest {
   @Tag("POST: /api/item")
   @DisplayName("アイテム作成-400 Bad Request カテゴリー名入力がない")
   void createItem_badRequest_categoryNameMissing() throws Exception {
-    ItemRequest req = new ItemRequest("test", "");
+    ItemRequest req = new ItemRequest("test", "", 1);
     mockMvc.perform(post("/api/item")
         .contentType(MediaType.APPLICATION_JSON)
         .content(objectMapper.writeValueAsString(req)))
@@ -140,9 +154,21 @@ class ItemControllerTest {
 
   @Test
   @Tag("POST: /api/item")
+  @DisplayName("アイテム作成-400 Bad Request　数量がマイナス")
+  void createItem_badRequest_quantityNegative() throws Exception {
+    ItemRequest req = new ItemRequest("itemName", "category", -1);
+    mockMvc.perform(post("/api/item")
+        .contentType(MediaType.APPLICATION_JSON)
+        .content(objectMapper.writeValueAsString(req)))
+        .andExpect(status().isBadRequest())
+        .andExpect(content().json("{\"error\":\"数量は0以上の整数で入力してください\"}"));
+  }
+
+  @Test
+  @Tag("POST: /api/item")
   @DisplayName("アイテム作成-500 サーバーエラー")
   void createItem_throws500() throws Exception {
-    ItemRequest req = new ItemRequest("itemName", "category");
+    ItemRequest req = new ItemRequest("itemName", "category", 1);
     doThrow(new RuntimeException(
         serverErrorMsg))
         .when(itemService)
@@ -207,7 +233,27 @@ class ItemControllerTest {
   @DisplayName("アイテム更新-200 OK")
   void updateItem_success() throws Exception {
     UUID itemId = UUID.randomUUID();
-    ItemRequest req = new ItemRequest("itemName", "category");
+    ItemRequest req = new ItemRequest("itemName", "category", 1);
+    doNothing().when(itemService).updateItem(
+        anyString(),
+        eq(itemId),
+        any(ItemRequest.class));
+    mockMvc.perform(put("/api/item")
+        .param("item_id", itemId.toString())
+        .contentType(MediaType.APPLICATION_JSON)
+        .content(objectMapper.writeValueAsString(req)))
+        .andExpect(status().isOk())
+        .andExpect(content().json("{\"message\":\"アイテムの更新が完了しました\"}"));
+  }
+
+  @Tag("PUT: /api/item")
+  @DisplayName("アイテム更新-200 数量が入力されていない場合も更新できる")
+  void updateItem_successWithoutQuantity() throws Exception {
+    UUID itemId = UUID.randomUUID();
+    ItemRequest req = new ItemRequest();
+    req.setName("itemName");
+    req.setCategoryName("category");
+
     doNothing().when(itemService).updateItem(
         anyString(),
         eq(itemId),
@@ -225,7 +271,7 @@ class ItemControllerTest {
   @DisplayName("アイテム更新-404 Not Found アイテムが見つかりません")
   void updateItem_notFound() throws Exception {
     UUID itemId = UUID.randomUUID();
-    ItemRequest req = new ItemRequest("itemName", "category");
+    ItemRequest req = new ItemRequest("itemName", "category", 1);
     doThrow(new ResponseStatusException(HttpStatus.NOT_FOUND, itemNotFoundMsg))
         .when(itemService).updateItem(
             anyString(),
@@ -244,7 +290,7 @@ class ItemControllerTest {
   @DisplayName("アイテム更新-400 Bad Request アイテム名は既に登録されています")
   void updateItem_badRequest() throws Exception {
     UUID itemId = UUID.randomUUID();
-    ItemRequest req = new ItemRequest("itemName", "category");
+    ItemRequest req = new ItemRequest("itemName", "category", 1);
     doThrow(new ResponseStatusException(HttpStatus.BAD_REQUEST, "アイテム名は既に登録されています"))
         .when(itemService)
         .updateItem(
@@ -264,7 +310,7 @@ class ItemControllerTest {
   @DisplayName("アイテム更新-400 Bad Request アイテム名がない")
   void updateItem_badRequest_itemNameMissed() throws Exception {
     UUID itemId = UUID.randomUUID();
-    ItemRequest req = new ItemRequest("", "category");
+    ItemRequest req = new ItemRequest("", "category", 1);
     mockMvc.perform(put("/api/item")
         .param("item_id", itemId.toString())
         .contentType(MediaType.APPLICATION_JSON)
@@ -278,7 +324,7 @@ class ItemControllerTest {
   @DisplayName("アイテム更新-400 Bad Request カテゴリ名がない")
   void updateItem_badRequest_categoryNameMissed() throws Exception {
     UUID itemId = UUID.randomUUID();
-    ItemRequest req = new ItemRequest("itemName", "");
+    ItemRequest req = new ItemRequest("itemName", "", 1);
     mockMvc.perform(put("/api/item")
         .param("item_id", itemId.toString())
         .contentType(MediaType.APPLICATION_JSON)
@@ -292,7 +338,7 @@ class ItemControllerTest {
   @DisplayName("アイテム更新-500 サーバーエラー")
   void updateItem_throws500() throws Exception {
     UUID itemId = UUID.randomUUID();
-    ItemRequest req = new ItemRequest("itemName", "category");
+    ItemRequest req = new ItemRequest("itemName", "category", 1);
     doThrow(new RuntimeException(serverErrorMsg)).when(itemService).updateItem(
         anyString(),
         eq(itemId),

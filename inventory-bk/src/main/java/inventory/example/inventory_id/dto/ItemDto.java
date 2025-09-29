@@ -13,8 +13,6 @@ public class ItemDto {
   private String name;
   @Schema(example = "文房具", description = "カテゴリ名")
   private String categoryName;
-  @Schema(example = "10", description = "在庫総数量")
+  @Schema(example = "10", description = "数量")
   private int quantity;
-  @Schema(example = "500", description = "在庫総金額")
-  private int totalPrice;
 }

@@ -59,7 +59,7 @@ public class CategoryService {
         .toList();
     // アイテムDTOのリストを作成
     List<ItemDto> itemDtos = sortedUserItems.stream()
-        .map(item -> new ItemDto(item.getName(), item.getCategoryName(), 0, 0))
+        .map(item -> new ItemDto(item.getName(), item.getCategoryName(), item.getQuantity()))
         .toList();
 
     return itemDtos;
