@@ -134,7 +134,7 @@ sequenceDiagram
     end
 ```
 
-## 画面遷移図
+### 画面遷移図
 
 ```mermaid
 ---
@@ -168,4 +168,36 @@ flowchart LR
     n17@{ shape: lin-proc}
     n11@{ shape: lin-proc}
     n20@{ shape: lin-proc}
+```
+
+### 入出庫履歴と削除のフローチャート
+
+```mermaid
+---
+config:
+  theme: neutral
+---
+flowchart TD
+ subgraph ops["ユーザー操作"]
+        inoutOp(("入/出庫操作"))
+        delOp(("履歴削除操作"))
+  end
+ subgraph db["データベース"]
+        record[("履歴テーブル")]
+        item[("アイテムテーブル")]
+  end
+ subgraph notes["テーブル説明"]
+        noteRecord["履歴テーブル:入出庫操作をログとして記録。
+        例: +10個追加, 
+        -5個出庫"]
+        noteItem["アイテムテーブル:現在の在庫数と金額を保持。
+        例: 在庫数=120, 
+        総額=24,000円"]
+  end
+    inoutOp -- 入/出庫履歴を追加 --> record
+    delOp -- 対象の履歴を論理的に削除 --> record
+    record -- 履歴変更に基づき再計算 --> item
+    
+    record --- noteRecord
+    item --- noteItem
 ```

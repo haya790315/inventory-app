@@ -18,6 +18,8 @@ erDiagram
     uuid category_id FK "カテゴリID(外部キー)"
     uuid user_id FK "ユーザーID(外部キー)"
     string name "アイテム名"
+    int total_quantity "数量"
+    int total_price "総額"
     boolean deleted_flag "削除フラグ"
     datetime updated_at "更新日時"
   }
@@ -30,8 +32,9 @@ erDiagram
     int price "単価"
     datetime expiration_date "有効期限"
     datetime created_at "作成日時"
-      enum source "入出庫区分(IN/OUT)"
-      uuid item_record_id FK "関連履歴ID(外部キー,IN履歴を参照,削除時OUTも削除)"
+    enum source "入出庫区分(IN/OUT)"
+    uuid item_record_id FK "関連履歴ID(外部キー,IN履歴を参照,削除時OUTも削除)"
+    boolean deleted_flag "削除フラグ"
   }
 
   EXTERNAL_FIREBASE_USER ||--o{ CATEGORY : "作成"
@@ -60,6 +63,8 @@ Table item {
   category_id uuid [ref: > category.id,not null]
   user_id uuid [ref: > EXTERNAL_FIREBASE_USER.id, not null]
   name string [note: 'アイテム名', not null]
+  total_quantity int [note: '数量', default: 0]
+  total_price int [note: '総額', default: 0]
   deleted_flag boolean [note: '削除フラグ', default: false]
   updated_at datetime [note: '更新日時', default: `current_timestamp`]
 }
@@ -74,5 +79,6 @@ Table item_record {
   created_at datetime [note:"作成日時",default: `current_timestamp`]
   source enum('IN', 'OUT') [note: '入出庫区分', not null]
   item_record_id uuid [ref: > item_record.id, note: '関連履歴ID', default: null]
+  deleted_flag boolean [note: '削除フラグ', default: false]
 }
 ```
