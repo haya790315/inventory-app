@@ -170,34 +170,47 @@ flowchart LR
     n20@{ shape: lin-proc}
 ```
 
-### 入出庫履歴と削除のフローチャート
+### 入庫履歴フローチャート
 
-```mermaid
----
-config:
-  theme: neutral
----
-flowchart TD
- subgraph ops["ユーザー操作"]
-        inoutOp(("入/出庫操作"))
-        delOp(("履歴削除操作"))
-  end
- subgraph db["データベース"]
-        record[("履歴テーブル")]
-        item[("アイテムテーブル")]
-  end
- subgraph notes["テーブル説明"]
-        noteRecord["履歴テーブル:入出庫操作をログとして記録。
-        例: +10個追加, 
-        -5個出庫"]
-        noteItem["アイテムテーブル:現在の在庫数と金額を保持。
-        例: 在庫数=120, 
-        総額=24,000円"]
-  end
-    inoutOp -- 入/出庫履歴を追加 --> record
-    delOp -- 対象の履歴を論理的に削除 --> record
-    record -- 履歴変更に基づき再計算 --> item
-    
-    record --- noteRecord
-    item --- noteItem
-```
+  ```mermaid
+  ---
+  config:
+    theme: neutral
+  ---
+  flowchart TD
+          in(("入庫操作"))
+          record[("履歴テーブル")]
+          item[("アイテムテーブル")]
+          in -- 入庫履歴追加 --> record
+          record -- 履歴変更に基づき再計算 --> item
+  ```
+
+### 出庫履歴フローチャート
+
+  ```mermaid
+  ---
+  config:
+    theme: neutral
+  ---
+  flowchart TD
+          out(("出庫操作"))
+          record[("履歴テーブル")]
+          item[("アイテムテーブル")]
+          out -- 出庫履歴追加 --> record
+          record -- 履歴変更に基づき再計算 --> item
+  ```
+
+### 操作取消フローチャート
+
+  ```mermaid
+  ---
+  config:
+    theme: neutral
+  ---
+  flowchart TD
+          cancel(("入出庫操作取り消し"))
+          record[("履歴テーブル")]
+          item[("アイテムテーブル")]
+          cancel -- 履歴削除 --> record
+          record -- 履歴変更に基づき再計算 --> item
+  ```
