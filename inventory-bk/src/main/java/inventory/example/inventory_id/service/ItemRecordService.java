@@ -94,4 +94,18 @@ public class ItemRecordService {
         record.getExpirationDate() != null ? record.getExpirationDate().toString() : null))
         .toList();
   }
+
+  public List<ItemRecordDto> getAllRecordsByItem(String userId, UUID itemId) {
+    Item item = itemRepository.getActiveItemWithId(List.of(userId), itemId)
+        .orElseThrow(() -> new IllegalArgumentException(itemNotFoundMsg));
+    List<ItemRecord> itemRecords = itemRecordRepository.getRecordsByItemIdAndUserId(item.getId(), userId);
+    return itemRecords.stream().map(record -> new ItemRecordDto(
+        record.getItem().getName(),
+        record.getItem().getCategoryName(),
+        record.getQuantity(),
+        record.getPrice(),
+        record.getSource(),
+        record.getExpirationDate() != null ? record.getExpirationDate().toString() : null))
+        .toList();
+  }
 }

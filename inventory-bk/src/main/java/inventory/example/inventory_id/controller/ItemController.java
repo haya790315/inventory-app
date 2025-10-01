@@ -8,6 +8,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -17,7 +18,9 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.server.ResponseStatusException;
 
 import inventory.example.inventory_id.dto.ItemDto;
+import inventory.example.inventory_id.dto.ItemRecordDto;
 import inventory.example.inventory_id.request.ItemRequest;
+import inventory.example.inventory_id.service.ItemRecordService;
 import inventory.example.inventory_id.service.ItemService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.ArraySchema;
@@ -36,6 +39,9 @@ public class ItemController extends BaseController {
 
   @Autowired
   private ItemService itemService;
+
+  @Autowired
+  private ItemRecordService itemRecordService;
 
   @PostMapping()
   @Operation(summary = "アイテムの作成", description = "新しいアイテムを作成します\n- 各アイテムは指定のカテゴリに属します\n- 同じカテゴリに属するアイテムは、アイテム名が重複して登録できません")
@@ -131,6 +137,19 @@ public class ItemController extends BaseController {
       return response(HttpStatus.valueOf(e.getStatusCode().value()), e.getReason());
     } catch (Exception e) {
       System.err.println("Error deleting item: " + e.getMessage());
+      return response(HttpStatus.INTERNAL_SERVER_ERROR, e.getMessage());
+    }
+  }
+
+  @GetMapping("/{item_id}/records")
+  public ResponseEntity<Object> getItemRecords(@PathVariable("item_id") UUID itemId) {
+    try {
+      String userId = fetchUserIdFromToken();
+      List<ItemRecordDto> records = itemRecordService.getAllRecordsByItem(userId, itemId);
+      return response(HttpStatus.OK, records);
+    } catch (IllegalArgumentException e) {
+      return response(HttpStatus.BAD_REQUEST, e.getMessage());
+    } catch (Exception e) {
       return response(HttpStatus.INTERNAL_SERVER_ERROR, e.getMessage());
     }
   }

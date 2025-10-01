@@ -536,4 +536,62 @@ public class ItemRecordServiceTest {
         () -> itemRecordService.getUserItemRecords(testUserId));
     assertThat(exception.getMessage()).isEqualTo(serverErrorMsg);
   }
+
+  @Test
+  @DisplayName("アイテムの履歴一覧取得 - 正常系")
+  void testFindAllByItemIdAndUserId_Success() {
+    when(itemRepository.getActiveItemWithId(List.of(testUserId), testItemId))
+        .thenReturn(Optional.of(testItem));
+
+    ItemRecord anotherRecord = new ItemRecord(
+        testItem,
+        testUserId,
+        20,
+        100,
+        LocalDate.now().plusYears(1),
+        ItemRecord.Source.IN,
+        null);
+
+    when(itemRecordRepository.getRecordsByItemIdAndUserId(testItemId, testUserId))
+        .thenReturn(List.of(anotherRecord, testItemRecord));
+    var results = itemRecordService.getAllRecordsByItem(testUserId, testItemId);
+    assertThat(results).hasSize(2);
+    assertThat(results.get(0).getItemName()).isEqualTo(anotherRecord.getItemName());
+    assertThat(results.get(1).getItemName()).isEqualTo(testItemRecord.getItemName());
+  }
+
+  @Test
+  @DisplayName("アイテムの履歴一覧取得 - ゼロ件場合")
+  void testFindAllByItemIdAndUserId_Empty() {
+    when(itemRepository.getActiveItemWithId(List.of(testUserId), testItemId))
+        .thenReturn(Optional.of(testItem));
+    when(itemRecordRepository.getRecordsByItemIdAndUserId(testItemId, testUserId))
+        .thenReturn(List.of());
+    var results = itemRecordService.getAllRecordsByItem(testUserId, testItemId);
+    assertThat(results).isEmpty();
+  }
+
+  @Test
+  @DisplayName("アイテムの履歴一覧取得失敗 - アイテムが見つからない場合")
+  void testFindAllByItemIdAndUserId_ItemNotFound() {
+    when(itemRepository.getActiveItemWithId(List.of(testUserId), testItemId))
+        .thenReturn(Optional.empty());
+    IllegalArgumentException exception = assertThrows(
+        IllegalArgumentException.class,
+        () -> itemRecordService.getAllRecordsByItem(testUserId, testItemId));
+    assertThat(exception.getMessage()).isEqualTo(itemNotFoundMsg);
+  }
+
+  @Test
+  @DisplayName("アイテムの履歴一覧取得失敗 - サーバーエラー発生時")
+  void testFindAllByItemIdAndUserId_ServerError() {
+    when(itemRepository.getActiveItemWithId(List.of(testUserId), testItemId))
+        .thenReturn(Optional.of(testItem));
+    when(itemRecordRepository.getRecordsByItemIdAndUserId(testItemId, testUserId))
+        .thenThrow(new RuntimeException(serverErrorMsg));
+    Exception exception = assertThrows(
+        Exception.class,
+        () -> itemRecordService.getAllRecordsByItem(testUserId, testItemId));
+    assertThat(exception.getMessage()).isEqualTo(serverErrorMsg);
+  }
 }

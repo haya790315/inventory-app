@@ -274,4 +274,25 @@ public class ItemRecordRepositoryTest {
     var results = itemRecordRepository.findUserItemRecords("noRecordUser");
     assertThat(results).isEmpty();
   }
+
+  @Test
+  @Tag("findAllByItemIdAndUserId")
+  @DisplayName("アイテムIDとユーザーIDで全レコードを取得成功 - 順番はcreatedAtの降順")
+  void testFindAllByItemIdAndUserId_Success() {
+    var results = itemRecordRepository.getRecordsByItemIdAndUserId(testUserItem.getId(), testUserId);
+    assertThat(results).hasSize(2);
+    assertThat(results).containsExactly(testItemOutRecord, testItemInRecord);
+  }
+
+  @Test
+  @Tag("findAllByItemIdAndUserId")
+  @DisplayName("アイテムIDとユーザーIDで全レコードを取得成功 - ゼロ件場合")
+  void testFindAllByItemIdAndUserId_Empty() {
+    Category newCategory = new Category("Category", testUserId);
+    categoryRepository.save(newCategory);
+    Item newItem = new Item("Test Item", testUserId, newCategory, false);
+    itemRepository.save(newItem);
+    var results = itemRecordRepository.getRecordsByItemIdAndUserId(newItem.getId(), testUserId);
+    assertThat(results).isEmpty();
+  }
 }

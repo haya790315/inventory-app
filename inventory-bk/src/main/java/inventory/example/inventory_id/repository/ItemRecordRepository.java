@@ -56,4 +56,17 @@ public interface ItemRecordRepository extends JpaRepository<ItemRecord, UUID> {
       ORDER BY created_at DESC
       """, nativeQuery = true)
   List<ItemRecord> findUserItemRecords(String userId);
+
+  /**
+   * アイテムIDとユーザーIDで全レコードを取得
+   * 履歴がない時は空リストで返す
+   * createdAtの降順でソート
+   */
+  @Query(value = """
+      SELECT *
+      FROM item_record
+      WHERE item_id = :itemId AND user_id = :userId
+      ORDER BY created_at DESC
+      """, nativeQuery = true)
+  List<ItemRecord> getRecordsByItemIdAndUserId(UUID itemId, String userId);
 }
