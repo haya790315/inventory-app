@@ -1,5 +1,6 @@
 package inventory.example.inventory_id.repository;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -42,4 +43,17 @@ public interface ItemRecordRepository extends JpaRepository<ItemRecord, UUID> {
    * IDとユーザーIDでレコードを取得
    */
   Optional<ItemRecord> findByIdAndUserId(UUID id, String userId);
+
+  /**
+   * ユーザーIDで全レコードを取得
+   * 履歴がない時は空リストで返す
+   * createdAtの降順でソート
+   */
+  @Query(value = """
+      SELECT *
+      FROM item_record
+      WHERE user_id = :userId
+      ORDER BY created_at DESC
+      """, nativeQuery = true)
+  List<ItemRecord> findUserItemRecords(String userId);
 }

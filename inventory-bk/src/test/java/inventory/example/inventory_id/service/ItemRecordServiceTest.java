@@ -56,6 +56,7 @@ public class ItemRecordServiceTest {
 
   private static String itemNotFoundMsg = "アイテムが見つかりません";
   private static String itemRecordNotFoundMsg = "指定のレコードが存在しません。";
+  private static String serverErrorMsg = "サーバーエラーが発生しました。";
 
   @BeforeEach
   void setUp() {
@@ -475,5 +476,64 @@ public class ItemRecordServiceTest {
         IllegalArgumentException.class,
         () -> itemRecordService.getItemRecord(testItemRecordId, testUserId));
     assertThat(exception.getMessage()).isEqualTo(itemRecordNotFoundMsg);
+  }
+
+  @Test
+  @DisplayName("履歴一覧取得 - 正常系")
+  void getUserItemRecords_success() {
+    ItemRecord anotherRecord = new ItemRecord(
+        testItem,
+        testUserId,
+        20,
+        100,
+        LocalDate.now().plusYears(1),
+        ItemRecord.Source.IN,
+        null);
+    anotherRecord.setId(UUID.randomUUID());
+
+    when(itemRecordRepository.findUserItemRecords(testUserId))
+        .thenReturn(List.of(testItemRecord, anotherRecord));
+
+    List<ItemRecordDto> result = itemRecordService.getUserItemRecords(testUserId);
+
+    assertThat(result).isNotNull();
+    assertThat(result.size()).isEqualTo(2);
+
+    ItemRecordDto firstRecord = result.get(0);
+    assertThat(firstRecord.getItemName()).isEqualTo(testItem.getName());
+    assertThat(firstRecord.getCategoryName()).isEqualTo(testItem.getCategoryName());
+    assertThat(firstRecord.getQuantity()).isEqualTo(testItemRecord.getQuantity());
+    assertThat(firstRecord.getPrice()).isEqualTo(testItemRecord.getPrice());
+    assertThat(firstRecord.getSource()).isEqualTo(testItemRecord.getSource());
+    assertThat(firstRecord.getExpirationDate()).isEqualTo(testItemRecord.getExpirationDate().toString());
+
+    ItemRecordDto secondRecord = result.get(1);
+    assertThat(secondRecord.getItemName()).isEqualTo(anotherRecord.getItemName());
+    assertThat(secondRecord.getCategoryName()).isEqualTo(anotherRecord.getItem().getCategoryName());
+    assertThat(secondRecord.getQuantity()).isEqualTo(anotherRecord.getQuantity());
+    assertThat(secondRecord.getPrice()).isEqualTo(anotherRecord.getPrice());
+    assertThat(secondRecord.getSource()).isEqualTo(anotherRecord.getSource());
+    assertThat(secondRecord.getExpirationDate()).isEqualTo(anotherRecord.getExpirationDate().toString());
+  }
+
+  @Test
+  @DisplayName("履歴一覧取得 - 正常系(履歴なし)")
+  void getUserItemRecords_success_empty() {
+    when(itemRecordRepository.findUserItemRecords(testUserId))
+        .thenReturn(List.of());
+    List<ItemRecordDto> result = itemRecordService.getUserItemRecords(testUserId);
+    assertThat(result).isNotNull();
+    assertThat(result).isEmpty();
+  }
+
+  @Test
+  @DisplayName("履歴一覧取得 - サーバーエラー発生時")
+  void getUserItemRecords_throws_exception_on_server_error() {
+    when(itemRecordRepository.findUserItemRecords(testUserId))
+        .thenThrow(new RuntimeException(serverErrorMsg));
+    Exception exception = assertThrows(
+        Exception.class,
+        () -> itemRecordService.getUserItemRecords(testUserId));
+    assertThat(exception.getMessage()).isEqualTo(serverErrorMsg);
   }
 }

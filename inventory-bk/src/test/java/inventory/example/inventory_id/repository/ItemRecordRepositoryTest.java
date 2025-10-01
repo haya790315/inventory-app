@@ -8,6 +8,7 @@ import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.test.context.ActiveProfiles;
@@ -247,5 +248,30 @@ public class ItemRecordRepositoryTest {
   void testFindByIdAndUserId_Failure_DifferentUser() {
     Optional<ItemRecord> result = itemRecordRepository.findByIdAndUserId(testItemInRecord.getId(), otherUserId);
     assertThat(result).isNotPresent();
+  }
+
+  @Test
+  @Tag("findUserItemRecords")
+  @DisplayName("ユーザーIDで全レコードを取得成功 - 順番はcreatedAtの降順")
+  void testFindUserItemRecords_Success() {
+    ItemRecord latestInRecord = new ItemRecord(
+        testUserItem,
+        testUserId,
+        15,
+        1500,
+        null,
+        ItemRecord.Source.IN);
+    itemRecordRepository.save(latestInRecord);
+    var results = itemRecordRepository.findUserItemRecords(testUserId);
+    assertThat(results).hasSize(3);
+    assertThat(results).containsExactly(latestInRecord, testItemOutRecord, testItemInRecord);
+  }
+
+  @Test
+  @Tag("findUserItemRecords")
+  @DisplayName("ユーザーIDで全レコードを取得成功(履歴なし) ")
+  void testFindUserItemRecords_Empty() {
+    var results = itemRecordRepository.findUserItemRecords("noRecordUser");
+    assertThat(results).isEmpty();
   }
 }

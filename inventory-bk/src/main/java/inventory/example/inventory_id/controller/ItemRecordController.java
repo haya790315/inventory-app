@@ -1,5 +1,6 @@
 package inventory.example.inventory_id.controller;
 
+import java.util.List;
 import java.util.UUID;
 
 import org.springframework.http.HttpStatus;
@@ -65,6 +66,17 @@ public class ItemRecordController extends BaseController {
       return response(HttpStatus.OK, itemRecord);
     } catch (IllegalArgumentException e) {
       return response(HttpStatus.BAD_REQUEST, e.getMessage());
+    } catch (Exception e) {
+      return response(HttpStatus.INTERNAL_SERVER_ERROR, e.getMessage());
+    }
+  }
+
+  @GetMapping("/history")
+  public ResponseEntity<Object> getUserItemRecords() {
+    try {
+      String userId = fetchUserIdFromToken();
+      List<ItemRecordDto> itemRecords = itemRecordService.getUserItemRecords(userId);
+      return response(HttpStatus.OK, itemRecords);
     } catch (Exception e) {
       return response(HttpStatus.INTERNAL_SERVER_ERROR, e.getMessage());
     }

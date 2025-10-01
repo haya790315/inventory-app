@@ -82,4 +82,16 @@ public class ItemRecordService {
         record.getExpirationDate() != null ? record.getExpirationDate().toString() : null)).findFirst()
         .orElseThrow(() -> new IllegalArgumentException(itemRecordNotFoundMsg));
   }
+
+  public List<ItemRecordDto> getUserItemRecords(String userId) {
+    List<ItemRecord> itemRecords = itemRecordRepository.findUserItemRecords(userId);
+    return itemRecords.stream().map(record -> new ItemRecordDto(
+        record.getItem().getName(),
+        record.getItem().getCategoryName(),
+        record.getQuantity(),
+        record.getPrice(),
+        record.getSource(),
+        record.getExpirationDate() != null ? record.getExpirationDate().toString() : null))
+        .toList();
+  }
 }
