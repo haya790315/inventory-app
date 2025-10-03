@@ -499,7 +499,7 @@ components:
           type: string
           description: カテゴリ名
           example: 文房具
-        quantity:
+        totalQuantity:
           type: integer
           format: int32
           description: 在庫総数量
