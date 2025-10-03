@@ -42,12 +42,15 @@ public class ItemRecord {
   @JsonIgnore
   private Item item;
 
-  String userId;
+  @NotNull
+  private String userId;
 
   @PositiveOrZero
   private int quantity;
   @PositiveOrZero
   private int price;
+
+  private boolean deletedFlag = false;
 
   @CreationTimestamp
   private LocalDateTime createdAt;

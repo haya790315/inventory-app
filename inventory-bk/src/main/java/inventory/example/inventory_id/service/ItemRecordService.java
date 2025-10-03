@@ -32,7 +32,7 @@ public class ItemRecordService {
 
     if (request.getSource() == ItemRecordRequest.Source.OUT) {
       // itemRecordIdとitemIdの組み合わせが正しいかチェック
-      ItemRecord itemRecord = itemRecordRepository.findByUserIdAndId(userId,
+      ItemRecord itemRecord = itemRecordRepository.getRecordByUserIdAndId(userId,
           request.getItemRecordId())
           .orElseThrow(() -> new IllegalArgumentException(itemRecordNotFoundMsg));
       if (!itemRecord.getItem().getId().equals(request.getItemId())) {
@@ -40,7 +40,7 @@ public class ItemRecordService {
             "指定のアイテムIDとレコードIDが一致しません。");
       }
       // 出庫の場合、在庫数をチェック
-      Integer currentQuantity = itemRecordRepository.getRemainingQuantityForInRecord(request.getItemRecordId());
+      Integer currentQuantity = itemRecordRepository.getInrecordRemainQuantity(request.getItemRecordId());
       if (currentQuantity == null) {
         throw new ResponseStatusException(HttpStatus.CONFLICT, itemRecordNotFoundMsg);
       }
@@ -58,7 +58,7 @@ public class ItemRecordService {
         request.getExpirationDate() != null ? request.getExpirationDate() : null,
         ItemRecord.Source.valueOf(request.getSource().name()),
         request.getItemRecordId() != null
-            ? itemRecordRepository.findByUserIdAndId(userId, request.getItemRecordId())
+            ? itemRecordRepository.getRecordByUserIdAndId(userId, request.getItemRecordId())
                 .orElseThrow(() -> new IllegalArgumentException(itemRecordNotFoundMsg))
             : null);
     itemRecordRepository.save(itemRecord);

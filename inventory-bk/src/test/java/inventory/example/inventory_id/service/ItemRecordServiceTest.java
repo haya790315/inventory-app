@@ -215,9 +215,9 @@ public class ItemRecordServiceTest {
     when(itemRepository.getActiveItemWithId(List.of(testUserId),
         testItemId))
         .thenReturn(Optional.of(testItem));
-    when(itemRecordRepository.findByUserIdAndId(testUserId, testItemRecordId))
+    when(itemRecordRepository.getRecordByUserIdAndId(testUserId, testItemRecordId))
         .thenReturn(Optional.of(testItemRecord));
-    when(itemRecordRepository.getRemainingQuantityForInRecord(testItemRecordId))
+    when(itemRecordRepository.getInrecordRemainQuantity(testItemRecordId))
         .thenReturn(50); // 残り在庫50個
 
     itemRecordService.createItemRecord(testUserId, request);
@@ -244,9 +244,9 @@ public class ItemRecordServiceTest {
 
     when(itemRepository.getActiveItemWithId(List.of(testUserId), testItemId))
         .thenReturn(Optional.of(testItem));
-    when(itemRecordRepository.findByUserIdAndId(testUserId, testItemRecordId))
+    when(itemRecordRepository.getRecordByUserIdAndId(testUserId, testItemRecordId))
         .thenReturn(Optional.of(testItemRecord));
-    when(itemRecordRepository.getRemainingQuantityForInRecord(testItemRecordId))
+    when(itemRecordRepository.getInrecordRemainQuantity(testItemRecordId))
         .thenReturn(50); // 残り在庫50個
 
     assertDoesNotThrow(() -> itemRecordService.createItemRecord(testUserId, request));
@@ -270,9 +270,9 @@ public class ItemRecordServiceTest {
 
     when(itemRepository.getActiveItemWithId(List.of(testUserId), testItemId))
         .thenReturn(Optional.of(testItem));
-    when(itemRecordRepository.findByUserIdAndId(testUserId, testItemRecordId))
+    when(itemRecordRepository.getRecordByUserIdAndId(testUserId, testItemRecordId))
         .thenReturn(Optional.of(testItemRecord));
-    when(itemRecordRepository.getRemainingQuantityForInRecord(testItemRecordId))
+    when(itemRecordRepository.getInrecordRemainQuantity(testItemRecordId))
         .thenReturn(50); // 残り在庫50個
 
     ResponseStatusException exception = assertThrows(
@@ -305,11 +305,11 @@ public class ItemRecordServiceTest {
     when(itemRepository.getActiveItemWithId(List.of(testUserId), testItemId))
         .thenReturn(Optional.of(testItem));
 
-    when(itemRecordRepository.findByUserIdAndId(testUserId,
+    when(itemRecordRepository.getRecordByUserIdAndId(testUserId,
         outRecordId))
         .thenReturn(Optional.of(outRecord)); // 出庫レコードを返す
 
-    when(itemRecordRepository.getRemainingQuantityForInRecord(
+    when(itemRecordRepository.getInrecordRemainQuantity(
         outRecordId))
         .thenReturn(null);
 
@@ -334,7 +334,7 @@ public class ItemRecordServiceTest {
     when(itemRepository.getActiveItemWithId(List.of(testUserId), testItemId))
         .thenReturn(Optional.of(testItem));
 
-    when(itemRecordRepository.findByUserIdAndId(testUserId, testItemRecordId))
+    when(itemRecordRepository.getRecordByUserIdAndId(testUserId, testItemRecordId))
         .thenReturn(Optional.empty()); // sourceRecordが見つからない
 
     IllegalArgumentException exception = assertThrows(
@@ -371,7 +371,7 @@ public class ItemRecordServiceTest {
 
     when(itemRepository.getActiveItemWithId(List.of(testUserId), anotherItemId))
         .thenReturn(Optional.of(anotherItem));
-    when(itemRecordRepository.findByUserIdAndId(testUserId, outRecord.getId()))
+    when(itemRecordRepository.getRecordByUserIdAndId(testUserId, outRecord.getId()))
         .thenReturn(Optional.of(outRecord));
 
     ResponseStatusException exception = assertThrows(
@@ -395,9 +395,9 @@ public class ItemRecordServiceTest {
 
     when(itemRepository.getActiveItemWithId(List.of(testUserId), testItemId))
         .thenReturn(Optional.of(testItem));
-    when(itemRecordRepository.findByUserIdAndId(testUserId, testItemRecordId))
+    when(itemRecordRepository.getRecordByUserIdAndId(testUserId, testItemRecordId))
         .thenReturn(Optional.of(testItemRecord));
-    when(itemRecordRepository.getRemainingQuantityForInRecord(testItemRecordId))
+    when(itemRecordRepository.getInrecordRemainQuantity(testItemRecordId))
         .thenReturn(50); // 残り在庫50個
 
     ResponseStatusException exception = assertThrows(

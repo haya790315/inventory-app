@@ -14,7 +14,11 @@ public interface ItemRecordRepository extends JpaRepository<ItemRecord, UUID> {
   /**
    * ユーザーIDとレコードIDでItemRecordを取得
    */
-  Optional<ItemRecord> findByUserIdAndId(String userId, UUID id);
+  @Query(value = """
+      SELECT * FROM item_record ir
+      WHERE ir.user_id = :userId AND ir.id = :id AND ir.deleted_flag = FALSE
+      """, nativeQuery = true)
+  Optional<ItemRecord> getRecordByUserIdAndId(String userId, UUID id);
 
   /**
    * 指定の入庫のレコードにまだ出庫していない、残り数量を取得
@@ -22,11 +26,12 @@ public interface ItemRecordRepository extends JpaRepository<ItemRecord, UUID> {
   @Query(value = """
       SELECT ir.quantity - COALESCE(SUM(out_ir.quantity), 0) AS remaining_quantity
       FROM item_record ir
-      LEFT JOIN item_record out_ir ON out_ir.item_record_id = ir.id AND out_ir.source = 'OUT'
-      WHERE ir.id = :recordId AND ir.source = 'IN'
+      LEFT JOIN item_record out_ir ON out_ir.item_record_id = ir.id
+      AND out_ir.source = 'OUT' AND out_ir.deleted_flag = FALSE
+      WHERE ir.id = :recordId AND ir.source = 'IN' AND ir.deleted_flag = FALSE
       GROUP BY ir.id
       """, nativeQuery = true)
-  Integer getRemainingQuantityForInRecord(UUID recordId);
+  Integer getInrecordRemainQuantity(UUID recordId);
 
   /**
    * アイテムIDに紐づく入庫・出庫レコードの合計数量を取得
@@ -34,7 +39,7 @@ public interface ItemRecordRepository extends JpaRepository<ItemRecord, UUID> {
    * 存在しないレコードの場合は0を返す
    */
   @Query(value = """
-      SELECT COALESCE(SUM(CASE WHEN ir.source = 'IN' THEN ir.quantity WHEN ir.source = 'OUT' THEN -ir.quantity ELSE 0 END), 0) FROM item_record ir WHERE ir.item_id = :itemId
+      SELECT COALESCE(SUM(CASE WHEN ir.source = 'IN' THEN ir.quantity WHEN ir.source = 'OUT' THEN -ir.quantity ELSE 0 END), 0) FROM item_record ir WHERE ir.item_id = :itemId AND ir.deleted_flag = FALSE
       """, nativeQuery = true)
   int getItemTotalQuantity(UUID itemId);
 }
