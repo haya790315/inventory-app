@@ -62,13 +62,12 @@ class ItemServiceTest {
     String systemUserId = defaultSystemId;
     String categoryName = "Laptop";
     String itemName = "Notebook";
-    int quantity = 5;
 
     Category category = new Category(categoryName);
     category.setUserId(userId);
     category.setItems(new ArrayList<>());
 
-    ItemRequest request = new ItemRequest(itemName, categoryName, quantity);
+    ItemRequest request = new ItemRequest(itemName, categoryName);
 
     when(categoryRepository
         .findActiveCateByName(List.of(userId, systemUserId), categoryName))
@@ -78,37 +77,6 @@ class ItemServiceTest {
 
     assertDoesNotThrow(() -> itemService.createItem(userId, request));
     verify(categoryRepository).save(any(Category.class));
-  }
-
-  @Test
-  @Tag("createItem")
-  @DisplayName("アイテム作成成功- 数量が入力されていない場合は0として保存する")
-  void testCreateItemSuccessWithNoQuantity() {
-    String userId = testUserId;
-    String systemUserId = defaultSystemId;
-    String categoryName = "Laptop";
-    String itemName = "Notebook";
-
-    Category category = new Category(categoryName);
-    category.setUserId(userId);
-    category.setItems(new ArrayList<>());
-
-    ItemRequest request = new ItemRequest();
-    request.setName(itemName);
-    request.setCategoryName(categoryName);
-    // 数量は設定しない、デフォルトの0になる
-
-    when(categoryRepository
-        .findActiveCateByName(List.of(userId, systemUserId), categoryName))
-        .thenReturn(List.of(category));
-
-    when(categoryRepository.save(any(Category.class))).thenReturn(category);
-
-    assertDoesNotThrow(() -> itemService.createItem(userId, request));
-    verify(categoryRepository).save(any(Category.class));
-
-    assertEquals(1, category.getItems().size());
-    assertEquals(0, category.getItems().get(0).getQuantity());
   }
 
   @Test
@@ -119,7 +87,7 @@ class ItemServiceTest {
     String systemUserId = defaultSystemId;
     String categoryName = "Books";
 
-    ItemRequest request = new ItemRequest("Notebook", categoryName, 5);
+    ItemRequest request = new ItemRequest("Notebook", categoryName);
 
     when(categoryRepository
         .findActiveCateByName(List.of(userId, systemUserId), categoryName))
@@ -142,11 +110,11 @@ class ItemServiceTest {
     Category category = new Category(categoryName);
     category.setUserId(userId);
 
-    Item existingItem = new Item(itemName, userId, category, 5, false);
+    Item existingItem = new Item(itemName, userId, category, false);
 
     category.setItems(List.of(existingItem));
 
-    ItemRequest request = new ItemRequest(itemName, categoryName, 5);
+    ItemRequest request = new ItemRequest(itemName, categoryName);
 
     when(categoryRepository
         .findActiveCateByName(List.of(userId,
@@ -170,11 +138,11 @@ class ItemServiceTest {
 
     Category category = new Category(categoryName, systemUserId);
 
-    Item otherUserItem = new Item(itemName, otherUserId, category, 5, false);
+    Item otherUserItem = new Item(itemName, otherUserId, category, false);
 
     category.setItems(new ArrayList<>(List.of(otherUserItem)));
 
-    ItemRequest request = new ItemRequest(itemName, categoryName, 5);
+    ItemRequest request = new ItemRequest(itemName, categoryName);
 
     when(categoryRepository
         .findActiveCateByName(List.of(userId,
@@ -203,7 +171,7 @@ class ItemServiceTest {
 
     category.setItems(new ArrayList<>(List.of(existingItem)));
 
-    ItemRequest request = new ItemRequest(itemName, categoryName, 5);
+    ItemRequest request = new ItemRequest(itemName, categoryName);
 
     when(categoryRepository
         .findActiveCateByName(List.of(userId, systemUserId), categoryName))
@@ -232,7 +200,7 @@ class ItemServiceTest {
 
     category.setItems(new ArrayList<>(List.of(existingItem)));
 
-    ItemRequest request = new ItemRequest(itemName, categoryName, 5);
+    ItemRequest request = new ItemRequest(itemName, categoryName);
 
     when(categoryRepository
         .findActiveCateByName(List.of(userId, systemUserId), categoryName))
@@ -257,14 +225,12 @@ class ItemServiceTest {
         "Notebook",
         userId,
         category,
-        5,
         false);
 
     Item desktop = new Item(
         "Desktop",
         userId,
         category,
-        10,
         false);
 
     category.setItems(List.of(notebook, desktop));
@@ -327,18 +293,16 @@ class ItemServiceTest {
     String systemUserId = defaultSystemId;
     String categoryName = "Laptop";
     String newItemName = "Notebook";
-    int newQuantity = 5;
     UUID itemId = UUID.randomUUID();
 
     Item existingItem = new Item(
         "OldName",
         testUserId,
         null,
-        1,
         false);
     existingItem.setId(itemId);
 
-    ItemRequest request = new ItemRequest(newItemName, categoryName, newQuantity);
+    ItemRequest request = new ItemRequest(newItemName, categoryName);
 
     List<Item> items = new ArrayList<>();
     items.add(existingItem);
@@ -350,43 +314,6 @@ class ItemServiceTest {
 
     assertDoesNotThrow(() -> itemService.updateItem(userId, itemId, request));
     assertEquals(newItemName, existingItem.getName());
-    assertEquals(newQuantity, existingItem.getQuantity());
-    verify(itemRepository).save(existingItem);
-  }
-
-  @Test
-  @Tag("updateItem")
-  @DisplayName("アイテム更新成功- 数量が入力されていない場合は0として保存する")
-  void testUpdateItemSuccessWithEmptyQuantity() {
-    String userId = testUserId;
-    String systemUserId = defaultSystemId;
-    String categoryName = "Laptop";
-    String newItemName = "Notebook";
-    UUID itemId = UUID.randomUUID();
-
-    Item existingItem = new Item(
-        "OldName",
-        testUserId,
-        null,
-        100,
-        false);
-    existingItem.setId(itemId);
-
-    ItemRequest request = new ItemRequest();
-    request.setName(newItemName);
-    request.setCategoryName(categoryName);
-    // 数量は設定しない、デフォルトの0になる
-
-    List<Item> items = new ArrayList<>();
-    items.add(existingItem);
-
-    when(itemRepository.getActiveByCategoryName(
-        List.of(userId, systemUserId), categoryName))
-        .thenReturn(items);
-    when(itemRepository.save(any(Item.class))).thenReturn(existingItem);
-
-    assertDoesNotThrow(() -> itemService.updateItem(userId, itemId, request));
-    assertEquals(0, existingItem.getQuantity());
     verify(itemRepository).save(existingItem);
   }
 
@@ -405,7 +332,7 @@ class ItemServiceTest {
     Item diffUserNotebook = new Item("Notebook");
     diffUserNotebook.setId(UUID.randomUUID());
 
-    ItemRequest request = new ItemRequest("Notebook", categoryName, 10);
+    ItemRequest request = new ItemRequest("Notebook", categoryName);
 
     List<Item> items = List.of(userNotebook, diffUserNotebook);
     when(itemRepository.getActiveByCategoryName(List.of(userId, systemUserId), categoryName))
@@ -425,7 +352,7 @@ class ItemServiceTest {
     String categoryName = "Laptop";
     UUID itemId = UUID.randomUUID();
 
-    ItemRequest request = new ItemRequest("Notebook", categoryName, 10);
+    ItemRequest request = new ItemRequest("Notebook", categoryName);
 
     when(itemRepository
         .getActiveByCategoryName(List.of(userId, systemUserId), categoryName))
@@ -446,12 +373,12 @@ class ItemServiceTest {
     UUID itemId = UUID.randomUUID();
     Category category = new Category(categoryName);
 
-    ItemRequest request = new ItemRequest("Notebook", categoryName, 10);
+    ItemRequest request = new ItemRequest("Notebook", categoryName);
 
     Item existingItem = new Item(
         "Notebook",
         userId,
-        category, 5,
+        category,
         false);
     existingItem.setId(UUID.randomUUID());
 

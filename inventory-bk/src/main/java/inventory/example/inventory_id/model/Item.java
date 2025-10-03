@@ -1,9 +1,11 @@
 package inventory.example.inventory_id.model;
 
-import java.util.UUID;
 import java.time.LocalDateTime;
+import java.util.UUID;
+
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
+
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -32,9 +34,11 @@ public class Item {
   @JoinColumn(name = "category_id")
   @JsonIgnore
   private Category category;
-  private int quantity;
-  private boolean deletedFlag;
+  private boolean deletedFlag = false;
   private LocalDateTime updatedAt;
+
+  int totalQuantity = 0;
+  int totalPrice = 0;
 
   @PrePersist
   @PreUpdate
@@ -55,12 +59,10 @@ public class Item {
       String name,
       String userId,
       Category category,
-      int quantity,
       boolean deletedFlag) {
     this.name = name;
     this.userId = userId;
     this.category = category;
-    this.quantity = quantity;
     this.deletedFlag = deletedFlag;
   }
 
@@ -68,13 +70,26 @@ public class Item {
       String name,
       String userId,
       Category category,
-      int quantity,
+      int total_quantity,
+      int total_price,
+      boolean deletedFlag) {
+    this.name = name;
+    this.userId = userId;
+    this.category = category;
+    this.totalQuantity = total_quantity;
+    this.totalPrice = total_price;
+    this.deletedFlag = deletedFlag;
+  }
+
+  public Item(
+      String name,
+      String userId,
+      Category category,
       boolean deletedFlag,
       LocalDateTime updatedAt) {
     this.name = name;
     this.userId = userId;
     this.category = category;
-    this.quantity = quantity;
     this.deletedFlag = deletedFlag;
     this.updatedAt = updatedAt;
   }

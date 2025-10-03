@@ -59,7 +59,6 @@ public class ItemService {
         itemRequest.getName(),
         userId,
         cate,
-        itemRequest.getQuantity(),
         false);
     cate.getItems().add(item);
     categoryRepository.save(cate);
@@ -80,7 +79,8 @@ public class ItemService {
         .map(item -> new ItemDto(
             item.getName(),
             categoryName,
-            item.getQuantity()))
+            0,
+            0))
         .toList();
   }
 
@@ -113,7 +113,6 @@ public class ItemService {
 
     Item item = matchItem.get();
     item.setName(itemRequest.getName());
-    item.setQuantity(itemRequest.getQuantity());
     itemRepository.save(item);
   }
 
