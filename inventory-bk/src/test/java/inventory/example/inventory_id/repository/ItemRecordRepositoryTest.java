@@ -47,15 +47,21 @@ public class ItemRecordRepositoryTest {
     categoryRepository.deleteAll();
 
     // テスト用のカテゴリーを作成
-    Category testCategory = new Category("testCategory", "System");
+    Category testCategory = new Category("testCategory",
+        "System");
     categoryRepository.save(testCategory);
 
     // テスト用のアイテムを作成
-    testUserItem = new Item("Test Item", testUserId, testCategory, false);
+    testUserItem = new Item("Test Item",
+        testUserId,
+        testCategory,
+        false);
     itemRepository.save(testUserItem);
 
     // 別ユーザーの同じ名前とカテゴリのアイテムを作成
-    otherUserItem = new Item("Test Item", otherUserId, testCategory, false);
+    otherUserItem = new Item("Test Item",
+        otherUserId, testCategory,
+        false);
     itemRepository.save(otherUserItem);
 
     // testUser入庫レコードを作成(10個、単価1000)
@@ -131,8 +137,9 @@ public class ItemRecordRepositoryTest {
     assertThat(result.get().getPrice()).isEqualTo(1000);
     assertThat(result.get().getTransactionType()).isEqualTo(TransactionType.IN);
 
-    Optional<ItemRecord> resultOut = itemRecordRepository.getRecordByUserIdAndId(testUserId,
-        testItemOutRecord.getId());
+    Optional<ItemRecord> resultOut = itemRecordRepository
+        .getRecordByUserIdAndId(testUserId,
+            testItemOutRecord.getId());
     assertThat(resultOut).isPresent();
     assertThat(resultOut.get().getId()).isEqualTo(testItemOutRecord.getId());
     assertThat(resultOut.get().getUserId()).isEqualTo(testUserId);
@@ -146,8 +153,9 @@ public class ItemRecordRepositoryTest {
   @DisplayName("削除フラグが立っている場合は取得しない")
   void testFindByUserIdAndId_DeletedFlag() {
     // 削除フラグが立っているレコードを取得しようとする
-    Optional<ItemRecord> result = itemRecordRepository.getRecordByUserIdAndId(testUserId,
-        deletedInRecord.getId());
+    Optional<ItemRecord> result = itemRecordRepository
+        .getRecordByUserIdAndId(testUserId,
+            deletedInRecord.getId());
     assertThat(result).isNotPresent();
   }
 
@@ -155,7 +163,8 @@ public class ItemRecordRepositoryTest {
   @Tag("getRecordByUserIdAndId")
   @DisplayName("正しいユーザーIDとIDでアイテムレコードを取得- ゼロ件の場合")
   void testFindByUserIdAndId_ZeroRecords() {
-    Optional<ItemRecord> result = itemRecordRepository.getRecordByUserIdAndId(testUserId,
+    Optional<ItemRecord> result = itemRecordRepository
+        .getRecordByUserIdAndId(testUserId,
         UUID.randomUUID());
 
     assertThat(result).isNotPresent();
@@ -167,7 +176,8 @@ public class ItemRecordRepositoryTest {
   void testFindByUserIdAndId_NotFound() {
     UUID nonExistId = UUID.randomUUID();
 
-    Optional<ItemRecord> result = itemRecordRepository.getRecordByUserIdAndId(testUserId, nonExistId);
+    Optional<ItemRecord> result = itemRecordRepository
+        .getRecordByUserIdAndId(testUserId, nonExistId);
 
     assertThat(result).isNotPresent();
   }
@@ -176,7 +186,8 @@ public class ItemRecordRepositoryTest {
   @Tag("getRecordByUserIdAndId")
   @DisplayName("ユーザーIDとレコードのユーザIDが異なる場合は空のOptionalを返す")
   void testFindByUserIdAndId_DifferentUserRecord() {
-    Optional<ItemRecord> result = itemRecordRepository.getRecordByUserIdAndId(testUserId, otherUserItem.getId());
+    Optional<ItemRecord> result = itemRecordRepository
+        .getRecordByUserIdAndId(testUserId, otherUserItem.getId());
     assertThat(result).isNotPresent();
   }
 
@@ -184,7 +195,8 @@ public class ItemRecordRepositoryTest {
   @Tag("getInrecordRemainQuantity")
   @DisplayName("入庫レコードの残り数量を正しく計算する")
   void testGetRemainingQuantityForInRecord_NoOutRecords() {
-    Integer remainingQuantity = itemRecordRepository.getInrecordRemainQuantity(testItemInRecord.getId());
+    Integer remainingQuantity = itemRecordRepository
+        .getInrecordRemainQuantity(testItemInRecord.getId());
     assertThat(remainingQuantity).isEqualTo(5);
   }
 
@@ -201,7 +213,8 @@ public class ItemRecordRepositoryTest {
         testItemInRecord);
     itemRecordRepository.save(outRecord1);
 
-    Integer remainingQuantity = itemRecordRepository.getInrecordRemainQuantity(testItemInRecord.getId());
+    Integer remainingQuantity = itemRecordRepository
+        .getInrecordRemainQuantity(testItemInRecord.getId());
 
     assertThat(remainingQuantity).isEqualTo(2);
   }
@@ -218,7 +231,8 @@ public class ItemRecordRepositoryTest {
         testItemInRecord);
     itemRecordRepository.save(outRecord);
 
-    Integer remainingQuantity = itemRecordRepository.getInrecordRemainQuantity(testItemInRecord.getId());
+    Integer remainingQuantity = itemRecordRepository
+        .getInrecordRemainQuantity(testItemInRecord.getId());
 
     assertThat(remainingQuantity).isEqualTo(0);
   }
@@ -227,7 +241,8 @@ public class ItemRecordRepositoryTest {
   @Tag("getInrecordRemainQuantity")
   @DisplayName("レコードが存在しない場合の残り数量はnullを返す")
   void testGetRemainingQuantityForInRecord_NoInRecords() {
-    Integer remainingQuantity = itemRecordRepository.getInrecordRemainQuantity(UUID.randomUUID());
+    Integer remainingQuantity = itemRecordRepository
+        .getInrecordRemainQuantity(UUID.randomUUID());
     assertThat(remainingQuantity).isNull();
   }
 
@@ -235,7 +250,8 @@ public class ItemRecordRepositoryTest {
   @Tag("getInrecordRemainQuantity")
   @DisplayName("出庫レコードIDを指定した場合はnullを返す")
   void testGetRemainingQuantityForInRecord_WithOutRecord() {
-    Integer remainingQuantity = itemRecordRepository.getInrecordRemainQuantity(testItemOutRecord.getId());
+    Integer remainingQuantity = itemRecordRepository
+        .getInrecordRemainQuantity(testItemOutRecord.getId());
     assertThat(remainingQuantity).isNull();
   }
 
@@ -243,7 +259,8 @@ public class ItemRecordRepositoryTest {
   @Tag("getItemTotalQuantity")
   @DisplayName("アイテムの合計数量を正しく計算する")
   void testGetItemTotalQuantity_InOnly() {
-    Integer totalQuantity = itemRecordRepository.getItemTotalQuantity(testUserItem.getId());
+    Integer totalQuantity = itemRecordRepository
+        .getItemTotalQuantity(testUserItem.getId());
 
     assertThat(totalQuantity).isEqualTo(5);
   }
@@ -266,7 +283,8 @@ public class ItemRecordRepositoryTest {
     categoryRepository.save(newCategory);
     Item newItem = new Item("New Item", testUserId, newCategory, false);
 
-    int totalQuantity = itemRecordRepository.getItemTotalQuantity(newItem.getId());
+    int totalQuantity = itemRecordRepository
+        .getItemTotalQuantity(newItem.getId());
 
     assertThat(totalQuantity).isEqualTo(0);
   }

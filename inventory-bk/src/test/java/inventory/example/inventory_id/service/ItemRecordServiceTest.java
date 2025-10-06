@@ -100,7 +100,8 @@ public class ItemRecordServiceTest {
 
     itemRecordService.createItemRecord(testUserId, request);
 
-    ArgumentCaptor<ItemRecord> itemRecordCaptor = ArgumentCaptor.forClass(ItemRecord.class);
+    ArgumentCaptor<ItemRecord> itemRecordCaptor = ArgumentCaptor
+        .forClass(ItemRecord.class);
     verify(itemRecordRepository).save(itemRecordCaptor.capture());
 
     ItemRecord savedRecord = itemRecordCaptor.getValue();
@@ -174,7 +175,8 @@ public class ItemRecordServiceTest {
     when(itemRepository.getActiveItemWithId(List.of(testUserId), testItemId))
         .thenReturn(Optional.of(testItem));
     itemRecordService.createItemRecord(testUserId, request);
-    ArgumentCaptor<ItemRecord> itemRecordCaptor = ArgumentCaptor.forClass(ItemRecord.class);
+    ArgumentCaptor<ItemRecord> itemRecordCaptor = ArgumentCaptor
+        .forClass(ItemRecord.class);
     verify(itemRecordRepository).save(itemRecordCaptor.capture());
 
     ItemRecord savedRecord = itemRecordCaptor.getValue();
@@ -216,14 +218,17 @@ public class ItemRecordServiceTest {
     when(itemRepository.getActiveItemWithId(List.of(testUserId),
         testItemId))
         .thenReturn(Optional.of(testItem));
-    when(itemRecordRepository.getRecordByUserIdAndId(testUserId, testItemRecordId))
+    when(itemRecordRepository
+        .getRecordByUserIdAndId(testUserId, testItemRecordId))
         .thenReturn(Optional.of(testItemRecord));
-    when(itemRecordRepository.getInrecordRemainQuantity(testItemRecordId))
+    when(itemRecordRepository
+        .getInrecordRemainQuantity(testItemRecordId))
         .thenReturn(50); // 残り在庫50個
 
     itemRecordService.createItemRecord(testUserId, request);
 
-    ArgumentCaptor<ItemRecord> itemRecordCaptor = ArgumentCaptor.forClass(ItemRecord.class);
+    ArgumentCaptor<ItemRecord> itemRecordCaptor = ArgumentCaptor
+        .forClass(ItemRecord.class);
     verify(itemRecordRepository).save(itemRecordCaptor.capture());
 
     ItemRecord savedRecord = itemRecordCaptor.getValue();
@@ -252,7 +257,8 @@ public class ItemRecordServiceTest {
 
     assertDoesNotThrow(() -> itemRecordService.createItemRecord(testUserId, request));
 
-    ArgumentCaptor<ItemRecord> itemRecordCaptor = ArgumentCaptor.forClass(ItemRecord.class);
+    ArgumentCaptor<ItemRecord> itemRecordCaptor = ArgumentCaptor
+        .forClass(ItemRecord.class);
     verify(itemRecordRepository).save(itemRecordCaptor.capture());
 
     ItemRecord savedRecord = itemRecordCaptor.getValue();
@@ -332,10 +338,12 @@ public class ItemRecordServiceTest {
         TransactionType.OUT,
         testItemRecordId);
 
-    when(itemRepository.getActiveItemWithId(List.of(testUserId), testItemId))
+    when(itemRepository
+        .getActiveItemWithId(List.of(testUserId), testItemId))
         .thenReturn(Optional.of(testItem));
 
-    when(itemRecordRepository.getRecordByUserIdAndId(testUserId, testItemRecordId))
+    when(itemRecordRepository
+        .getRecordByUserIdAndId(testUserId, testItemRecordId))
         .thenReturn(Optional.empty()); // sourceRecordが見つからない
 
     IllegalArgumentException exception = assertThrows(
@@ -372,8 +380,7 @@ public class ItemRecordServiceTest {
 
     when(itemRepository.getActiveItemWithId(List.of(testUserId), anotherItemId))
         .thenReturn(Optional.of(anotherItem));
-    when(itemRecordRepository.getRecordByUserIdAndId(testUserId, outRecord.getId()))
-        .thenReturn(Optional.of(outRecord));
+    when(itemRecordRepository.getRecordByUserIdAndId(testUserId, outRecord.getId())).thenReturn(Optional.of(outRecord));
 
     ResponseStatusException exception = assertThrows(
         ResponseStatusException.class,
@@ -394,11 +401,14 @@ public class ItemRecordServiceTest {
         TransactionType.OUT,
         testItemRecordId);
 
-    when(itemRepository.getActiveItemWithId(List.of(testUserId), testItemId))
+    when(itemRepository
+        .getActiveItemWithId(List.of(testUserId), testItemId))
         .thenReturn(Optional.of(testItem));
-    when(itemRecordRepository.getRecordByUserIdAndId(testUserId, testItemRecordId))
+    when(itemRecordRepository
+        .getRecordByUserIdAndId(testUserId, testItemRecordId))
         .thenReturn(Optional.of(testItemRecord));
-    when(itemRecordRepository.getInrecordRemainQuantity(testItemRecordId))
+    when(itemRecordRepository
+        .getInrecordRemainQuantity(testItemRecordId))
         .thenReturn(50); // 残り在庫50個
 
     ResponseStatusException exception = assertThrows(

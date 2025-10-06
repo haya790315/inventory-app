@@ -21,7 +21,9 @@ public class ItemRecordService {
   private static String itemNotFoundMsg = "アイテムが見つかりません";
   private static String itemRecordNotFoundMsg = "指定のレコードが存在しません。";
 
-  public ItemRecordService(ItemRecordRepository itemRecordRepository, ItemRepository itemRepository) {
+  public ItemRecordService(
+      ItemRecordRepository itemRecordRepository,
+      ItemRepository itemRepository) {
     this.itemRecordRepository = itemRecordRepository;
     this.itemRepository = itemRepository;
   }
@@ -40,7 +42,8 @@ public class ItemRecordService {
             "指定のアイテムIDとレコードIDが一致しません。");
       }
       // 出庫の場合、在庫数をチェック
-      Integer currentQuantity = itemRecordRepository.getInrecordRemainQuantity(request.getItemRecordId());
+      Integer currentQuantity = itemRecordRepository
+          .getInrecordRemainQuantity(request.getItemRecordId());
       if (currentQuantity == null) {
         throw new ResponseStatusException(HttpStatus.CONFLICT, itemRecordNotFoundMsg);
       }

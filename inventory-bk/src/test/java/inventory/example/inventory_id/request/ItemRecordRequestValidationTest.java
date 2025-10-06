@@ -35,7 +35,8 @@ public class ItemRecordRequestValidationTest {
         LocalDate.now(),
         TransactionType.IN);
 
-    Set<ConstraintViolation<ItemRecordRequest>> violations = validator.validate(request);
+    Set<ConstraintViolation<ItemRecordRequest>> violations = validator
+        .validate(request);
 
     assertThat(violations).isEmpty();
   }
@@ -50,7 +51,8 @@ public class ItemRecordRequestValidationTest {
         TransactionType.OUT,
         UUID.randomUUID());
 
-    Set<ConstraintViolation<ItemRecordRequest>> violations = validator.validate(request);
+    Set<ConstraintViolation<ItemRecordRequest>> violations = validator
+        .validate(request);
 
     assertThat(violations).isEmpty();
   }
@@ -65,10 +67,12 @@ public class ItemRecordRequestValidationTest {
         LocalDate.now(),
         TransactionType.IN);
 
-    Set<ConstraintViolation<ItemRecordRequest>> violations = validator.validate(request);
+    Set<ConstraintViolation<ItemRecordRequest>> violations = validator
+        .validate(request);
 
     assertThat(violations).isNotEmpty();
-    ConstraintViolation<ItemRecordRequest> violation = violations.iterator().next();
+    ConstraintViolation<ItemRecordRequest> violation = violations.iterator()
+        .next();
     assertThat(violation.getMessage()).isEqualTo("アイテムIDは必須です。");
   }
 
@@ -84,9 +88,11 @@ public class ItemRecordRequestValidationTest {
         LocalDate.now(),
         TransactionType.IN);
 
-    Set<ConstraintViolation<ItemRecordRequest>> violations = validator.validate(request);
+    Set<ConstraintViolation<ItemRecordRequest>> violations = validator
+        .validate(request);
     assertThat(violations).isNotEmpty();
-    ConstraintViolation<ItemRecordRequest> violation = violations.iterator().next();
+    ConstraintViolation<ItemRecordRequest> violation = violations
+        .iterator().next();
     assertThat(violation.getMessage()).isEqualTo("数量は1以上である必要があります。");
   }
 
@@ -100,9 +106,11 @@ public class ItemRecordRequestValidationTest {
         LocalDate.now(),
         TransactionType.IN);
 
-    Set<ConstraintViolation<ItemRecordRequest>> violations = validator.validate(request);
+    Set<ConstraintViolation<ItemRecordRequest>> violations = validator
+        .validate(request);
     assertThat(violations).isNotEmpty();
-    ConstraintViolation<ItemRecordRequest> violation = violations.iterator().next();
+    ConstraintViolation<ItemRecordRequest> violation = violations
+        .iterator().next();
     assertThat(violation.getMessage()).isEqualTo("数量は1以上である必要があります。");
   }
 
@@ -117,9 +125,11 @@ public class ItemRecordRequestValidationTest {
         LocalDate.now(),
         TransactionType.IN);
 
-    Set<ConstraintViolation<ItemRecordRequest>> violations = validator.validate(request);
+    Set<ConstraintViolation<ItemRecordRequest>> violations = validator
+        .validate(request);
     assertThat(violations).isNotEmpty();
-    ConstraintViolation<ItemRecordRequest> violation = violations.iterator().next();
+    ConstraintViolation<ItemRecordRequest> violation = violations
+        .iterator().next();
     assertThat(violation.getMessage()).isEqualTo("数量は1以上である必要があります。");
   }
 
@@ -132,9 +142,11 @@ public class ItemRecordRequestValidationTest {
         100, // price (int)
         LocalDate.now(),
         null);
-    Set<ConstraintViolation<ItemRecordRequest>> violations = validator.validate(request);
+    Set<ConstraintViolation<ItemRecordRequest>> violations = validator
+        .validate(request);
     assertThat(violations).isNotEmpty();
-    ConstraintViolation<ItemRecordRequest> violation = violations.iterator().next();
+    ConstraintViolation<ItemRecordRequest> violation = violations
+        .iterator().next();
     assertThat(violation.getMessage()).isEqualTo("入出庫種別は必須です。");
   }
 
@@ -148,7 +160,8 @@ public class ItemRecordRequestValidationTest {
         LocalDate.now(),
         TransactionType.IN);
 
-    Set<ConstraintViolation<ItemRecordRequest>> violations = validator.validate(request);
+    Set<ConstraintViolation<ItemRecordRequest>> violations = validator
+        .validate(request);
     assertThat(violations).isEmpty();
   }
 
@@ -162,9 +175,11 @@ public class ItemRecordRequestValidationTest {
         LocalDate.now(),
         TransactionType.IN);
 
-    Set<ConstraintViolation<ItemRecordRequest>> violations = validator.validate(request);
+    Set<ConstraintViolation<ItemRecordRequest>> violations = validator
+        .validate(request);
     assertThat(violations).isNotEmpty();
-    ConstraintViolation<ItemRecordRequest> violation = violations.iterator().next();
+    ConstraintViolation<ItemRecordRequest> violation = violations
+        .iterator().next();
     assertThat(violation.getMessage()).isEqualTo("価格は0以上である必要があります。");
   }
 
@@ -193,9 +208,11 @@ public class ItemRecordRequestValidationTest {
         TransactionType.OUT,
         null);
 
-    Set<ConstraintViolation<ItemRecordRequest>> violations = validator.validate(request);
+    Set<ConstraintViolation<ItemRecordRequest>> violations = validator
+        .validate(request);
     assertThat(violations).isNotEmpty();
-    ConstraintViolation<ItemRecordRequest> violation = violations.iterator().next();
+    ConstraintViolation<ItemRecordRequest> violation = violations
+        .iterator().next();
     assertThat(violation.getMessage()).isEqualTo("出庫にはレコードIDが必要です。");
   }
 }
