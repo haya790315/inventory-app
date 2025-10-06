@@ -39,7 +39,15 @@ public class ItemRecordRequest {
 
   private UUID itemRecordId;
 
-  // 入庫時のリクエスト
+  /**
+   * 入庫時のリクエストコンストラクタ
+   * 
+   * @param itemId          アイテムID
+   * @param quantity        数量
+   * @param price           価格
+   * @param expirationDate  有効期限
+   * @param transactionType 入出庫種別（IN）
+   */
   public ItemRecordRequest(
       UUID itemId,
       int quantity,
@@ -53,7 +61,14 @@ public class ItemRecordRequest {
     this.transactionType = transactionType;
   }
 
-  // 出庫時のリクエスト
+  /**
+   * 出庫時のリクエストコンストラクタ
+   * 
+   * @param itemId          アイテムID
+   * @param quantity        数量
+   * @param transactionType 入出庫種別（OUT）
+   * @param itemRecordId    出庫対象のレコードID
+   */
   public ItemRecordRequest(
       UUID itemId,
       int quantity,

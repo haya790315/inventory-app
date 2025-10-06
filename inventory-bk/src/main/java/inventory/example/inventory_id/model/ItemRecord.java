@@ -94,7 +94,17 @@ public class ItemRecord {
     this.sourceRecord = sourceRecord;
   }
 
-  // 入庫用のコンストラクタ（sourceRecord = null）
+  /**
+   * 入庫トランザクション用のコンストラクタ（在庫受入）。
+   * ソースレコードなしで在庫に新しいアイテムを追加する際に使用。
+   * 
+   * @param item            記録対象のアイテム
+   * @param userId          トランザクションを実行するユーザーのID
+   * @param quantity        在庫に追加されるアイテムの数量
+   * @param price           アイテムの単価
+   * @param expirationDate  アイテムの有効期限
+   * @param transactionType トランザクションタイプ（入庫操作にはINを指定）
+   */
   public ItemRecord(
       Item item,
       String userId,
@@ -111,7 +121,16 @@ public class ItemRecord {
         null);
   }
 
-  // 出庫用のコンストラクタ（sourceRecordあり）
+  /**
+   * 出庫トランザクション用のコンストラクタ（在庫払出）。
+   * ソースレコードを参照して在庫からアイテムを除去する際に使用。
+   * 
+   * @param item            記録対象のアイテム
+   * @param userId          トランザクションを実行するユーザーのID
+   * @param quantity        在庫から除去されるアイテムの数量
+   * @param transactionType トランザクションタイプ（出庫操作にはOUTを指定）
+   * @param sourceRecord    消費される元の入庫レコードへの参照
+   */
   public ItemRecord(
       Item item,
       String userId,
