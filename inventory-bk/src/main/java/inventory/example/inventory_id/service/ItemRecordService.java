@@ -45,11 +45,13 @@ public class ItemRecordService {
       Integer currentQuantity = itemRecordRepository
           .getInrecordRemainQuantity(request.getItemRecordId());
       if (currentQuantity == null) {
-        throw new ResponseStatusException(HttpStatus.CONFLICT, itemRecordNotFoundMsg);
+        throw new ResponseStatusException(HttpStatus.NOT_FOUND,
+            itemRecordNotFoundMsg);
       }
       // 在庫数が足りない場合はエラー
       if (currentQuantity < request.getQuantity()) {
-        throw new ResponseStatusException(HttpStatus.CONFLICT, "在庫数が不足しています。");
+        throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+            "在庫数が不足しています。");
       }
     }
 

@@ -286,7 +286,7 @@ public class ItemRecordServiceTest {
         ResponseStatusException.class,
         () -> itemRecordService.createItemRecord(testUserId, request));
 
-    assertThat(exception.getStatusCode()).isEqualTo(HttpStatus.CONFLICT);
+    assertThat(exception.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
     assertThat(exception.getReason()).isEqualTo("在庫数が不足しています。");
     verify(itemRecordRepository, times(0))
         .save(any(ItemRecord.class));
@@ -323,7 +323,7 @@ public class ItemRecordServiceTest {
     ResponseStatusException exception = assertThrows(
         ResponseStatusException.class,
         () -> itemRecordService.createItemRecord(testUserId, request));
-    assertThat(exception.getStatusCode()).isEqualTo(HttpStatus.CONFLICT);
+    assertThat(exception.getStatusCode()).isEqualTo(HttpStatus.NOT_FOUND);
     assertThat(exception.getReason()).isEqualTo(itemRecordNotFoundMsg);
     verify(itemRecordRepository, times(0))
         .save(any(ItemRecord.class));
@@ -415,7 +415,7 @@ public class ItemRecordServiceTest {
         ResponseStatusException.class,
         () -> itemRecordService.createItemRecord(testUserId, request));
 
-    assertThat(exception.getStatusCode()).isEqualTo(HttpStatus.CONFLICT);
+    assertThat(exception.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
     assertThat(exception.getReason()).isEqualTo("在庫数が不足しています。");
   }
 }

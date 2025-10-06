@@ -136,14 +136,15 @@ class ItemRecordControllerTest {
         TransactionType.OUT,
         UUID.randomUUID());
 
-    doThrow(new ResponseStatusException(HttpStatus.CONFLICT, "在庫数が不足しています。"))
+    doThrow(new ResponseStatusException(HttpStatus.BAD_REQUEST,
+        "在庫数が不足しています。"))
         .when(itemRecordService)
         .createItemRecord(anyString(), any(ItemRecordRequest.class));
 
     mockMvc.perform(post("/api/item-record")
         .contentType(MediaType.APPLICATION_JSON)
         .content(objectMapper.writeValueAsString(request)))
-        .andExpect(status().isConflict())
+        .andExpect(status().isBadRequest())
         .andExpect(content().json("{\"message\":\"在庫数が不足しています。\"}"));
   }
 
