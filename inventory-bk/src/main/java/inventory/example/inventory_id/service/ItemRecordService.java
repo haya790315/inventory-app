@@ -26,8 +26,7 @@ public class ItemRecordService {
     this.itemRepository = itemRepository;
   }
 
-  public void createItemRecord(String userId, ItemRecordRequest request) {
-
+  public String createItemRecord(String userId, ItemRecordRequest request) {
     Item item = itemRepository.getActiveItemWithId(List.of(userId), request.getItemId())
         .orElseThrow(() -> new IllegalArgumentException(itemNotFoundMsg));
 
@@ -51,17 +50,44 @@ public class ItemRecordService {
       }
     }
 
-    ItemRecord itemRecord = new ItemRecord(
+    // トランザクションタイプを変換
+    TransactionType transactionType = TransactionType
+        .valueOf(request.getTransactionType().name());
+
+    // ソースレコードを取得（出庫の場合のみ）
+    ItemRecord sourceRecord = null;
+    if (request.getItemRecordId() != null) {
+      sourceRecord = itemRecordRepository
+          .getRecordByUserIdAndId(userId, request.getItemRecordId())
+          .orElseThrow(() -> new IllegalArgumentException(itemRecordNotFoundMsg));
+    }
+
+    // アイテムレコードを作成
+    ItemRecord itemRecord;
+    if (transactionType == TransactionType.IN) {
+      // 入庫の場合
+      itemRecord = new ItemRecord(
+          item,
+          userId,
+          request.getQuantity(),
+          request.getPrice(),
+          request.getExpirationDate(),
+          transactionType);
+      itemRecordRepository.save(itemRecord);
+      return """
+          %sが入庫しました
+          """.formatted(item.getName());
+    }
+    // 出庫の場合
+    itemRecord = new ItemRecord(
         item,
         userId,
         request.getQuantity(),
-        request.getPrice(),
-        request.getExpirationDate() != null ? request.getExpirationDate() : null,
-        ItemRecord.Source.valueOf(request.getSource().name()),
-        request.getItemRecordId() != null
-            ? itemRecordRepository.getRecordByUserIdAndId(userId, request.getItemRecordId())
-                .orElseThrow(() -> new IllegalArgumentException(itemRecordNotFoundMsg))
-            : null);
+        transactionType,
+        sourceRecord);
     itemRecordRepository.save(itemRecord);
+    return """
+        %sが出庫しました
+        """.formatted(item.getName());
   }
 }

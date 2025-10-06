@@ -2,8 +2,8 @@ package inventory.example.inventory_id.controller;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -35,6 +35,8 @@ import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import inventory.example.inventory_id.enums.TransactionType;
 import inventory.example.inventory_id.exception.AuthenticationException;
 import inventory.example.inventory_id.exception.ValidationException;
+import inventory.example.inventory_id.model.Category;
+import inventory.example.inventory_id.model.Item;
 import inventory.example.inventory_id.request.ItemRecordRequest;
 import inventory.example.inventory_id.service.ItemRecordService;
 
@@ -70,41 +72,56 @@ class ItemRecordControllerTest {
   @Tag("POST: /api/item-record")
   @DisplayName("アイテム入庫記録作成-201 Created")
   void createItemRecord_success_in() throws Exception {
+    UUID testID = UUID.randomUUID();
+    Item testItem = new Item("Test Item", testUserId,
+        new Category("Test Category", testUserId), false);
+    testItem.setId(testID);
     ItemRecordRequest request = new ItemRecordRequest(
-        UUID.randomUUID(),
+        testID,
         10,
         500,
         LocalDate.now(),
         TransactionType.IN);
 
-    doNothing().when(itemRecordService).createItemRecord(anyString(),
-        any(ItemRecordRequest.class));
+    when(itemRecordService.createItemRecord(
+        testUserId,
+        request)).thenReturn("""
+            %sが入庫しました""".formatted(testItem.getName()));
 
     mockMvc.perform(post("/api/item-record")
         .contentType(MediaType.APPLICATION_JSON)
         .content(objectMapper.writeValueAsString(request)))
         .andExpect(status().isCreated())
-        .andExpect(content().json("{\"message\":\"アイテム入庫しました。\"}"));
+        .andExpect(content().json("""
+            {"message":"%sが入庫しました"}
+            """.formatted(testItem.getName())));
   }
 
   @Test
   @Tag("POST: /api/item-record")
   @DisplayName("アイテム出庫記録作成-201 Created")
   void createItemRecord_success_out() throws Exception {
+    UUID testId = UUID.randomUUID();
+    Item testItem = new Item("Test Item", testUserId,
+        new Category("Test Category", testUserId), false);
+    testItem.setId(testId);
     ItemRecordRequest request = new ItemRecordRequest(
-        UUID.randomUUID(),
+        testItem.getId(),
         5,
         TransactionType.OUT,
         UUID.randomUUID());
 
-    doNothing().when(itemRecordService).createItemRecord(anyString(),
-        any(ItemRecordRequest.class));
+    when(itemRecordService.createItemRecord(anyString(),
+        any(ItemRecordRequest.class))).thenReturn("%sが出庫しました"
+            .formatted(testItem.getName()));
 
     mockMvc.perform(post("/api/item-record")
         .contentType(MediaType.APPLICATION_JSON)
         .content(objectMapper.writeValueAsString(request)))
         .andExpect(status().isCreated())
-        .andExpect(content().json("{\"message\":\"アイテム出庫しました。\"}"));
+        .andExpect(content().json("""
+            {"message":"%sが出庫しました"}
+            """.formatted(testItem.getName())));
   }
 
   @Test

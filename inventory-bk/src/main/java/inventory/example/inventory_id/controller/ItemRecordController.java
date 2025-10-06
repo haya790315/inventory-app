@@ -26,9 +26,8 @@ public class ItemRecordController extends BaseController {
   public ResponseEntity<Object> createItemRecord(@RequestBody @Valid ItemRecordRequest request) {
     try {
       String userId = fetchUserIdFromToken();
-      itemRecordService.createItemRecord(userId, request);
-      return response(HttpStatus.CREATED,
-          request.getSource().equals(ItemRecordRequest.Source.IN) ? "アイテム入庫しました。" : "アイテム出庫しました。");
+      String returnMessage = itemRecordService.createItemRecord(userId, request);
+      return response(HttpStatus.CREATED, returnMessage);
     } catch (ResponseStatusException e) {
       return response(HttpStatus.valueOf(e.getStatusCode().value()), e.getReason());
     } catch (IllegalArgumentException e) {
