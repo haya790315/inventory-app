@@ -11,6 +11,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.firebase.database.annotations.NotNull;
 
+import inventory.example.inventory_id.enums.TransactionType;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -57,13 +58,9 @@ public class ItemRecord {
 
   private LocalDate expirationDate;
 
-  public static enum Source {
-    IN, OUT
-  }
-
   @Enumerated(EnumType.STRING)
   @NotNull
-  private Source source;
+  private TransactionType transactionType;
 
   @ManyToOne(cascade = CascadeType.PERSIST)
   @JoinColumn(name = "item_record_id")
@@ -86,14 +83,14 @@ public class ItemRecord {
       int quantity,
       int price,
       LocalDate expirationDate,
-      Source source,
+      TransactionType transactionType,
       ItemRecord sourceRecord) {
     this.item = item;
     this.userId = userId;
     this.quantity = quantity;
     this.price = price;
     this.expirationDate = expirationDate;
-    this.source = source;
+    this.transactionType = transactionType;
     this.sourceRecord = sourceRecord;
   }
 
@@ -104,8 +101,14 @@ public class ItemRecord {
       int quantity,
       int price,
       LocalDate expirationDate,
-      Source source) {
-    this(item, userId, quantity, price, expirationDate, source, null);
+      TransactionType transactionType) {
+    this(item,
+        userId,
+        quantity,
+        price,
+        expirationDate,
+        transactionType,
+        null);
   }
 
   // 出庫用のコンストラクタ（sourceRecordあり）
@@ -113,8 +116,14 @@ public class ItemRecord {
       Item item,
       String userId,
       int quantity,
-      Source source,
+      TransactionType transactionType,
       ItemRecord sourceRecord) {
-    this(item, userId, quantity, 0, null, source, sourceRecord);
+    this(item,
+        userId,
+        quantity,
+        0,
+        null,
+        transactionType,
+        sourceRecord);
   }
 }

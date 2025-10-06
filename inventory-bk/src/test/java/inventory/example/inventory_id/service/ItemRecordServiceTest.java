@@ -24,6 +24,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.server.ResponseStatusException;
 
+import inventory.example.inventory_id.enums.TransactionType;
 import inventory.example.inventory_id.model.Category;
 import inventory.example.inventory_id.model.Item;
 import inventory.example.inventory_id.model.ItemRecord;
@@ -77,7 +78,7 @@ public class ItemRecordServiceTest {
         100,
         50,
         timeNow,
-        ItemRecord.Source.IN,
+        TransactionType.IN,
         null);
     testItemRecord.setId(testItemRecordId);
   }
@@ -90,7 +91,7 @@ public class ItemRecordServiceTest {
         10,
         500,
         timeNow,
-        ItemRecordRequest.Source.IN);
+        TransactionType.IN);
 
     when(itemRepository.getActiveItemWithId(List.of(
         testUserId),
@@ -108,7 +109,7 @@ public class ItemRecordServiceTest {
     assertThat(savedRecord.getQuantity()).isEqualTo(10);
     assertThat(savedRecord.getPrice()).isEqualTo(500);
     assertThat(savedRecord.getExpirationDate()).isEqualTo(timeNow);
-    assertThat(savedRecord.getSource()).isEqualTo(ItemRecord.Source.IN);
+    assertThat(savedRecord.getTransactionType()).isEqualTo(TransactionType.IN);
     assertThat(savedRecord.getSourceRecord()).isNull();
   }
 
@@ -120,7 +121,7 @@ public class ItemRecordServiceTest {
         500,
         10,
         timeNow,
-        ItemRecordRequest.Source.IN);
+        TransactionType.IN);
 
     when(itemRepository.getActiveItemWithId(List.of(testUserId), testItemId))
         .thenReturn(Optional.of(testItem));
@@ -136,7 +137,7 @@ public class ItemRecordServiceTest {
         1, // 最小価格
         0, // 最小数量
         timeNow,
-        ItemRecordRequest.Source.IN);
+        TransactionType.IN);
 
     when(itemRepository.getActiveItemWithId(List.of(testUserId), testItemId))
         .thenReturn(Optional.of(testItem));
@@ -151,7 +152,7 @@ public class ItemRecordServiceTest {
         500,
         10,
         null, // 有効期限がnull
-        ItemRecordRequest.Source.IN);
+        TransactionType.IN);
 
     when(itemRepository.getActiveItemWithId(List.of(testUserId), testItemId))
         .thenReturn(Optional.of(testItem));
@@ -167,7 +168,7 @@ public class ItemRecordServiceTest {
     ItemRecordRequest request = new ItemRecordRequest();
     request.setItemId(testItemId);
     request.setQuantity(10);
-    request.setSource(ItemRecordRequest.Source.IN);
+    request.setTransactionType(TransactionType.IN);
     // priceを設定しない（nullのまま）
 
     when(itemRepository.getActiveItemWithId(List.of(testUserId), testItemId))
@@ -188,7 +189,7 @@ public class ItemRecordServiceTest {
         500,
         10,
         LocalDate.now().plusDays(30),
-        ItemRecordRequest.Source.IN);
+        TransactionType.IN);
 
     when(itemRepository.getActiveItemWithId(List.of(testUserId), testItemId))
         .thenReturn(Optional.empty());
@@ -208,7 +209,7 @@ public class ItemRecordServiceTest {
     ItemRecordRequest request = new ItemRecordRequest(
         testItemId,
         10, // 出庫数量
-        ItemRecordRequest.Source.OUT,
+        TransactionType.OUT,
         testItemRecordId // 元の入庫記録ID
     );
 
@@ -229,7 +230,7 @@ public class ItemRecordServiceTest {
     assertThat(savedRecord.getItem()).isEqualTo(testItem);
     assertThat(savedRecord.getUserId()).isEqualTo(testUserId);
     assertThat(savedRecord.getQuantity()).isEqualTo(10);
-    assertThat(savedRecord.getSource()).isEqualTo(ItemRecord.Source.OUT);
+    assertThat(savedRecord.getTransactionType()).isEqualTo(TransactionType.OUT);
     assertThat(savedRecord.getSourceRecord()).isEqualTo(testItemRecord);
   }
 
@@ -239,7 +240,7 @@ public class ItemRecordServiceTest {
     ItemRecordRequest request = new ItemRecordRequest(
         testItemId,
         50, // 残り在庫と同じ数量
-        ItemRecordRequest.Source.OUT,
+        TransactionType.OUT,
         testItemRecordId);
 
     when(itemRepository.getActiveItemWithId(List.of(testUserId), testItemId))
@@ -256,7 +257,7 @@ public class ItemRecordServiceTest {
 
     ItemRecord savedRecord = itemRecordCaptor.getValue();
     assertThat(savedRecord.getQuantity()).isEqualTo(50);
-    assertThat(savedRecord.getSource()).isEqualTo(ItemRecord.Source.OUT);
+    assertThat(savedRecord.getTransactionType()).isEqualTo(TransactionType.OUT);
   }
 
   @Test
@@ -265,7 +266,7 @@ public class ItemRecordServiceTest {
     ItemRecordRequest request = new ItemRecordRequest(
         testItemId,
         60, // 出庫数量60個（在庫50個より多い）
-        ItemRecordRequest.Source.OUT,
+        TransactionType.OUT,
         testItemRecordId);
 
     when(itemRepository.getActiveItemWithId(List.of(testUserId), testItemId))
@@ -292,7 +293,7 @@ public class ItemRecordServiceTest {
     ItemRecordRequest request = new ItemRecordRequest(
         testItemId,
         10,
-        ItemRecordRequest.Source.OUT,
+        TransactionType.OUT,
         outRecordId);
     ItemRecord outRecord = new ItemRecord(
         testItem,
@@ -300,7 +301,7 @@ public class ItemRecordServiceTest {
         10,
         100,
         LocalDate.now(),
-        ItemRecord.Source.OUT,
+        TransactionType.OUT,
         testItemRecord);
     when(itemRepository.getActiveItemWithId(List.of(testUserId), testItemId))
         .thenReturn(Optional.of(testItem));
@@ -328,7 +329,7 @@ public class ItemRecordServiceTest {
     ItemRecordRequest request = new ItemRecordRequest(
         testItemId,
         10,
-        ItemRecordRequest.Source.OUT,
+        TransactionType.OUT,
         testItemRecordId);
 
     when(itemRepository.getActiveItemWithId(List.of(testUserId), testItemId))
@@ -360,13 +361,13 @@ public class ItemRecordServiceTest {
         testItem,
         testUserId,
         10,
-        ItemRecord.Source.OUT,
+        TransactionType.OUT,
         testItemRecord);
 
     ItemRecordRequest request = new ItemRecordRequest(
         anotherItemId, // outRecordと異なるアイテムID
         10,
-        ItemRecordRequest.Source.OUT,
+        TransactionType.OUT,
         outRecord.getId());
 
     when(itemRepository.getActiveItemWithId(List.of(testUserId), anotherItemId))
@@ -390,7 +391,7 @@ public class ItemRecordServiceTest {
     ItemRecordRequest request = new ItemRecordRequest(
         testItemId,
         51, // 在庫50個より1個多い
-        ItemRecordRequest.Source.OUT,
+        TransactionType.OUT,
         testItemRecordId);
 
     when(itemRepository.getActiveItemWithId(List.of(testUserId), testItemId))

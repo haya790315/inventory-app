@@ -13,6 +13,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.test.context.ActiveProfiles;
 
+import inventory.example.inventory_id.enums.TransactionType;
 import inventory.example.inventory_id.model.Category;
 import inventory.example.inventory_id.model.Item;
 import inventory.example.inventory_id.model.ItemRecord;
@@ -64,7 +65,7 @@ public class ItemRecordRepositoryTest {
         10,
         1000,
         null,
-        ItemRecord.Source.IN);
+        TransactionType.IN);
     itemRecordRepository.save(testItemInRecord);
 
     // testUser出庫レコードを作成(5個出庫、残り5個)
@@ -72,7 +73,7 @@ public class ItemRecordRepositoryTest {
         testUserItem,
         testUserId,
         5,
-        ItemRecord.Source.OUT,
+        TransactionType.OUT,
         testItemInRecord);
     itemRecordRepository.save(testItemOutRecord);
 
@@ -83,7 +84,7 @@ public class ItemRecordRepositoryTest {
         3,
         1000,
         null,
-        ItemRecord.Source.IN);
+        TransactionType.IN);
     deletedInRecord.setDeletedFlag(true);
     itemRecordRepository.save(deletedInRecord);
 
@@ -91,7 +92,7 @@ public class ItemRecordRepositoryTest {
         testUserItem,
         testUserId,
         2,
-        ItemRecord.Source.OUT,
+        TransactionType.OUT,
         testItemInRecord);
     deletedOutRecord.setDeletedFlag(true);
     itemRecordRepository.save(deletedOutRecord);
@@ -103,7 +104,7 @@ public class ItemRecordRepositoryTest {
         20,
         2000,
         null,
-        ItemRecord.Source.IN);
+        TransactionType.IN);
     itemRecordRepository.save(otherUserRecord);
 
     // otherUser出庫レコードを作成（20個出庫、残り0個）
@@ -111,7 +112,7 @@ public class ItemRecordRepositoryTest {
         otherUserItem,
         otherUserId,
         20,
-        ItemRecord.Source.OUT,
+        TransactionType.OUT,
         otherUserRecord);
     itemRecordRepository.save(otherUserOutRecord);
   }
@@ -128,7 +129,7 @@ public class ItemRecordRepositoryTest {
     assertThat(result.get().getUserId()).isEqualTo(testUserId);
     assertThat(result.get().getQuantity()).isEqualTo(10);
     assertThat(result.get().getPrice()).isEqualTo(1000);
-    assertThat(result.get().getSource()).isEqualTo(ItemRecord.Source.IN);
+    assertThat(result.get().getTransactionType()).isEqualTo(TransactionType.IN);
 
     Optional<ItemRecord> resultOut = itemRecordRepository.getRecordByUserIdAndId(testUserId,
         testItemOutRecord.getId());
@@ -136,7 +137,8 @@ public class ItemRecordRepositoryTest {
     assertThat(resultOut.get().getId()).isEqualTo(testItemOutRecord.getId());
     assertThat(resultOut.get().getUserId()).isEqualTo(testUserId);
     assertThat(resultOut.get().getQuantity()).isEqualTo(5);
-    assertThat(resultOut.get().getSource()).isEqualTo(ItemRecord.Source.OUT);
+    assertThat(resultOut.get().getTransactionType())
+        .isEqualTo(TransactionType.OUT);
   }
 
   @Test
@@ -195,7 +197,7 @@ public class ItemRecordRepositoryTest {
         testUserItem,
         testUserId,
         3,
-        ItemRecord.Source.OUT,
+        TransactionType.OUT,
         testItemInRecord);
     itemRecordRepository.save(outRecord1);
 
@@ -212,7 +214,7 @@ public class ItemRecordRepositoryTest {
         testUserItem,
         testUserId,
         5,
-        ItemRecord.Source.OUT,
+        TransactionType.OUT,
         testItemInRecord);
     itemRecordRepository.save(outRecord);
 

@@ -6,6 +6,7 @@ import java.util.UUID;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 
+import inventory.example.inventory_id.enums.TransactionType;
 import inventory.example.inventory_id.validation.CustomLocalDateDeserializer;
 import inventory.example.inventory_id.validation.ValidItemRecordRequest;
 import jakarta.validation.constraints.NotNull;
@@ -34,11 +35,7 @@ public class ItemRecordRequest {
   private LocalDate expirationDate;
 
   @NotNull(message = "入出庫種別は必須です。")
-  private Source source;
-
-  public enum Source {
-    IN, OUT
-  }
+  private TransactionType transactionType;
 
   private UUID itemRecordId;
 
@@ -48,23 +45,23 @@ public class ItemRecordRequest {
       int quantity,
       int price,
       LocalDate expirationDate,
-      Source source) {
+      TransactionType transactionType) {
     this.itemId = itemId;
     this.quantity = quantity;
     this.price = price;
     this.expirationDate = expirationDate;
-    this.source = source;
+    this.transactionType = transactionType;
   }
 
   // 出庫時のリクエスト
   public ItemRecordRequest(
       UUID itemId,
       int quantity,
-      Source source,
+      TransactionType transactionType,
       UUID itemRecordId) {
     this.itemId = itemId;
     this.quantity = quantity;
-    this.source = source;
+    this.transactionType = transactionType;
     this.itemRecordId = itemRecordId;
   }
 }

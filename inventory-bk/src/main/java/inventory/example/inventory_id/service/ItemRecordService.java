@@ -6,6 +6,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
+import inventory.example.inventory_id.enums.TransactionType;
 import inventory.example.inventory_id.model.Item;
 import inventory.example.inventory_id.model.ItemRecord;
 import inventory.example.inventory_id.repository.ItemRecordRepository;
@@ -30,7 +31,7 @@ public class ItemRecordService {
     Item item = itemRepository.getActiveItemWithId(List.of(userId), request.getItemId())
         .orElseThrow(() -> new IllegalArgumentException(itemNotFoundMsg));
 
-    if (request.getSource() == ItemRecordRequest.Source.OUT) {
+    if (request.getTransactionType() == TransactionType.OUT) {
       // itemRecordIdとitemIdの組み合わせが正しいかチェック
       ItemRecord itemRecord = itemRecordRepository.getRecordByUserIdAndId(userId,
           request.getItemRecordId())

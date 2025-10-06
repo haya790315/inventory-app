@@ -10,6 +10,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
+import inventory.example.inventory_id.enums.TransactionType;
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.Validation;
 import jakarta.validation.Validator;
@@ -32,7 +33,7 @@ public class ItemRecordRequestValidationTest {
         10, // quantity (int)
         500, // price (int)
         LocalDate.now(),
-        ItemRecordRequest.Source.IN);
+        TransactionType.IN);
 
     Set<ConstraintViolation<ItemRecordRequest>> violations = validator.validate(request);
 
@@ -46,7 +47,7 @@ public class ItemRecordRequestValidationTest {
     ItemRecordRequest request = new ItemRecordRequest(
         UUID.randomUUID(),
         5,
-        ItemRecordRequest.Source.OUT,
+        TransactionType.OUT,
         UUID.randomUUID());
 
     Set<ConstraintViolation<ItemRecordRequest>> violations = validator.validate(request);
@@ -62,7 +63,7 @@ public class ItemRecordRequestValidationTest {
         10, // quantity (int)
         500, // price (int)
         LocalDate.now(),
-        ItemRecordRequest.Source.IN);
+        TransactionType.IN);
 
     Set<ConstraintViolation<ItemRecordRequest>> violations = validator.validate(request);
 
@@ -81,7 +82,7 @@ public class ItemRecordRequestValidationTest {
         0, // quantity defaults to 0 when missing
         100, // price (int)
         LocalDate.now(),
-        ItemRecordRequest.Source.IN);
+        TransactionType.IN);
 
     Set<ConstraintViolation<ItemRecordRequest>> violations = validator.validate(request);
     assertThat(violations).isNotEmpty();
@@ -97,7 +98,7 @@ public class ItemRecordRequestValidationTest {
         0, // quantity = 0 (invalid)
         100, // price (int)
         LocalDate.now(),
-        ItemRecordRequest.Source.IN);
+        TransactionType.IN);
 
     Set<ConstraintViolation<ItemRecordRequest>> violations = validator.validate(request);
     assertThat(violations).isNotEmpty();
@@ -114,7 +115,7 @@ public class ItemRecordRequestValidationTest {
         -5, // quantity negative (invalid)
         100, // price (int)
         LocalDate.now(),
-        ItemRecordRequest.Source.IN);
+        TransactionType.IN);
 
     Set<ConstraintViolation<ItemRecordRequest>> violations = validator.validate(request);
     assertThat(violations).isNotEmpty();
@@ -145,7 +146,7 @@ public class ItemRecordRequestValidationTest {
         10, // quantity (int)
         0, // price = 0 (free item, valid)
         LocalDate.now(),
-        ItemRecordRequest.Source.IN);
+        TransactionType.IN);
 
     Set<ConstraintViolation<ItemRecordRequest>> violations = validator.validate(request);
     assertThat(violations).isEmpty();
@@ -159,7 +160,7 @@ public class ItemRecordRequestValidationTest {
         10, // quantity (int)
         -100, // price negative (invalid)
         LocalDate.now(),
-        ItemRecordRequest.Source.IN);
+        TransactionType.IN);
 
     Set<ConstraintViolation<ItemRecordRequest>> violations = validator.validate(request);
     assertThat(violations).isNotEmpty();
@@ -175,8 +176,9 @@ public class ItemRecordRequestValidationTest {
         10, // quantity (int)
         100, // price (int)
         null, // 有効期限はオプション
-        ItemRecordRequest.Source.IN);
-    Set<ConstraintViolation<ItemRecordRequest>> violations = validator.validate(request);
+        TransactionType.IN);
+    Set<ConstraintViolation<ItemRecordRequest>> violations = validator
+        .validate(request);
 
     assertThat(violations).isEmpty();
   }
@@ -188,7 +190,7 @@ public class ItemRecordRequestValidationTest {
     ItemRecordRequest request = new ItemRecordRequest(
         UUID.randomUUID(),
         10,
-        ItemRecordRequest.Source.OUT,
+        TransactionType.OUT,
         null);
 
     Set<ConstraintViolation<ItemRecordRequest>> violations = validator.validate(request);

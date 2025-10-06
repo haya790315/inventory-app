@@ -32,6 +32,7 @@ import org.springframework.web.server.ResponseStatusException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 
+import inventory.example.inventory_id.enums.TransactionType;
 import inventory.example.inventory_id.exception.AuthenticationException;
 import inventory.example.inventory_id.exception.ValidationException;
 import inventory.example.inventory_id.request.ItemRecordRequest;
@@ -74,7 +75,7 @@ class ItemRecordControllerTest {
         10,
         500,
         LocalDate.now(),
-        ItemRecordRequest.Source.IN);
+        TransactionType.IN);
 
     doNothing().when(itemRecordService).createItemRecord(anyString(),
         any(ItemRecordRequest.class));
@@ -93,7 +94,7 @@ class ItemRecordControllerTest {
     ItemRecordRequest request = new ItemRecordRequest(
         UUID.randomUUID(),
         5,
-        ItemRecordRequest.Source.OUT,
+        TransactionType.OUT,
         UUID.randomUUID());
 
     doNothing().when(itemRecordService).createItemRecord(anyString(),
@@ -115,7 +116,7 @@ class ItemRecordControllerTest {
         10,
         500,
         LocalDate.now().plusDays(30),
-        ItemRecordRequest.Source.OUT,
+        TransactionType.OUT,
         UUID.randomUUID());
 
     doThrow(new ResponseStatusException(HttpStatus.CONFLICT, "在庫数が不足しています。"))
@@ -136,7 +137,7 @@ class ItemRecordControllerTest {
     ItemRecordRequest request = new ItemRecordRequest(
         UUID.randomUUID(),
         5,
-        ItemRecordRequest.Source.OUT,
+        TransactionType.OUT,
         UUID.randomUUID());
 
     doThrow(new ResponseStatusException(HttpStatus.NOT_FOUND,
@@ -162,7 +163,7 @@ class ItemRecordControllerTest {
         5,
         0,
         null,
-        ItemRecordRequest.Source.IN,
+        TransactionType.IN,
         null);
 
     doThrow(new IllegalArgumentException(itemNotFoundMsg))
@@ -187,7 +188,7 @@ class ItemRecordControllerTest {
         5,
         0,
         null,
-        ItemRecordRequest.Source.IN,
+        TransactionType.IN,
         null);
 
     doThrow(new RuntimeException(
@@ -213,7 +214,7 @@ class ItemRecordControllerTest {
         5,
         0,
         null,
-        ItemRecordRequest.Source.IN,
+        TransactionType.IN,
         null);
 
     doThrow(new AuthenticationException("認証に失敗しました。"))
@@ -237,7 +238,7 @@ class ItemRecordControllerTest {
         5,
         0,
         null,
-        ItemRecordRequest.Source.IN,
+        TransactionType.IN,
         null);
 
     mockMvc.perform(post("/api/item-record")
@@ -278,7 +279,7 @@ class ItemRecordControllerTest {
         -1, // 数量が負の値
         0,
         null,
-        ItemRecordRequest.Source.IN,
+        TransactionType.IN,
         null);
 
     mockMvc.perform(post("/api/item-record")
@@ -296,7 +297,7 @@ class ItemRecordControllerTest {
     ItemRecordRequest request = new ItemRecordRequest();
     request.setItemId(UUID.randomUUID());
     request.setPrice(100);
-    request.setSource(ItemRecordRequest.Source.IN);
+    request.setTransactionType(TransactionType.IN);
     // quantityを設定しない（nullのまま）
 
     mockMvc.perform(post("/api/item-record")
@@ -314,7 +315,7 @@ class ItemRecordControllerTest {
     ItemRecordRequest request = new ItemRecordRequest(
         UUID.randomUUID(),
         10,
-        ItemRecordRequest.Source.OUT,
+        TransactionType.OUT,
         null); // itemRecordIdがnull
     mockMvc.perform(post("/api/item-record")
         .contentType(MediaType.APPLICATION_JSON)
