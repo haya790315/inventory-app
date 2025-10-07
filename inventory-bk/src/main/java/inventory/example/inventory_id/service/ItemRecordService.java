@@ -81,8 +81,7 @@ public class ItemRecordService {
           transactionType);
       itemRecordRepository.save(itemRecord);
       return """
-          %sが入庫しました
-          """.formatted(item.getName());
+          %sが入庫しました""".formatted(item.getName());
     }
     // 出庫の場合
     itemRecord = new ItemRecord(
@@ -93,7 +92,6 @@ public class ItemRecordService {
         sourceRecord);
     itemRecordRepository.save(itemRecord);
     return """
-        %sが出庫しました
-        """.formatted(item.getName());
+        %sが出庫しました""".formatted(item.getName());
   }
 }
