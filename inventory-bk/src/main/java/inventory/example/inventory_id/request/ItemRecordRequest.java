@@ -53,7 +53,8 @@ public class ItemRecordRequest {
       int quantity,
       int price,
       LocalDate expirationDate,
-      TransactionType transactionType) {
+      TransactionType transactionType
+      ) {
     this.itemId = itemId;
     this.quantity = quantity;
     this.price = price;
@@ -73,7 +74,8 @@ public class ItemRecordRequest {
       UUID itemId,
       int quantity,
       TransactionType transactionType,
-      UUID itemRecordId) {
+      UUID itemRecordId
+      ) {
     this.itemId = itemId;
     this.quantity = quantity;
     this.transactionType = transactionType;

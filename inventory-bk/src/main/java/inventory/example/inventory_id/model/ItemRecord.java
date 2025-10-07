@@ -84,7 +84,8 @@ public class ItemRecord {
       int price,
       LocalDate expirationDate,
       TransactionType transactionType,
-      ItemRecord sourceRecord) {
+      ItemRecord sourceRecord
+      ) {
     this.item = item;
     this.userId = userId;
     this.quantity = quantity;
@@ -111,7 +112,8 @@ public class ItemRecord {
       int quantity,
       int price,
       LocalDate expirationDate,
-      TransactionType transactionType) {
+      TransactionType transactionType
+      ) {
     this(item,
         userId,
         quantity,
@@ -136,7 +138,8 @@ public class ItemRecord {
       String userId,
       int quantity,
       TransactionType transactionType,
-      ItemRecord sourceRecord) {
+      ItemRecord sourceRecord
+      ) {
     this(item,
         userId,
         quantity,

@@ -17,8 +17,8 @@ public interface ItemRecordRepository extends JpaRepository<ItemRecord, UUID> {
   @Query(value = """
       SELECT * FROM item_record ir
       WHERE ir.user_id = :userId
-      AND ir.id = :id
-      AND ir.deleted_flag = FALSE
+        AND ir.id = :id
+        AND ir.deleted_flag = FALSE
       """, nativeQuery = true)
   Optional<ItemRecord> getRecordByUserIdAndId(String userId, UUID id);
 
@@ -29,12 +29,12 @@ public interface ItemRecordRepository extends JpaRepository<ItemRecord, UUID> {
       SELECT ir.quantity - COALESCE(SUM(out_ir.quantity), 0) AS remaining_quantity
       FROM item_record ir
       LEFT JOIN item_record out_ir
-      ON out_ir.item_record_id = ir.id
-      AND out_ir.transaction_type = 'OUT'
-      AND out_ir.deleted_flag = FALSE
+        ON out_ir.item_record_id = ir.id
+        AND out_ir.transaction_type = 'OUT'
+        AND out_ir.deleted_flag = FALSE
       WHERE ir.id = :recordId
-      AND ir.transaction_type = 'IN'
-      AND ir.deleted_flag = FALSE
+        AND ir.transaction_type = 'IN'
+        AND ir.deleted_flag = FALSE
       GROUP BY ir.id
       """, nativeQuery = true)
   Integer getInrecordRemainQuantity(UUID recordId);
@@ -45,13 +45,14 @@ public interface ItemRecordRepository extends JpaRepository<ItemRecord, UUID> {
    * 存在しないレコードの場合は0を返す
    */
   @Query(value = """
-      SELECT COALESCE(SUM(CASE WHEN ir.transaction_type = 'IN'
-      THEN ir.quantity
-      WHEN ir.transaction_type = 'OUT'
-      THEN -ir.quantity ELSE 0 END), 0)
+      SELECT COALESCE(SUM(CASE
+          WHEN ir.transaction_type = 'IN' THEN ir.quantity
+          WHEN ir.transaction_type = 'OUT' THEN -ir.quantity
+          ELSE 0
+        END), 0)
       FROM item_record ir
       WHERE ir.item_id = :itemId
-      AND ir.deleted_flag = FALSE
+        AND ir.deleted_flag = FALSE
       """, nativeQuery = true)
   int getItemTotalQuantity(UUID itemId);
 }

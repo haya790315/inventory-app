@@ -23,7 +23,8 @@ public class ItemRecordService {
 
   public ItemRecordService(
       ItemRecordRepository itemRecordRepository,
-      ItemRepository itemRepository) {
+      ItemRepository itemRepository
+      ) {
     this.itemRecordRepository = itemRecordRepository;
     this.itemRepository = itemRepository;
   }
