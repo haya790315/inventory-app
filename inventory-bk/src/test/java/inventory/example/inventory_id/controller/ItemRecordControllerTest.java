@@ -126,7 +126,7 @@ class ItemRecordControllerTest {
 
   @Test
   @Tag("POST: /api/item-record")
-  @DisplayName("アイテム記録作成-409 在庫数が不足しています。")
+  @DisplayName("アイテム記録作成-400 在庫数が不足しています。")
   void createItemRecord_responseStatusException_conflict() throws Exception {
     ItemRecordRequest request = new ItemRecordRequest(
         UUID.randomUUID(),
@@ -174,7 +174,7 @@ class ItemRecordControllerTest {
 
   @Test
   @Tag("POST: /api/item-record")
-  @DisplayName("アイテム記録作成-400 アイテムが見つかりません")
+  @DisplayName("アイテム記録作成-404 アイテムが見つかりません")
   void createItemRecord_illegalArgumentException() throws Exception {
     ItemRecordRequest request = new ItemRecordRequest(
         UUID.randomUUID(),
@@ -184,14 +184,15 @@ class ItemRecordControllerTest {
         TransactionType.IN,
         null);
 
-    doThrow(new IllegalArgumentException(itemNotFoundMsg))
+    doThrow(new ResponseStatusException(HttpStatus.NOT_FOUND,
+        itemNotFoundMsg))
         .when(itemRecordService)
         .createItemRecord(anyString(), any(ItemRecordRequest.class));
 
     mockMvc.perform(post("/api/item-record")
         .contentType(MediaType.APPLICATION_JSON)
         .content(objectMapper.writeValueAsString(request)))
-        .andExpect(status().isBadRequest())
+        .andExpect(status().isNotFound())
         .andExpect(content().json("""
             {"message":"%s"}
             """.formatted(itemNotFoundMsg)));
@@ -344,6 +345,8 @@ class ItemRecordControllerTest {
   }
 
   @ParameterizedTest
+  @Tag("POST: /api/item-record")
+  @DisplayName("アイテム記録作成-400 バリデーション失敗 - 有効期限の形式が不正です。")
   @ValueSource(strings = {
       "2023/12/31", // US format with slashes
       "31/12/2023", // European format with slashes
