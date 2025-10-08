@@ -13,5 +13,5 @@ public enum TransactionType {
   /**
    * 出庫操作 - 在庫からの商品取り出し
    */
-  OUT
+  OUT,
 }
