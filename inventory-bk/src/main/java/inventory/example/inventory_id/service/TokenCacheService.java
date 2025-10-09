@@ -32,7 +32,7 @@ public class TokenCacheService {
     String sessionKey = SESSION_PREFIX + token;
     try {
       redisTemplate.opsForValue().set(sessionKey, userId, SESSION_TIMEOUT);
-      logger.info("ユーザーキャッシュをRedisにキャッシュしました");
+      logger.info("ユーザーIDをRedisにキャッシュしました");
     } catch (Exception e) {
       logger.error("Redis キャッシュエラー: {}", e.getMessage(), e);
       throw e;
@@ -52,11 +52,11 @@ public class TokenCacheService {
 
       if (userId != null) {
         logger.info(
-            "Redisからユーザーキャッシュを取得しました (キャッシュヒット)");
+            "RedisからユーザーIDを取得しました (キャッシュヒット)");
         return userId.toString();
       } else {
         logger.info(
-            "Redisにユーザーキャッシュが見つかりませんでした (キャッシュミス)");
+            "RedisにユーザーIDが見つかりませんでした (キャッシュミス)");
         return null;
       }
     } catch (Exception e) {
@@ -74,7 +74,7 @@ public class TokenCacheService {
     String sessionKey = SESSION_PREFIX + token;
     Boolean deleted = redisTemplate.delete(sessionKey);
     logger.info(
-        "Redisからユーザーキャッシュを削除しました: deleted={}",
+        "RedisからユーザーIDを削除しました: deleted={}",
         deleted);
   }
 
@@ -87,7 +87,7 @@ public class TokenCacheService {
     String sessionKey = SESSION_PREFIX + token;
     Boolean refreshed = redisTemplate.expire(sessionKey, SESSION_TIMEOUT);
     logger.info(
-        "キャッシュタイムアウトを延長しました: refreshed={}",
+        "ユーザーIDキャッシュタイムアウトを延長しました: refreshed={}",
         refreshed);
   }
 
