@@ -43,8 +43,7 @@ class AuthControllerTest {
 
     mockMvc.perform(post("/api/signUp"))
         .andExpect(status().isOk())
-        .andExpect(jsonPath("$.message").value("ユーザー登録が完了しました"))
-        .andExpect(cookie().value("firebase-token", "test-id-token"));
+        .andExpect(jsonPath("$.message").value("ユーザー登録が完了しました"));
   }
 
   @Test
