@@ -44,3 +44,4 @@ system:
 
 firebase:
   signUpBaseUrl: https://identitytoolkit.googleapis.com/v1/accounts:signUp
+  signInBaseUrl: https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword
