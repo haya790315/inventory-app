@@ -459,7 +459,7 @@ public class ItemRecordServiceTest {
   }
 
   @Test
-  @DisplayName("履歴削除 - 正常系")
+  @DisplayName("履歴削除成功 - 正常系")
   void deleteItemRecord_success() {
     when(
       itemRecordRepository.findByIdAndUserId(testItemRecordId, testUserId)
@@ -467,11 +467,45 @@ public class ItemRecordServiceTest {
     assertDoesNotThrow(() ->
       itemRecordService.deleteItemRecord(testItemRecordId, testUserId)
     );
-    verify(itemRecordRepository, times(1)).delete(testItemRecord);
+    verify(itemRecordRepository, times(1)).save(testItemRecord);
+    assertThat(testItemRecord.isDeletedFlag()).isEqualTo(true);
   }
 
   @Test
-  @DisplayName("履歴削除 - ユーザIDと履歴の所有者が異なる場合")
+  @DisplayName("履歴削除成功 - 関連する子レコードは削除される")
+  void deleteItemRecord_throws_exception_when_child_records_exist() {
+    ItemRecord outRecord1 = new ItemRecord(
+      testItem,
+      testUserId,
+      10,
+      TransactionType.OUT,
+      testItemRecord
+    );
+    ItemRecord outRecord2 = new ItemRecord(
+      testItem,
+      testUserId,
+      5,
+      TransactionType.OUT,
+      testItemRecord
+    );
+    testItemRecord.setChildRecords(List.of(outRecord1, outRecord2));
+    when(
+      itemRecordRepository.findByIdAndUserId(testItemRecordId, testUserId)
+    ).thenReturn(Optional.of(testItemRecord));
+
+    assertDoesNotThrow(() ->
+      itemRecordService.deleteItemRecord(testItemRecordId, testUserId)
+    );
+    verify(itemRecordRepository, times(1)).save(testItemRecord);
+
+    for (ItemRecord childRecord : testItemRecord.getChildRecords()) {
+      verify(itemRecordRepository, times(1)).save(childRecord);
+      assertThat(childRecord.isDeletedFlag()).isEqualTo(true);
+    }
+  }
+
+  @Test
+  @DisplayName("履歴削除失敗 - ユーザIDと履歴の所有者が異なる場合")
   void deleteItemRecord_throws_exception_when_record_not_found() {
     String otherUserId = "other-user-ID";
     when(

@@ -2,10 +2,11 @@ package inventory.example.inventory_id.controller;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.when;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -529,15 +530,25 @@ class ItemRecordControllerTest {
   @Tag("DELETE: /api/item-record")
   @DisplayName("アイテム記録削除-202 正常系")
   void deleteItemRecord_success() throws Exception {
-    doNothing().when(itemRecordService).deleteItemRecord(any(UUID.class), anyString());
+    doNothing()
+      .when(itemRecordService)
+      .deleteItemRecord(any(UUID.class), anyString());
 
-    mockMvc.perform(delete("/api/item-record")
-        .param("record_id", UUID.randomUUID().toString())
-        .contentType(MediaType.APPLICATION_JSON))
-        .andExpect(status().isAccepted())
-        .andExpect(content().json("""
+    mockMvc
+      .perform(
+        delete("/api/item-record")
+          .param("record_id", UUID.randomUUID().toString())
+          .contentType(MediaType.APPLICATION_JSON)
+      )
+      .andExpect(status().isAccepted())
+      .andExpect(
+        content()
+          .json(
+            """
             {"message":"入出庫履歴を削除しました"}
-            """));
+            """
+          )
+      );
   }
 
   @Test
@@ -545,33 +556,48 @@ class ItemRecordControllerTest {
   @DisplayName("アイテム記録削除失敗 - 指定のレコードが存在しません。")
   void deleteItemRecord_notFound() throws Exception {
     doThrow(new IllegalArgumentException("指定のレコードが存在しません。"))
-        .when(itemRecordService).deleteItemRecord(any(UUID.class),
-            anyString());
+      .when(itemRecordService)
+      .deleteItemRecord(any(UUID.class), anyString());
 
-    mockMvc.perform(delete("/api/item-record")
-        .param("record_id", UUID.randomUUID().toString())
-        .contentType(MediaType.APPLICATION_JSON))
-        .andExpect(status().isBadRequest())
-        .andExpect(content().json("""
+    mockMvc
+      .perform(
+        delete("/api/item-record")
+          .param("record_id", UUID.randomUUID().toString())
+          .contentType(MediaType.APPLICATION_JSON)
+      )
+      .andExpect(status().isBadRequest())
+      .andExpect(
+        content()
+          .json(
+            """
             {"message":%s}
-            """.formatted(itemRecordNotFoundMsg)));
+            """.formatted(itemRecordNotFoundMsg)
+          )
+      );
   }
 
   @Test
   @Tag("DELETE: /api/item-record")
   @DisplayName("アイテム記録作成-500 サーバーエラーが発生しました")
   void deleteItemRecord_generalException() throws Exception {
-    doThrow(new RuntimeException(
-        serverErrorMsg))
-        .when(itemRecordService).deleteItemRecord(any(UUID.class),
-            anyString());
+    doThrow(new RuntimeException(serverErrorMsg))
+      .when(itemRecordService)
+      .deleteItemRecord(any(UUID.class), anyString());
 
-    mockMvc.perform(delete("/api/item-record")
-        .param("record_id", UUID.randomUUID().toString())
-        .contentType(MediaType.APPLICATION_JSON))
-        .andExpect(status().isInternalServerError())
-        .andExpect(content().json("""
+    mockMvc
+      .perform(
+        delete("/api/item-record")
+          .param("record_id", UUID.randomUUID().toString())
+          .contentType(MediaType.APPLICATION_JSON)
+      )
+      .andExpect(status().isInternalServerError())
+      .andExpect(
+        content()
+          .json(
+            """
             {"message":"%s"}
-            """.formatted(serverErrorMsg)));
+            """.formatted(serverErrorMsg)
+          )
+      );
   }
 }

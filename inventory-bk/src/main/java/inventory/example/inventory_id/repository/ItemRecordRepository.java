@@ -78,5 +78,17 @@ public interface ItemRecordRepository extends JpaRepository<ItemRecord, UUID> {
   /**
    * IDとユーザーIDでレコードを取得
    */
+  @Query(
+    value = """
+    SELECT
+      *
+    FROM
+      item_record
+    WHERE id = :id
+      AND user_id = :userId
+      AND deleted_flag = FALSE
+    """,
+    nativeQuery = true
+  )
   Optional<ItemRecord> findByIdAndUserId(UUID id, String userId);
 }

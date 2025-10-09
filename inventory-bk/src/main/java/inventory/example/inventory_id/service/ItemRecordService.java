@@ -112,6 +112,19 @@ public class ItemRecordService {
     ItemRecord itemRecord = itemRecordRepository
       .findByIdAndUserId(id, userId)
       .orElseThrow(() -> new IllegalArgumentException(itemRecordNotFoundMsg));
-    itemRecordRepository.delete(itemRecord);
+    itemRecord.setDeletedFlag(true);
+    itemRecordRepository.save(itemRecord);
+
+    if (itemRecord.getTransactionType() == TransactionType.IN) {
+      // 入庫レコード削除時は、関連する出庫レコードも削除
+      List<ItemRecord> outRecords = itemRecord.getChildRecords();
+      if (outRecords == null || outRecords.isEmpty()) {
+        return;
+      }
+      for (ItemRecord outRecord : outRecords) {
+        outRecord.setDeletedFlag(true);
+        itemRecordRepository.save(outRecord);
+      }
+    }
   }
 }
