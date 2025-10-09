@@ -20,7 +20,7 @@ public abstract class BaseController {
   FirebaseAuthService firebaseAuthService;
 
   @Autowired
-  TokenCacheService userSessionService;
+  TokenCacheService TokenCacheService;
 
   @Autowired
   protected HttpServletRequest request;
@@ -47,14 +47,14 @@ public abstract class BaseController {
     }
 
     // RedisキャッシュからユーザーIDを取得
-    String cachedUserId = userSessionService.getUserIdFromCache(token);
+    String cachedUserId = TokenCacheService.getUserIdFromCache(token);
     if (cachedUserId == null) {
       throw new AuthenticationException(
           "時間が経過したため、再度サインインしてください");
     }
 
     // セッションのタイムアウトを更新
-    userSessionService.refreshUserCache(token);
+    TokenCacheService.refreshUserCache(token);
     return cachedUserId;
   }
 
