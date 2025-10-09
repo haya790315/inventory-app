@@ -21,6 +21,9 @@ public class FirebaseAuthServiceTest {
   private Dotenv dotenv;
   private final String FIREBASE_API_KEY = "FIREBASE_API_KEY";
 
+  private String registerErrMsg = "登録に失敗しました";
+  private String loginErrMsg = "ログインに失敗しました";
+
   @BeforeEach
   void setUp() {
     dotenv = mock(Dotenv.class);
@@ -50,7 +53,7 @@ public class FirebaseAuthServiceTest {
   @Test
   @DisplayName("サインアップに失敗する")
   void testSignUpThrowsAuthenticationException() {
-    doThrow(new AuthenticationException("登録失敗しました"))
+    doThrow(new AuthenticationException(registerErrMsg))
       .when(firebaseAuthService)
       .anonymouslySignUp();
 
@@ -58,7 +61,7 @@ public class FirebaseAuthServiceTest {
       AuthenticationException.class,
       firebaseAuthService::anonymouslySignUp
     );
-    assertEquals("登録失敗しました", ex.getMessage());
+    assertEquals(registerErrMsg, ex.getMessage());
   }
 
   @Test
@@ -79,7 +82,7 @@ public class FirebaseAuthServiceTest {
   @Test
   @DisplayName("匿名サインアップが失敗し例外を投げる")
   void testAnonymouslySignUpThrowsException() {
-    doThrow(new AuthenticationException("登録失敗しました"))
+    doThrow(new AuthenticationException(registerErrMsg))
       .when(firebaseAuthService)
       .anonymouslySignUp();
     assertThrows(
@@ -114,9 +117,7 @@ public class FirebaseAuthServiceTest {
     String email = "test.com";
     String password = "password123";
 
-    doThrow(
-      new AuthenticationException("メール登録に失敗しました: Invalid email")
-    )
+    doThrow(new AuthenticationException(registerErrMsg))
       .when(firebaseAuthService)
       .emailSignUp(email, password);
 
@@ -124,7 +125,7 @@ public class FirebaseAuthServiceTest {
       AuthenticationException.class,
       () -> firebaseAuthService.emailSignUp(email, password)
     );
-    assertEquals("メール登録に失敗しました: Invalid email", ex.getMessage());
+    assertEquals(registerErrMsg, ex.getMessage());
   }
 
   @Test
@@ -153,9 +154,7 @@ public class FirebaseAuthServiceTest {
     String email = "test@example.com";
     String password = "wrongpassword";
 
-    doThrow(
-      new AuthenticationException("ログインに失敗しました: Invalid credentials")
-    )
+    doThrow(new AuthenticationException(loginErrMsg))
       .when(firebaseAuthService)
       .emailSignIn(email, password);
 
@@ -163,9 +162,6 @@ public class FirebaseAuthServiceTest {
       AuthenticationException.class,
       () -> firebaseAuthService.emailSignIn(email, password)
     );
-    assertEquals(
-      "ログインに失敗しました: Invalid credentials",
-      ex.getMessage()
-    );
+    assertEquals(loginErrMsg, ex.getMessage());
   }
 }
