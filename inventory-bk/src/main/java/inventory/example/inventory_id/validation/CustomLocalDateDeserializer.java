@@ -11,7 +11,10 @@ import com.fasterxml.jackson.databind.JsonDeserializer;
 
 public class CustomLocalDateDeserializer extends JsonDeserializer<LocalDate> {
 
-  private static final DateTimeFormatter EXPECTED_FORMAT = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+  private static final DateTimeFormatter EXPECTED_FORMAT = DateTimeFormatter
+      .ofPattern("yyyy-MM-dd");
+
+  private static final String ERROR_MESSAGE_DATE_FORMAT = "有効期限の形式が不正です。yyyy-MM-dd形式で入力してください。";
 
   @Override
   public LocalDate deserialize(JsonParser parser, DeserializationContext context) throws IOException {
@@ -21,16 +24,13 @@ public class CustomLocalDateDeserializer extends JsonDeserializer<LocalDate> {
       return null;
     }
     if (dateString.isEmpty()) {
-      throw new IllegalArgumentException(
-          "有効期限の形式が不正です。yyyy-MM-dd形式で入力してください。");
+      throw new IllegalArgumentException(ERROR_MESSAGE_DATE_FORMAT);
     }
 
     try {
       return LocalDate.parse(dateString, EXPECTED_FORMAT);
     } catch (DateTimeParseException e) {
-      // Throw a more specific error with field information
-      throw new IllegalArgumentException(
-          "有効期限の形式が不正です。yyyy-MM-dd形式で入力してください。");
+      throw new IllegalArgumentException(ERROR_MESSAGE_DATE_FORMAT);
     }
   }
 }

@@ -1,16 +1,15 @@
 package inventory.example.inventory_id.request;
 
-import java.time.LocalDate;
-import java.util.UUID;
-
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
-
+import inventory.example.inventory_id.enums.TransactionType;
 import inventory.example.inventory_id.validation.CustomLocalDateDeserializer;
 import inventory.example.inventory_id.validation.ValidItemRecordRequest;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
 import jakarta.validation.constraints.PositiveOrZero;
+import java.time.LocalDate;
+import java.util.UUID;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -20,6 +19,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @ValidItemRecordRequest
 public class ItemRecordRequest {
+
   @NotNull(message = "アイテムIDは必須です。")
   private UUID itemId;
 
@@ -34,37 +34,50 @@ public class ItemRecordRequest {
   private LocalDate expirationDate;
 
   @NotNull(message = "入出庫種別は必須です。")
-  private Source source;
-
-  public enum Source {
-    IN, OUT
-  }
+  private TransactionType transactionType;
 
   private UUID itemRecordId;
 
-  // 入庫時のリクエスト
+  /**
+   * 入庫時のリクエストコンストラクタ
+   *
+   * @param itemId          アイテムID
+   * @param quantity        数量
+   * @param price           価格
+   * @param expirationDate  有効期限
+   * @param transactionType 入出庫種別（IN）
+   */
   public ItemRecordRequest(
-      UUID itemId,
-      int quantity,
-      int price,
-      LocalDate expirationDate,
-      Source source) {
+    UUID itemId,
+    int quantity,
+    int price,
+    LocalDate expirationDate,
+    TransactionType transactionType
+  ) {
     this.itemId = itemId;
     this.quantity = quantity;
     this.price = price;
     this.expirationDate = expirationDate;
-    this.source = source;
+    this.transactionType = transactionType;
   }
 
-  // 出庫時のリクエスト
+  /**
+   * 出庫時のリクエストコンストラクタ
+   *
+   * @param itemId          アイテムID
+   * @param quantity        数量
+   * @param transactionType 入出庫種別（OUT）
+   * @param itemRecordId    出庫対象のレコードID
+   */
   public ItemRecordRequest(
-      UUID itemId,
-      int quantity,
-      Source source,
-      UUID itemRecordId) {
+    UUID itemId,
+    int quantity,
+    TransactionType transactionType,
+    UUID itemRecordId
+  ) {
     this.itemId = itemId;
     this.quantity = quantity;
-    this.source = source;
+    this.transactionType = transactionType;
     this.itemRecordId = itemRecordId;
   }
 }
