@@ -251,6 +251,7 @@ class AuthControllerTest {
       );
   }
 
+  @Test
   @Tag("POST /api/auth/email/signUp")
   @DisplayName("メール・パスワードサインアップ - パスワードが空の時のテスト")
   void emailSignUpWithEmptyPasswordReturnsBadRequest() throws Exception {
