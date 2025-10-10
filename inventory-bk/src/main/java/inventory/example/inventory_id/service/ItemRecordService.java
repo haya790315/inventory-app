@@ -118,12 +118,15 @@ public class ItemRecordService {
     if (itemRecord.getTransactionType() == TransactionType.IN) {
       // 入庫レコード削除時は、関連する出庫レコードも削除
       List<ItemRecord> outRecords = itemRecord.getChildRecords();
-      if (outRecords == null || outRecords.isEmpty()) {
-        return;
-      }
-      for (ItemRecord outRecord : outRecords) {
-        outRecord.setDeletedFlag(true);
-        itemRecordRepository.save(outRecord);
+
+      if (outRecords != null && !outRecords.isEmpty()) {
+        for (ItemRecord outRecord : outRecords) {
+          if (outRecord.isDeletedFlag()) {
+            continue;
+          }
+          outRecord.setDeletedFlag(true);
+          itemRecordRepository.save(outRecord);
+        }
       }
     }
   }
