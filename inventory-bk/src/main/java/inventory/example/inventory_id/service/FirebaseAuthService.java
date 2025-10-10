@@ -27,7 +27,7 @@ public class FirebaseAuthService {
   private String FIREBASE_API_KEY = "FIREBASE_API_KEY";
 
   private String registerErrMsg = "登録に失敗しました";
-  private String loginErrMsg = "ログインに失敗しました";
+  private String signInErrMsg = "サインインに失敗しました";
 
   public FirebaseAuthService(Dotenv dotenv) {
     this.dotenv = dotenv;
@@ -92,7 +92,7 @@ public class FirebaseAuthService {
         .retrieve()
         .body(FirebaseSignUpResponse.class);
     } catch (Exception e) {
-      throw new AuthenticationException(loginErrMsg);
+      throw new AuthenticationException(signInErrMsg);
     }
   }
 }

@@ -213,7 +213,7 @@ public class AuthController extends BaseController {
         content = @Content(
           mediaType = "application/json",
           examples = @ExampleObject(
-            value = "{ \"message\": \"ログインに失敗しました\" }"
+            value = "{ \"message\": \"サインインに失敗しました\" }"
           )
         )
       ),

@@ -50,7 +50,8 @@ public abstract class BaseController {
     String cachedUserId = tokenCacheService.getUserIdFromCache(token);
     if (cachedUserId == null) {
       throw new AuthenticationException(
-          "時間が経過したため、再度サインインしてください");
+        "時間が経過したため、再度サインインしてください"
+      );
     }
 
     // セッションのタイムアウトを更新

@@ -315,7 +315,7 @@ class AuthControllerTest {
     );
 
     when(firebaseAuthService.emailSignIn(testEmail, testPassword)).thenThrow(
-      new AuthenticationException("ログインに失敗しました")
+      new AuthenticationException("サインインに失敗しました")
     );
 
     mockMvc
@@ -325,7 +325,7 @@ class AuthControllerTest {
           .content(objectMapper.writeValueAsString(emailAuthRequest))
       )
       .andExpect(status().isUnauthorized())
-      .andExpect(jsonPath("$.message").value("ログインに失敗しました"));
+      .andExpect(jsonPath("$.message").value("サインインに失敗しました"));
   }
 
   @Test

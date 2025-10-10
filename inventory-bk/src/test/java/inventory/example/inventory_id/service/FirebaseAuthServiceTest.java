@@ -22,7 +22,7 @@ public class FirebaseAuthServiceTest {
   private final String FIREBASE_API_KEY = "FIREBASE_API_KEY";
 
   private String registerErrMsg = "登録に失敗しました";
-  private String loginErrMsg = "ログインに失敗しました";
+  private String signInErrMsg = "サインインに失敗しました";
 
   @BeforeEach
   void setUp() {
@@ -154,7 +154,7 @@ public class FirebaseAuthServiceTest {
     String email = "test@example.com";
     String password = "wrongpassword";
 
-    doThrow(new AuthenticationException(loginErrMsg))
+    doThrow(new AuthenticationException(signInErrMsg))
       .when(firebaseAuthService)
       .emailSignIn(email, password);
 
@@ -162,6 +162,6 @@ public class FirebaseAuthServiceTest {
       AuthenticationException.class,
       () -> firebaseAuthService.emailSignIn(email, password)
     );
-    assertEquals(loginErrMsg, ex.getMessage());
+    assertEquals(signInErrMsg, ex.getMessage());
   }
 }
