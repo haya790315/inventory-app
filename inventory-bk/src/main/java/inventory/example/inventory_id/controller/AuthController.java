@@ -2,6 +2,7 @@ package inventory.example.inventory_id.controller;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -12,6 +13,7 @@ import inventory.example.inventory_id.request.EmailAuthRequest;
 import inventory.example.inventory_id.response.FirebaseSignUpResponse;
 import inventory.example.inventory_id.service.FirebaseAuthService;
 import inventory.example.inventory_id.service.TokenCacheService;
+import inventory.example.inventory_id.validategroup.RegisterGroup;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.ExampleObject;
@@ -20,6 +22,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
+import jakarta.validation.groups.Default;
 
 @RestController
 @RequestMapping("/api/auth")
@@ -158,9 +161,8 @@ public class AuthController extends BaseController {
     }
   )
   public ResponseEntity<Object> emailSignUp(
-    @RequestBody @Valid EmailAuthRequest emailAuthRequest,
-    HttpServletResponse response
-  ) {
+      @RequestBody @Validated({ RegisterGroup.class, Default.class }) EmailAuthRequest emailAuthRequest,
+      HttpServletResponse response) {
     try {
       FirebaseSignUpResponse firebaseResponse = firebaseAuthService.emailSignUp(
         emailAuthRequest.getEmail(),

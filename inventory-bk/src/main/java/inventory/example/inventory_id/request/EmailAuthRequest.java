@@ -1,5 +1,6 @@
 package inventory.example.inventory_id.request;
 
+import inventory.example.inventory_id.validategroup.RegisterGroup;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -18,6 +19,8 @@ public class EmailAuthRequest {
   private String email;
 
   @NotNull(message = "パスワードは必須です")
-  @Size(min = 6, message = "パスワードは6文字以上である必要があります")
+  // サインアップ時のみバリデーションを適用
+  @Size(min = 6, message = "パスワードは6文字以上である必要があります", groups = {
+      RegisterGroup.class })
   private String password;
 }

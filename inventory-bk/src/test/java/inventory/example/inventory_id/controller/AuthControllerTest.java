@@ -399,28 +399,6 @@ class AuthControllerTest {
       );
   }
 
-  @ParameterizedTest
-  @Tag("POST /api/auth/email/signIn")
-  @DisplayName("メール・パスワードサインイン - 短いパスワードのテスト")
-  @ValueSource(strings = { "", "123", "12345" })
-  void emailSignInShortPasswordReturnsBadRequest(String password)
-    throws Exception {
-    EmailAuthRequest emailAuthRequest = new EmailAuthRequest(
-      "test@example.com",
-      password
-    );
-    mockMvc
-      .perform(
-        post("/api/auth/email/signIn")
-          .contentType(MediaType.APPLICATION_JSON)
-          .content(objectMapper.writeValueAsString(emailAuthRequest))
-      )
-      .andExpect(status().isBadRequest())
-      .andExpect(
-        jsonPath("$.error").value("パスワードは6文字以上である必要があります")
-      );
-  }
-
   @Test
   @Tag("POST /api/auth/email/signIn")
   @DisplayName("メール・パスワードサインイン - 空のパスワードのテスト")
