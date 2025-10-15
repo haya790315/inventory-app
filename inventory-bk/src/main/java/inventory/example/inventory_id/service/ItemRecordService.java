@@ -6,6 +6,7 @@ import inventory.example.inventory_id.model.ItemRecord;
 import inventory.example.inventory_id.repository.ItemRecordRepository;
 import inventory.example.inventory_id.repository.ItemRepository;
 import inventory.example.inventory_id.request.ItemRecordRequest;
+import java.util.ArrayList;
 import java.util.List;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -107,12 +108,14 @@ public class ItemRecordService {
     """.formatted(item.getName());
   }
 
-  public void deleteItemRecord(Long id, String userId) {
+  public List<Long> deleteItemRecord(Long id, String userId) {
     ItemRecord itemRecord = itemRecordRepository
       .findByIdAndUserId(id, userId)
       .orElseThrow(() -> new IllegalArgumentException(itemRecordNotFoundMsg));
     itemRecord.setDeletedFlag(true);
     itemRecordRepository.save(itemRecord);
+
+    List<Long> deletedIds = new ArrayList<>(List.of(id));
 
     if (itemRecord.getTransactionType() == TransactionType.IN) {
       // 入庫レコード削除時は、関連する出庫レコードも削除
@@ -124,9 +127,11 @@ public class ItemRecordService {
             continue;
           }
           outRecord.setDeletedFlag(true);
+          deletedIds.add(outRecord.getId());
           itemRecordRepository.save(outRecord);
         }
       }
     }
+    return deletedIds;
   }
 }

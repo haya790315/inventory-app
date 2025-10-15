@@ -3,6 +3,8 @@ package inventory.example.inventory_id.controller;
 import inventory.example.inventory_id.request.ItemRecordRequest;
 import inventory.example.inventory_id.service.ItemRecordService;
 import jakarta.validation.Valid;
+import java.util.List;
+import java.util.Map;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -52,8 +54,17 @@ public class ItemRecordController extends BaseController {
   ) {
     try {
       String userId = fetchUserIdFromToken();
-      itemRecordService.deleteItemRecord(recordId, userId);
-      return response(HttpStatus.ACCEPTED, "入出庫履歴を削除しました");
+      List<Long> deletedRecordIds = itemRecordService.deleteItemRecord(
+        recordId,
+        userId
+      );
+      Map<String, Object> data = Map.of(
+        "message",
+        "入出庫履歴を削除しました",
+        "deletedRecordIds",
+        deletedRecordIds
+      );
+      return response(HttpStatus.ACCEPTED, data);
     } catch (IllegalArgumentException e) {
       return response(HttpStatus.BAD_REQUEST, e.getMessage());
     } catch (Exception e) {

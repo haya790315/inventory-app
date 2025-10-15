@@ -2,12 +2,13 @@ package inventory.example.inventory_id.controller;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -20,6 +21,7 @@ import inventory.example.inventory_id.model.Item;
 import inventory.example.inventory_id.request.ItemRecordRequest;
 import inventory.example.inventory_id.service.ItemRecordService;
 import java.time.LocalDate;
+import java.util.List;
 import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -530,7 +532,8 @@ class ItemRecordControllerTest {
   @Tag("DELETE: /api/item-record")
   @DisplayName("アイテム記録削除-202 正常系")
   void deleteItemRecord_success() throws Exception {
-    doNothing()
+    Long recordId = 1L;
+    doReturn(List.of(recordId))
       .when(itemRecordService)
       .deleteItemRecord(any(Long.class), anyString());
 
@@ -541,14 +544,8 @@ class ItemRecordControllerTest {
           .contentType(MediaType.APPLICATION_JSON)
       )
       .andExpect(status().isAccepted())
-      .andExpect(
-        content()
-          .json(
-            """
-            {"message":"入出庫履歴を削除しました"}
-            """
-          )
-      );
+      .andExpect(jsonPath("$.message").value("入出庫履歴を削除しました"))
+      .andExpect(jsonPath("$.deletedRecordIds[0]").value(recordId));
   }
 
   @Test
