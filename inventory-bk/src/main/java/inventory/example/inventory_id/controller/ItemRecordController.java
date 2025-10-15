@@ -3,7 +3,6 @@ package inventory.example.inventory_id.controller;
 import inventory.example.inventory_id.request.ItemRecordRequest;
 import inventory.example.inventory_id.service.ItemRecordService;
 import jakarta.validation.Valid;
-import java.util.UUID;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -49,7 +48,7 @@ public class ItemRecordController extends BaseController {
 
   @DeleteMapping
   public ResponseEntity<Object> deleteItemRecord(
-    @RequestParam("record_id") UUID recordId
+    @RequestParam("record_id") Long recordId
   ) {
     try {
       String userId = fetchUserIdFromToken();

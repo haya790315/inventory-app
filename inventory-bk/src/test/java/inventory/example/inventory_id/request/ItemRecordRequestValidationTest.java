@@ -49,7 +49,7 @@ public class ItemRecordRequestValidationTest {
       UUID.randomUUID(),
       5,
       TransactionType.OUT,
-      UUID.randomUUID()
+      1L
     );
 
     Set<ConstraintViolation<ItemRecordRequest>> violations = validator.validate(

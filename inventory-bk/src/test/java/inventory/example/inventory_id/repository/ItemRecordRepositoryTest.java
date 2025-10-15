@@ -169,7 +169,7 @@ public class ItemRecordRepositoryTest {
   void testFindByUserIdAndId_ZeroRecords() {
     Optional<ItemRecord> result = itemRecordRepository.getRecordByUserIdAndId(
       testUserId,
-      UUID.randomUUID()
+      Long.MAX_VALUE
     );
 
     assertThat(result).isNotPresent();
@@ -179,7 +179,7 @@ public class ItemRecordRepositoryTest {
   @Tag("getRecordByUserIdAndId")
   @DisplayName("存在しないIDでアイテムレコードを検索すると空のOptionalを返す")
   void testFindByUserIdAndId_NotFound() {
-    UUID nonExistId = UUID.randomUUID();
+    Long nonExistId = Long.MAX_VALUE;
 
     Optional<ItemRecord> result = itemRecordRepository.getRecordByUserIdAndId(
       testUserId,
@@ -194,8 +194,8 @@ public class ItemRecordRepositoryTest {
   @DisplayName("ユーザーIDとレコードのユーザIDが異なる場合は空のOptionalを返す")
   void testFindByUserIdAndId_DifferentUserRecord() {
     Optional<ItemRecord> result = itemRecordRepository.getRecordByUserIdAndId(
-      testUserId,
-      otherUserItem.getId()
+      otherUserId,
+      testItemInRecord.getId()
     );
     assertThat(result).isNotPresent();
   }
@@ -256,7 +256,7 @@ public class ItemRecordRepositoryTest {
   @DisplayName("レコードが存在しない場合の残り数量はnullを返す")
   void testGetRemainingQuantityForInRecord_NoInRecords() {
     Integer remainingQuantity = itemRecordRepository.getInrecordRemainQuantity(
-      UUID.randomUUID()
+      Long.MAX_VALUE
     );
     assertThat(remainingQuantity).isNull();
   }
@@ -312,7 +312,10 @@ public class ItemRecordRepositoryTest {
   @Test
   @DisplayName("IDとユーザーIDでレコードを取得成功")
   void testFindByIdAndUserId_Success() {
-    Optional<ItemRecord> result = itemRecordRepository.findByIdAndUserId(testItemInRecord.getId(), testUserId);
+    Optional<ItemRecord> result = itemRecordRepository.findByIdAndUserId(
+      testItemInRecord.getId(),
+      testUserId
+    );
     assertThat(result).isPresent();
     assertThat(result.get()).isEqualTo(testItemInRecord);
   }
@@ -320,7 +323,10 @@ public class ItemRecordRepositoryTest {
   @Test
   @DisplayName("IDとユーザーIDでレコードを取得失敗- ユーザーIDが異なる場合")
   void testFindByIdAndUserId_Failure_DifferentUser() {
-    Optional<ItemRecord> result = itemRecordRepository.findByIdAndUserId(testItemInRecord.getId(), otherUserId);
+    Optional<ItemRecord> result = itemRecordRepository.findByIdAndUserId(
+      testItemInRecord.getId(),
+      otherUserId
+    );
     assertThat(result).isNotPresent();
   }
 }

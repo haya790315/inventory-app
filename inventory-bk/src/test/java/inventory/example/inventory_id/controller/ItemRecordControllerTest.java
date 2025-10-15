@@ -128,7 +128,7 @@ class ItemRecordControllerTest {
       testItem.getId(),
       5,
       TransactionType.OUT,
-      UUID.randomUUID()
+      1L
     );
 
     when(
@@ -165,7 +165,7 @@ class ItemRecordControllerTest {
       500,
       LocalDate.now().plusDays(30),
       TransactionType.OUT,
-      UUID.randomUUID()
+      1L
     );
 
     doThrow(
@@ -195,7 +195,7 @@ class ItemRecordControllerTest {
       UUID.randomUUID(),
       5,
       TransactionType.OUT,
-      UUID.randomUUID()
+      1L
     );
 
     doThrow(
@@ -532,12 +532,12 @@ class ItemRecordControllerTest {
   void deleteItemRecord_success() throws Exception {
     doNothing()
       .when(itemRecordService)
-      .deleteItemRecord(any(UUID.class), anyString());
+      .deleteItemRecord(any(Long.class), anyString());
 
     mockMvc
       .perform(
         delete("/api/item-record")
-          .param("record_id", UUID.randomUUID().toString())
+          .param("record_id", "1")
           .contentType(MediaType.APPLICATION_JSON)
       )
       .andExpect(status().isAccepted())
@@ -557,12 +557,12 @@ class ItemRecordControllerTest {
   void deleteItemRecord_notFound() throws Exception {
     doThrow(new IllegalArgumentException("指定のレコードが存在しません。"))
       .when(itemRecordService)
-      .deleteItemRecord(any(UUID.class), anyString());
+      .deleteItemRecord(any(Long.class), anyString());
 
     mockMvc
       .perform(
         delete("/api/item-record")
-          .param("record_id", UUID.randomUUID().toString())
+          .param("record_id", "1")
           .contentType(MediaType.APPLICATION_JSON)
       )
       .andExpect(status().isBadRequest())
@@ -582,12 +582,12 @@ class ItemRecordControllerTest {
   void deleteItemRecord_generalException() throws Exception {
     doThrow(new RuntimeException(serverErrorMsg))
       .when(itemRecordService)
-      .deleteItemRecord(any(UUID.class), anyString());
+      .deleteItemRecord(any(Long.class), anyString());
 
     mockMvc
       .perform(
         delete("/api/item-record")
-          .param("record_id", UUID.randomUUID().toString())
+          .param("record_id", "1")
           .contentType(MediaType.APPLICATION_JSON)
       )
       .andExpect(status().isInternalServerError())

@@ -1,8 +1,15 @@
 package inventory.example.inventory_id.model;
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.util.List;
+
+import org.hibernate.annotations.CreationTimestamp;
+
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.firebase.database.annotations.NotNull;
+
 import inventory.example.inventory_id.enums.TransactionType;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Entity;
@@ -16,14 +23,9 @@ import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 import jakarta.validation.constraints.PositiveOrZero;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.util.List;
-import java.util.UUID;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
-import org.hibernate.annotations.CreationTimestamp;
 
 @Entity
 @Data
@@ -33,8 +35,8 @@ import org.hibernate.annotations.CreationTimestamp;
 public class ItemRecord {
 
   @Id
-  @GeneratedValue(strategy = GenerationType.AUTO)
-  private UUID id;
+  @GeneratedValue(strategy = GenerationType.IDENTITY)
+  private Long id;
 
   @ManyToOne
   @JoinColumn(name = "item_id", nullable = false)

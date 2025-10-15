@@ -45,7 +45,7 @@ public class ItemRecordServiceTest {
 
   private String testUserId;
   private UUID testItemId;
-  private UUID testItemRecordId;
+  private Long testItemRecordId;
   private Item testItem;
   private Category testCategory;
   private ItemRecord testItemRecord;
@@ -60,7 +60,7 @@ public class ItemRecordServiceTest {
   void setUp() {
     testUserId = "testUser";
     testItemId = UUID.randomUUID();
-    testItemRecordId = UUID.randomUUID();
+    testItemRecordId = 1L;
     timeNow = LocalDate.now();
 
     testCategory = new Category("Test Category", testUserId);
@@ -320,7 +320,7 @@ public class ItemRecordServiceTest {
   @Test
   @DisplayName("出庫記録作成失敗 - sourceRecordが出庫のレコード")
   void createItemRecord_throws_exception_when_item_record_not_found() {
-    UUID outRecordId = UUID.randomUUID();
+    Long outRecordId = 2L;
     ItemRecordRequest request = new ItemRecordRequest(
       testItemId,
       10,

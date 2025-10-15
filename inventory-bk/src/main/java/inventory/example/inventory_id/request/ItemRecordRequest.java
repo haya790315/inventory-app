@@ -36,7 +36,7 @@ public class ItemRecordRequest {
   @NotNull(message = "入出庫種別は必須です。")
   private TransactionType transactionType;
 
-  private UUID itemRecordId;
+  private Long itemRecordId;
 
   /**
    * 入庫時のリクエストコンストラクタ
@@ -73,7 +73,7 @@ public class ItemRecordRequest {
     UUID itemId,
     int quantity,
     TransactionType transactionType,
-    UUID itemRecordId
+    Long itemRecordId
   ) {
     this.itemId = itemId;
     this.quantity = quantity;
