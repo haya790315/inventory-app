@@ -10,6 +10,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.firebase.auth.FirebaseAuthException;
+
+import inventory.example.inventory_id.enums.AuthMessage;
 import inventory.example.inventory_id.exception.AuthenticationException;
 import inventory.example.inventory_id.request.EmailAuthRequest;
 import inventory.example.inventory_id.response.FirebaseSignUpResponse;
@@ -47,9 +49,6 @@ class AuthControllerTest {
 
   private final ObjectMapper objectMapper = new ObjectMapper();
 
-  private String serverErrorMsg = "サーバーエラーが発生しました";
-  private String userRegisterMsg = "ユーザー登録が完了しました";
-
   @BeforeEach
   void setUp() throws FirebaseAuthException {
     lenient()
@@ -75,7 +74,11 @@ class AuthControllerTest {
     mockMvc
       .perform(post("/api/auth/signUp"))
       .andExpect(status().isOk())
-      .andExpect(jsonPath("$.message").value(userRegisterMsg))
+      .andExpect(
+        jsonPath("$.message").value(
+          AuthMessage.REGISTER_SUCCEEDED_MSG.getMessage()
+        )
+      )
       .andExpect(cookie().value("firebase-token", testIdToken));
   }
 
@@ -84,13 +87,15 @@ class AuthControllerTest {
   @DisplayName("匿名サインアップ - ユーザー登録失敗時のテスト")
   void signUpFailureReturnsUnauthorized() throws Exception {
     when(firebaseAuthService.anonymouslySignUp()).thenThrow(
-      new RuntimeException("ユーザー登録に失敗しました")
+      new RuntimeException(AuthMessage.REGISTER_ERROR_MSG.getMessage())
     );
 
     mockMvc
       .perform(post("/api/auth/signUp"))
       .andExpect(status().isUnauthorized())
-      .andExpect(jsonPath("$.message").value("ユーザー登録に失敗しました"));
+      .andExpect(
+        jsonPath("$.message").value(AuthMessage.REGISTER_ERROR_MSG.getMessage())
+      );
   }
 
   @Test
@@ -104,7 +109,11 @@ class AuthControllerTest {
         )
       )
       .andExpect(status().isOk())
-      .andExpect(jsonPath("$.message").value("サインアウトが完了しました"));
+      .andExpect(
+        jsonPath("$.message").value(
+          AuthMessage.SIGNOUT_SUCCEEDED_MSG.getMessage()
+        )
+      );
   }
 
   @Test
@@ -121,7 +130,9 @@ class AuthControllerTest {
         )
       )
       .andExpect(status().isInternalServerError())
-      .andExpect(jsonPath("$.message").value(serverErrorMsg));
+      .andExpect(
+        jsonPath("$.message").value(AuthMessage.SERVER_ERROR_MSG.getMessage())
+      );
   }
 
   @Test
@@ -154,7 +165,11 @@ class AuthControllerTest {
           .content(objectMapper.writeValueAsString(emailAuthRequest))
       )
       .andExpect(status().isOk())
-      .andExpect(jsonPath("$.message").value(userRegisterMsg))
+      .andExpect(
+        jsonPath("$.message").value(
+          AuthMessage.REGISTER_SUCCEEDED_MSG.getMessage()
+        )
+      )
       .andExpect(cookie().value("firebase-token", testIdToken));
   }
 
@@ -170,7 +185,7 @@ class AuthControllerTest {
     );
 
     when(firebaseAuthService.emailSignUp(testEmail, testPassword)).thenThrow(
-      new RuntimeException(serverErrorMsg)
+      new RuntimeException(AuthMessage.SERVER_ERROR_MSG.getMessage())
     );
     mockMvc
       .perform(
@@ -179,7 +194,9 @@ class AuthControllerTest {
           .content(objectMapper.writeValueAsString(emailAuthRequest))
       )
       .andExpect(status().isInternalServerError())
-      .andExpect(jsonPath("$.message").value(serverErrorMsg));
+      .andExpect(
+        jsonPath("$.message").value(AuthMessage.SERVER_ERROR_MSG.getMessage())
+      );
   }
 
   @Test
@@ -299,7 +316,11 @@ class AuthControllerTest {
           .content(objectMapper.writeValueAsString(emailAuthRequest))
       )
       .andExpect(status().isOk())
-      .andExpect(jsonPath("$.message").value("サインインが完了しました"))
+      .andExpect(
+        jsonPath("$.message").value(
+          AuthMessage.SIGNIN_SUCCEEDED_MSG.getMessage()
+        )
+      )
       .andExpect(cookie().value("firebase-token", testIdToken));
   }
 
@@ -315,7 +336,7 @@ class AuthControllerTest {
     );
 
     when(firebaseAuthService.emailSignIn(testEmail, testPassword)).thenThrow(
-      new AuthenticationException("サインインに失敗しました")
+      new AuthenticationException(AuthMessage.SIGNIN_FAILED_MSG.getMessage())
     );
 
     mockMvc
@@ -325,7 +346,9 @@ class AuthControllerTest {
           .content(objectMapper.writeValueAsString(emailAuthRequest))
       )
       .andExpect(status().isUnauthorized())
-      .andExpect(jsonPath("$.message").value("サインインに失敗しました"));
+      .andExpect(
+        jsonPath("$.message").value(AuthMessage.SIGNIN_FAILED_MSG.getMessage())
+      );
   }
 
   @Test
@@ -350,7 +373,9 @@ class AuthControllerTest {
           .content(objectMapper.writeValueAsString(emailAuthRequest))
       )
       .andExpect(status().isInternalServerError())
-      .andExpect(jsonPath("$.message").value(serverErrorMsg));
+      .andExpect(
+        jsonPath("$.message").value(AuthMessage.SERVER_ERROR_MSG.getMessage())
+      );
   }
 
   @Test

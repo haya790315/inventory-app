@@ -3,6 +3,8 @@ package inventory.example.inventory_id.service;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseAuthException;
 import com.google.firebase.auth.FirebaseToken;
+
+import inventory.example.inventory_id.enums.AuthMessage;
 import inventory.example.inventory_id.exception.AuthenticationException;
 import inventory.example.inventory_id.request.FirebaseSignUpRequest;
 import inventory.example.inventory_id.response.FirebaseSignUpResponse;
@@ -25,9 +27,6 @@ public class FirebaseAuthService {
   private static final String API_KEY_PARAM = "key";
 
   private String FIREBASE_API_KEY = "FIREBASE_API_KEY";
-
-  private String registerErrMsg = "登録に失敗しました";
-  private String signInErrMsg = "サインインに失敗しました";
 
   public FirebaseAuthService(Dotenv dotenv) {
     this.dotenv = dotenv;
@@ -54,7 +53,9 @@ public class FirebaseAuthService {
         .retrieve()
         .body(FirebaseSignUpResponse.class);
     } catch (Exception e) {
-      throw new AuthenticationException(registerErrMsg);
+      throw new AuthenticationException(
+        AuthMessage.REGISTER_ERROR_MSG.getMessage()
+      );
     }
   }
 
@@ -73,7 +74,9 @@ public class FirebaseAuthService {
         .retrieve()
         .body(FirebaseSignUpResponse.class);
     } catch (Exception e) {
-      throw new AuthenticationException(registerErrMsg);
+      throw new AuthenticationException(
+        AuthMessage.REGISTER_ERROR_MSG.getMessage()
+      );
     }
   }
 
@@ -92,7 +95,9 @@ public class FirebaseAuthService {
         .retrieve()
         .body(FirebaseSignUpResponse.class);
     } catch (Exception e) {
-      throw new AuthenticationException(signInErrMsg);
+      throw new AuthenticationException(
+        AuthMessage.SIGNIN_FAILED_MSG.getMessage()
+      );
     }
   }
 }

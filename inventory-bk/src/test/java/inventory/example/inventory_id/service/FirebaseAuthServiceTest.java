@@ -8,6 +8,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.when;
 
+import inventory.example.inventory_id.enums.AuthMessage;
 import inventory.example.inventory_id.exception.AuthenticationException;
 import inventory.example.inventory_id.response.FirebaseSignUpResponse;
 import io.github.cdimascio.dotenv.Dotenv;
@@ -20,9 +21,6 @@ public class FirebaseAuthServiceTest {
   private FirebaseAuthService firebaseAuthService;
   private Dotenv dotenv;
   private final String FIREBASE_API_KEY = "FIREBASE_API_KEY";
-
-  private String registerErrMsg = "登録に失敗しました";
-  private String signInErrMsg = "サインインに失敗しました";
 
   @BeforeEach
   void setUp() {
@@ -53,7 +51,9 @@ public class FirebaseAuthServiceTest {
   @Test
   @DisplayName("サインアップに失敗する")
   void testSignUpThrowsAuthenticationException() {
-    doThrow(new AuthenticationException(registerErrMsg))
+    doThrow(
+      new AuthenticationException(AuthMessage.REGISTER_ERROR_MSG.getMessage())
+    )
       .when(firebaseAuthService)
       .anonymouslySignUp();
 
@@ -61,7 +61,7 @@ public class FirebaseAuthServiceTest {
       AuthenticationException.class,
       firebaseAuthService::anonymouslySignUp
     );
-    assertEquals(registerErrMsg, ex.getMessage());
+    assertEquals(AuthMessage.REGISTER_ERROR_MSG.getMessage(), ex.getMessage());
   }
 
   @Test
@@ -82,7 +82,9 @@ public class FirebaseAuthServiceTest {
   @Test
   @DisplayName("匿名サインアップが失敗し例外を投げる")
   void testAnonymouslySignUpThrowsException() {
-    doThrow(new AuthenticationException(registerErrMsg))
+    doThrow(
+      new AuthenticationException(AuthMessage.REGISTER_ERROR_MSG.getMessage())
+    )
       .when(firebaseAuthService)
       .anonymouslySignUp();
     assertThrows(
@@ -117,7 +119,9 @@ public class FirebaseAuthServiceTest {
     String email = "test.com";
     String password = "password123";
 
-    doThrow(new AuthenticationException(registerErrMsg))
+    doThrow(
+      new AuthenticationException(AuthMessage.REGISTER_ERROR_MSG.getMessage())
+    )
       .when(firebaseAuthService)
       .emailSignUp(email, password);
 
@@ -125,7 +129,7 @@ public class FirebaseAuthServiceTest {
       AuthenticationException.class,
       () -> firebaseAuthService.emailSignUp(email, password)
     );
-    assertEquals(registerErrMsg, ex.getMessage());
+    assertEquals(AuthMessage.REGISTER_ERROR_MSG.getMessage(), ex.getMessage());
   }
 
   @Test
@@ -154,7 +158,9 @@ public class FirebaseAuthServiceTest {
     String email = "test@example.com";
     String password = "wrongpassword";
 
-    doThrow(new AuthenticationException(signInErrMsg))
+    doThrow(
+      new AuthenticationException(AuthMessage.SIGNIN_FAILED_MSG.getMessage())
+    )
       .when(firebaseAuthService)
       .emailSignIn(email, password);
 
@@ -162,6 +168,6 @@ public class FirebaseAuthServiceTest {
       AuthenticationException.class,
       () -> firebaseAuthService.emailSignIn(email, password)
     );
-    assertEquals(signInErrMsg, ex.getMessage());
+    assertEquals(AuthMessage.SIGNIN_FAILED_MSG.getMessage(), ex.getMessage());
   }
 }

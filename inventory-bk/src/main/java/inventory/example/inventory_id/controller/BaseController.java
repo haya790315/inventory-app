@@ -1,21 +1,21 @@
 package inventory.example.inventory_id.controller;
 
-import java.util.Collections;
-
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
-import org.springframework.stereotype.Component;
-
+import inventory.example.inventory_id.enums.AuthMessage;
 import inventory.example.inventory_id.exception.AuthenticationException;
 import inventory.example.inventory_id.service.FirebaseAuthService;
 import inventory.example.inventory_id.service.TokenCacheService;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import java.util.Collections;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.stereotype.Component;
 
 @Component
 public abstract class BaseController {
+
   @Autowired
   FirebaseAuthService firebaseAuthService;
 
@@ -32,8 +32,9 @@ public abstract class BaseController {
   }
 
   protected ResponseEntity<Object> response(HttpStatus status, String message) {
-    return ResponseEntity.status(status)
-        .body(Collections.singletonMap("message", message));
+    return ResponseEntity.status(status).body(
+      Collections.singletonMap("message", message)
+    );
   }
 
   protected <T> ResponseEntity<T> response(HttpStatus status, T data) {
@@ -43,15 +44,15 @@ public abstract class BaseController {
   protected String fetchUserIdFromToken() throws AuthenticationException {
     String token = getTokenFromRequest();
     if (token == null) {
-      throw new AuthenticationException("認証トークンが見つかりません");
+      throw new AuthenticationException(
+        AuthMessage.AUTHTOKEN_NOT_FOUND.getMessage()
+      );
     }
 
     // RedisキャッシュからユーザーIDを取得
     String cachedUserId = tokenCacheService.getUserIdFromCache(token);
     if (cachedUserId == null) {
-      throw new AuthenticationException(
-        "時間が経過したため、再度サインインしてください"
-      );
+      throw new AuthenticationException(AuthMessage.IDLE_TIMEOUT.getMessage());
     }
 
     // セッションのタイムアウトを更新

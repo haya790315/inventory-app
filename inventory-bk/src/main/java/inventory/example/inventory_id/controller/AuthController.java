@@ -1,13 +1,6 @@
 package inventory.example.inventory_id.controller;
 
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
-import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
-
+import inventory.example.inventory_id.enums.AuthMessage;
 import inventory.example.inventory_id.exception.AuthenticationException;
 import inventory.example.inventory_id.request.EmailAuthRequest;
 import inventory.example.inventory_id.response.FirebaseSignUpResponse;
@@ -23,6 +16,13 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import jakarta.validation.groups.Default;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.validation.annotation.Validated;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("/api/auth")
@@ -32,8 +32,20 @@ public class AuthController extends BaseController {
   private final FirebaseAuthService firebaseAuthService;
   private final TokenCacheService tokenCacheService;
 
-  private String serverErrorMsg = "サーバーエラーが発生しました";
-  private String userRegisterMsg = "ユーザー登録が完了しました";
+  private static final String SIGNUP_SUCCEEDED_EXAMPLE =
+    "{ \"message\": \"ユーザー登録が完了しました\" }";
+  private static final String SIGNUP_FAILED_EXAMPLE =
+    "{ \"message\": \"ユーザー登録に失敗しました\" }";
+  private static final String SERVER_ERROR_EXAMPLE =
+    "{ \"message\": \"サーバーエラーが発生しました\" }";
+  private static final String INVALID_REQUEST_EXAMPLE =
+    "{ \"message\": \"メールアドレスまたはパスワードが無効です\" }";
+  private static final String SIGNOUT_SUCCEEDED_EXAMPLE =
+    "{ \"message\": \"サインアウトが完了しました\" }";
+  private static final String SIGNIN_SUCCEEDED_EXAMPLE =
+    "{ \"message\": \"サインインが完了しました\" }";
+  private static final String SIGNIN_FAILED_EXAMPLE =
+    "{ \"message\": \"サインインに失敗しました\" }";
 
   public AuthController(
     FirebaseAuthService firebaseAuthService,
@@ -44,12 +56,38 @@ public class AuthController extends BaseController {
   }
 
   @PostMapping("/signUp")
-  @Operation(summary = "ユーザー登録", description = "新しいユーザーを登録します")
-  @ApiResponses({
-      @ApiResponse(responseCode = "200", description = "ユーザー登録成功", content = @Content(mediaType = "application/json", examples = @ExampleObject(value = "{ \"message\": \"ユーザー登録が完了しました\" }"))),
-      @ApiResponse(responseCode = "401", description = "サーバーエラーが発生しました", content = @Content(mediaType = "application/json", examples = @ExampleObject(value = "{ \"message\": \"ユーザー登録に失敗しました\" }"))),
-      @ApiResponse(responseCode = "500", description = "サーバーエラーが発生しました", content = @Content(mediaType = "application/json", examples = @ExampleObject(value = "{ \"message\": \"サーバーエラーが発生しました\" }")))
-  })
+  @Operation(
+    summary = "ユーザー登録",
+    description = "新しいユーザーを登録します"
+  )
+  @ApiResponses(
+    {
+      @ApiResponse(
+        responseCode = "200",
+        description = "ユーザー登録成功",
+        content = @Content(
+          mediaType = "application/json",
+          examples = @ExampleObject(value = SIGNUP_SUCCEEDED_EXAMPLE)
+        )
+      ),
+      @ApiResponse(
+        responseCode = "401",
+        description = "サーバーエラーが発生しました",
+        content = @Content(
+          mediaType = "application/json",
+          examples = @ExampleObject(value = SIGNUP_FAILED_EXAMPLE)
+        )
+      ),
+      @ApiResponse(
+        responseCode = "500",
+        description = "サーバーエラーが発生しました",
+        content = @Content(
+          mediaType = "application/json",
+          examples = @ExampleObject(value = SERVER_ERROR_EXAMPLE)
+        )
+      ),
+    }
+  )
   public ResponseEntity<Object> signUp(HttpServletResponse response) {
     try {
       FirebaseSignUpResponse firebaseResponse =
@@ -60,7 +98,10 @@ public class AuthController extends BaseController {
       tokenCacheService.cacheUser(idToken, userId);
 
       setCookie(response, idToken);
-      return response(HttpStatus.OK, userRegisterMsg);
+      return response(
+        HttpStatus.OK,
+        AuthMessage.REGISTER_SUCCEEDED_MSG.getMessage()
+      );
     } catch (Exception e) {
       return response(HttpStatus.UNAUTHORIZED, e.getMessage());
     }
@@ -78,9 +119,7 @@ public class AuthController extends BaseController {
         description = "サインアウト成功",
         content = @Content(
           mediaType = "application/json",
-          examples = @ExampleObject(
-            value = "{ \"message\": \"サインアウトが完了しました\" }"
-          )
+          examples = @ExampleObject(value = SIGNOUT_SUCCEEDED_EXAMPLE)
         )
       ),
       @ApiResponse(
@@ -88,9 +127,7 @@ public class AuthController extends BaseController {
         description = "サーバーエラー",
         content = @Content(
           mediaType = "application/json",
-          examples = @ExampleObject(
-            value = "{ \"message\": \"サーバーエラーが発生しました\" }"
-          )
+          examples = @ExampleObject(value = SERVER_ERROR_EXAMPLE)
         )
       ),
     }
@@ -105,9 +142,15 @@ public class AuthController extends BaseController {
 
       clearCookie(response);
 
-      return response(HttpStatus.OK, "サインアウトが完了しました");
+      return response(
+        HttpStatus.OK,
+        AuthMessage.SIGNOUT_SUCCEEDED_MSG.getMessage()
+      );
     } catch (Exception e) {
-      return response(HttpStatus.INTERNAL_SERVER_ERROR, serverErrorMsg);
+      return response(
+        HttpStatus.INTERNAL_SERVER_ERROR,
+        AuthMessage.SERVER_ERROR_MSG.getMessage()
+      );
     }
   }
 
@@ -123,9 +166,7 @@ public class AuthController extends BaseController {
         description = "ユーザー登録成功",
         content = @Content(
           mediaType = "application/json",
-          examples = @ExampleObject(
-            value = "{ \"message\": \"ユーザー登録が完了しました\" }"
-          )
+          examples = @ExampleObject(value = SIGNUP_SUCCEEDED_EXAMPLE)
         )
       ),
       @ApiResponse(
@@ -133,9 +174,7 @@ public class AuthController extends BaseController {
         description = "リクエストデータが無効です",
         content = @Content(
           mediaType = "application/json",
-          examples = @ExampleObject(
-            value = "{ \"message\": \"メールアドレスまたはパスワードが無効です\" }"
-          )
+          examples = @ExampleObject(value = INVALID_REQUEST_EXAMPLE)
         )
       ),
       @ApiResponse(
@@ -143,9 +182,7 @@ public class AuthController extends BaseController {
         description = "認証エラー",
         content = @Content(
           mediaType = "application/json",
-          examples = @ExampleObject(
-            value = "{ \"message\": \"ユーザー登録に失敗しました\" }"
-          )
+          examples = @ExampleObject(value = SIGNUP_FAILED_EXAMPLE)
         )
       ),
       @ApiResponse(
@@ -153,16 +190,17 @@ public class AuthController extends BaseController {
         description = "サーバーエラー",
         content = @Content(
           mediaType = "application/json",
-          examples = @ExampleObject(
-            value = "{ \"message\": \"サーバーエラーが発生しました\" }"
-          )
+          examples = @ExampleObject(value = SERVER_ERROR_EXAMPLE)
         )
       ),
     }
   )
   public ResponseEntity<Object> emailSignUp(
-      @RequestBody @Validated({ RegisterGroup.class, Default.class }) EmailAuthRequest emailAuthRequest,
-      HttpServletResponse response) {
+    @RequestBody @Validated(
+      { RegisterGroup.class, Default.class }
+    ) EmailAuthRequest emailAuthRequest,
+    HttpServletResponse response
+  ) {
     try {
       FirebaseSignUpResponse firebaseResponse = firebaseAuthService.emailSignUp(
         emailAuthRequest.getEmail(),
@@ -174,11 +212,17 @@ public class AuthController extends BaseController {
       tokenCacheService.cacheUser(idToken, userId);
 
       setCookie(response, idToken);
-      return response(HttpStatus.OK, userRegisterMsg);
+      return response(
+        HttpStatus.OK,
+        AuthMessage.REGISTER_SUCCEEDED_MSG.getMessage()
+      );
     } catch (AuthenticationException e) {
       return response(HttpStatus.UNAUTHORIZED, e.getMessage());
     } catch (Exception e) {
-      return response(HttpStatus.INTERNAL_SERVER_ERROR, serverErrorMsg);
+      return response(
+        HttpStatus.INTERNAL_SERVER_ERROR,
+        AuthMessage.SERVER_ERROR_MSG.getMessage()
+      );
     }
   }
 
@@ -194,9 +238,7 @@ public class AuthController extends BaseController {
         description = "サインイン成功",
         content = @Content(
           mediaType = "application/json",
-          examples = @ExampleObject(
-            value = "{ \"message\": \"サインインが完了しました\" }"
-          )
+          examples = @ExampleObject(value = SIGNIN_SUCCEEDED_EXAMPLE)
         )
       ),
       @ApiResponse(
@@ -204,9 +246,7 @@ public class AuthController extends BaseController {
         description = "リクエストデータが無効です",
         content = @Content(
           mediaType = "application/json",
-          examples = @ExampleObject(
-            value = "{ \"message\": \"メールアドレスまたはパスワードが無効です\" }"
-          )
+          examples = @ExampleObject(value = INVALID_REQUEST_EXAMPLE)
         )
       ),
       @ApiResponse(
@@ -214,9 +254,7 @@ public class AuthController extends BaseController {
         description = "認証エラー",
         content = @Content(
           mediaType = "application/json",
-          examples = @ExampleObject(
-            value = "{ \"message\": \"サインインに失敗しました\" }"
-          )
+          examples = @ExampleObject(value = SIGNIN_FAILED_EXAMPLE)
         )
       ),
       @ApiResponse(
@@ -224,9 +262,7 @@ public class AuthController extends BaseController {
         description = "サーバーエラー",
         content = @Content(
           mediaType = "application/json",
-          examples = @ExampleObject(
-            value = "{ \"message\": \"サーバーエラーが発生しました\" }"
-          )
+          examples = @ExampleObject(value = SERVER_ERROR_EXAMPLE)
         )
       ),
     }
@@ -246,11 +282,17 @@ public class AuthController extends BaseController {
       tokenCacheService.cacheUser(idToken, userId);
 
       setCookie(response, idToken);
-      return response(HttpStatus.OK, "サインインが完了しました");
+      return response(
+        HttpStatus.OK,
+        AuthMessage.SIGNIN_SUCCEEDED_MSG.getMessage()
+      );
     } catch (AuthenticationException e) {
       return response(HttpStatus.UNAUTHORIZED, e.getMessage());
     } catch (Exception e) {
-      return response(HttpStatus.INTERNAL_SERVER_ERROR, serverErrorMsg);
+      return response(
+        HttpStatus.INTERNAL_SERVER_ERROR,
+        AuthMessage.SERVER_ERROR_MSG.getMessage()
+      );
     }
   }
 }
