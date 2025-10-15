@@ -3,7 +3,6 @@ package inventory.example.inventory_id.service;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseAuthException;
 import com.google.firebase.auth.FirebaseToken;
-
 import inventory.example.inventory_id.enums.AuthMessage;
 import inventory.example.inventory_id.exception.AuthenticationException;
 import inventory.example.inventory_id.request.FirebaseSignUpRequest;
@@ -42,7 +41,7 @@ public class FirebaseAuthService {
   }
 
   public FirebaseSignUpResponse anonymouslySignUp() {
-    FirebaseSignUpRequest requestBody = new FirebaseSignUpRequest(true);
+    FirebaseSignUpRequest requestBody = new FirebaseSignUpRequest();
     try {
       return RestClient.create(signUpBaseUrl)
         .post()

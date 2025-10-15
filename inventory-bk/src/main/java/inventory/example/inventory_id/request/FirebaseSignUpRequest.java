@@ -1,23 +1,22 @@
 package inventory.example.inventory_id.request;
 
 import lombok.Data;
-import lombok.NoArgsConstructor;
 
 @Data
-@NoArgsConstructor
 public class FirebaseSignUpRequest {
 
   private String email;
   private String password;
+
+  // 常にtrueに設定
+  // 参考： https://firebase.google.com/docs/reference/rest/auth#section-create-email-password
   private boolean returnSecureToken = true;
 
   /**
    * 匿名サインアップ用のコンストラクタ
-   *
-   * @param returnSecureToken セキュアトークンを返すかどうか（通常はtrue）
    */
-  public FirebaseSignUpRequest(boolean returnSecureToken) {
-    this.returnSecureToken = returnSecureToken;
+  public FirebaseSignUpRequest() {
+    this.returnSecureToken = true;
   }
 
   /**
