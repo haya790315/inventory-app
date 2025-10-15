@@ -7,6 +7,7 @@ import org.springframework.web.client.RestClient;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseAuthException;
 import com.google.firebase.auth.FirebaseToken;
+import com.google.firebase.auth.SessionCookieOptions;
 
 import inventory.example.inventory_id.exception.AuthenticationException;
 import inventory.example.inventory_id.request.FirebaseSignUpRequest;
@@ -33,7 +34,7 @@ public class FirebaseAuthService {
   }
 
   public String verifyToken(String idToken) throws FirebaseAuthException {
-    FirebaseToken token = FirebaseAuth.getInstance().verifyIdToken(idToken);
+    FirebaseToken token = FirebaseAuth.getInstance().verifySessionCookie(idToken, true);
     return token.getUid();
   }
 
@@ -57,5 +58,14 @@ public class FirebaseAuthService {
   public String signUp() {
     FirebaseSignUpResponse response = anonymouslySignUp();
     return response.getIdToken();
+  }
+
+  public String createSessionCookie(String idToken) throws Exception {
+    long expiresIn = 7 * 24 * 60 * 60 * 1000;
+    SessionCookieOptions options = SessionCookieOptions.builder()
+        .setExpiresIn(expiresIn)
+        .build();
+    // Create session cookie
+    return FirebaseAuth.getInstance().createSessionCookie(idToken, options);
   }
 }

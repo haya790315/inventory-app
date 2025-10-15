@@ -77,10 +77,11 @@ public class ItemService {
     List<Item> items = itemRepository.getActiveByCategoryName(List.of(userId, systemUserId), categoryName);
     return items.stream()
         .map(item -> new ItemDto(
+            item.getId(),
             item.getName(),
             categoryName,
             0,
-            0))
+            0, item.getUpdatedAt()))
         .toList();
   }
 

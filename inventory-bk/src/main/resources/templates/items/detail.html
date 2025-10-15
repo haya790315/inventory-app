@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html lang="ja" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('アイテム詳細')}"></head>
+<body>
+    <nav th:replace="~{fragments/layout :: navbar(items)}"></nav>
+    
+    <div class="container-fluid">
+        <div class="row">
+            <!-- Sidebar -->
+            <nav th:replace="~{fragments/layout :: sidebar(items)}"></nav>
+
+            <!-- Main content -->
+            <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4 min-h-80">
+                <!-- Breadcrumb -->
+                <nav aria-label="breadcrumb" class="pt-3">
+                    <ol class="breadcrumb">
+                        <li class="breadcrumb-item"><a th:href="@{/}">ダッシュボード</a></li>
+                        <li class="breadcrumb-item"><a th:href="@{/items(category=${item.categoryName})}">アイテム一覧</a></li>
+                        <li class="breadcrumb-item active" th:text="${item.name}">アイテム詳細</li>
+                    </ol>
+                </nav>
+
+                <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pb-2 mb-3 border-bottom">
+                    <h1 class="h2">
+                        <i class="bi bi-box me-2"></i>
+                        <span th:text="${item.name}">アイテム名</span>
+                    </h1>
+                    <div class="btn-toolbar mb-2 mb-md-0">
+                        <div class="btn-group me-2">
+                            <a th:href="@{/items/{id}/edit(id=${item.id})}" class="btn btn-outline-primary">
+                                <i class="bi bi-pencil me-1"></i>編集
+                            </a>
+                            <button type="button" class="btn btn-outline-danger" data-bs-toggle="modal" data-bs-target="#deleteModal">
+                                <i class="bi bi-trash me-1"></i>削除
+                            </button>
+                        </div>
+                        <a th:href="@{/items(category=${item.categoryName})}" class="btn btn-outline-secondary">
+                            <i class="bi bi-arrow-left me-1"></i>一覧に戻る
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Alert Messages -->
+                <div th:if="${message}" class="alert alert-success alert-dismissible fade show" role="alert">
+                    <i class="bi bi-check-circle me-2"></i>
+                    <span th:text="${message}">メッセージ</span>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+
+                <div class="row">
+                    <!-- Item Details -->
+                    <div class="col-lg-8">
+                        <div class="card mb-4">
+                            <div class="card-header">
+                                <h5 class="card-title mb-0">
+                                    <i class="bi bi-info-circle me-2"></i>基本情報
+                                </h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="row">
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label text-muted">アイテム名</label>
+                                        <div class="fw-bold" th:text="${item.name}">アイテム名</div>
+                                    </div>
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label text-muted">カテゴリ</label>
+                                        <div>
+                                            <span class="badge bg-info fs-6" th:text="${item.categoryName}">カテゴリ名</span>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label text-muted">在庫数</label>
+                                        <div th:text="${item.totalQuantity ?: 'なし'}">個</div>
+                                    </div>
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label text-muted">総金額</label>
+                                        <div th:text="${item.totalPrice ?: 'なし'}">円</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Stock Information -->
+                        <div class="card mb-4">
+                            <div class="card-header">
+                                <h5 class="card-title mb-0">
+                                    <i class="bi bi-bar-chart me-2"></i>在庫情報
+                                </h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="row text-center">
+                                    <div class="col-md-4 mb-3">
+                                        <div class="bg-light rounded p-3">
+                                            <div class="display-6 fw-bold" 
+                                                th:text="${item.totalQuantity}"
+                                                th:classappend=="${item.totalQuantity <= 5 ? 'text-danger' : 
+                                                          (item.totalQuantity <= 10 ? 'text-warning' : 'text-success')}">10</div>
+                                            <div class="text-muted">現在在庫</div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4 mb-3">
+                                        <div class="bg-light rounded p-3">
+                                            <div class="display-6 fw-bold text-secondary">5</div>
+                                            <div class="text-muted">最小在庫</div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4 mb-3">
+                                        <div class="bg-light rounded p-3">
+                                            <div class="display-6 fw-bold text-secondary">20</div>
+                                            <div class="text-muted">最大在庫</div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Stock Status Indicator -->
+                                <div class="alert" 
+                                    th:classappend="${item.totalQuantity <= 5 ? 'alert-danger' : 
+                                                    (item.totalQuantity <= 10 ? 'alert-warning' : 'alert-success')}">
+                                    <i th:class="${item.totalQuantity <= 5 ? 'bi bi-exclamation-triangle' : 
+                                                (item.totalQuantity <= 10 ? 'bi bi-dash-circle' : 'bi bi-check-circle')}"></i>
+                                    <strong th:text="${item.totalQuantity <= 5 ? '在庫不足警告' : 
+                                                    (item.totalQuantity <= 10 ? '在庫少量注意' : '在庫充分')}">在庫状況</strong>
+                                    <span th:if="${item.totalQuantity <= 5}">
+                                        - 補充が必要です
+                                    </span>
+                                    <span th:if="${item.totalQuantity > 5 and item.totalQuantity <= 10}">
+                                        - 補充を検討してください
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Recent Records -->
+                        <div class="card">
+                            <div class="card-header d-flex justify-content-between align-items-center">
+                                <h5 class="card-title mb-0">
+                                    <i class="bi bi-clock-history me-2"></i>最近の入出庫記録
+                                </h5>
+                                <a th:href="@{/records(itemId=${item.id})}" class="btn btn-sm btn-outline-primary">
+                                    すべて表示
+                                </a>
+                            </div>
+                            <div class="card-body">
+                                <div th:if="${recentRecords != null and !recentRecords.empty}">
+                                    <div class="table-responsive">
+                                        <table class="table table-sm">
+                                            <thead>
+                                                <tr>
+                                                    <th>ID</th>
+                                                    <th>日時</th>
+                                                    <th>種類</th>
+                                                    <th>数量</th>
+                                                    <th>金額</th>
+                                                    <th>有効期限</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                <tr th:each="record : ${recentRecords}">
+                                                    <td>
+                                                        <small  th:text="${record.id}">123e4567</small>
+                                                    </td>
+                                                    <td>
+                                                        <small th:text="${record.createdAt}">01/01 12:00</small>
+                                                    </td>
+                                                    <td>
+                                                        <span th:switch="${record.source.name()}">
+                                                            <span th:case="'IN'" class="badge bg-success">入庫</span>
+                                                            <span th:case="'OUT'" class="badge bg-danger">出庫</span>
+                                                            <span th:case="*" class="badge bg-warning">調整</span>
+                                                        </span>
+                                                    </td>
+                                                    <td th:text="${record.quantity}">10</td>
+                                                    <td th:text="${record.price == 0 ? '-' : record.price}">1000</td>
+                                                    <td>
+                                                        <small th:text="${record.expirationDate ?: '-'}" th:title="有効期限">有効期限</small>
+                                                    </td>
+                                                </tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                                <div th:if="${recentRecords == null or recentRecords.empty}" 
+                                    class="text-center text-muted py-3">
+                                    <i class="bi bi-inbox"></i>
+                                    まだ記録がありません
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Side Information -->
+                    <div class="col-lg-4">
+                        <!-- Quick Actions -->
+                        <div class="card mb-4">
+                            <div class="card-header">
+                                <h5 class="card-title mb-0">
+                                    <i class="bi bi-lightning me-2"></i>クイックアクション
+                                </h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="d-grid gap-2">
+                                    <button type="button" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#inStockModal">
+                                        <i class="bi bi-plus-circle me-1"></i>入庫記録
+                                    </button>
+                                    <button type="button" class="btn btn-warning" data-bs-toggle="modal" data-bs-target="#outStockModal">
+                                        <i class="bi bi-dash-circle me-1"></i>出庫記録
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Metadata -->
+                        <div class="card">
+                            <div class="card-header">
+                                <h5 class="card-title mb-0">
+                                    <i class="bi bi-database me-2"></i>メタデータ
+                                </h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="mb-2">
+                                    <small class="text-muted">アイテムID</small><br>
+                                    <code th:text="${item.id}">123e4567-e89b-12d3</code>
+                                </div>
+                                <div class="mb-2">
+                                    <small class="text-muted">最終更新</small><br>
+                                    <span th:text="${#temporals.format(item.updatedAt, 'yyyy年MM月dd日 HH:mm')}">2024年01月01日 12:00</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <!-- Delete Confirmation Modal -->
+    <div class="modal fade" id="deleteModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">アイテム削除の確認</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <p>本当にこのアイテムを削除しますか？</p>
+                    <div class="alert alert-warning">
+                        <i class="bi bi-exclamation-triangle me-2"></i>
+                        この操作は取り消せません。関連する入出庫記録も削除されます。
+                    </div>
+                    <strong th:text="${item.name}">アイテム名</strong>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">キャンセル</button>
+                    <form th:action="@{/items/{id}/delete(id=${item.id})}" method="post" style="display: inline;">
+                        <button type="submit" class="btn btn-danger">削除</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick In Stock Modal -->
+    <div class="modal fade" id="inStockModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">クイック入庫</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <form th:action="@{/records}" method="post">
+                    <div class="modal-body">
+                        <input type="hidden" name="itemId" th:value="${item.id}">
+                        <div class="mb-3">
+                            <label for="inQuantity" class="form-label">入庫数量</label>
+                            <input type="number" class="form-control" id="inQuantity" name="quantity" min="1" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="inPrice" class="form-label">単位金額</label>
+                            <input type="number" class="form-control" id="inPrice" name="price" min="0" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="inExpirationDate" class="form-label">有効期限</label>
+                            <input type="date" class="form-control" id="inExpirationDate" name="expirationDate">
+                        </div>
+                        <input type="hidden" name="source" value="IN">
+                        <input type="hidden" name="itemId" value="${item.id}">
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">キャンセル</button>
+                        <button type="submit" class="btn btn-success">入庫実行</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Out Stock Modal -->
+    <div class="modal fade" id="outStockModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">クイック出庫</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <form th:action="@{/records}" method="post">
+                    <div class="modal-body">
+                        <input type="hidden" name="itemId" th:value="${item.id}">
+                        <div class="mb-3">
+                            <label for="itemRecordId" class="form-label">目標履歴ID</label>
+                            <input type="text" class="form-control" id="itemRecordId" name="itemRecordId" 
+                                  required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="outQuantity" class="form-label">出庫数量</label>
+                            <input type="number" class="form-control" id="outQuantity" name="quantity" 
+                                  min="1" required>
+                        </div>
+                        <input type="hidden" name="source" value="OUT">
+                        <input type="hidden" name="itemId" value="${item.id}">
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">キャンセル</button>
+                        <button type="submit" class="btn btn-warning">出庫実行</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <footer th:replace="~{fragments/layout :: footer}"></footer>
+    <th:block th:replace="~{fragments/layout :: scripts}"></th:block>
+</body>
+</html>

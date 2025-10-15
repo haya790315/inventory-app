@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="ja" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head(${item != null ? 'アイテム編集' : '新規アイテム'})}"></head>
+<body>
+    <nav th:replace="~{fragments/layout :: navbar(items)}"></nav>
+    
+    <div class="container-fluid">
+        <div class="row">
+            <nav th:replace="~{fragments/layout :: sidebar(items)}"></nav>
+
+            <!-- Main content -->
+            <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4 min-h-80">
+                <!-- Breadcrumb -->
+                <nav aria-label="breadcrumb" class="pt-3">
+                    <ol class="breadcrumb">
+                        <li class="breadcrumb-item"><a th:href="@{/}">ダッシュボード</a></li>
+                        <li class="breadcrumb-item"><a th:href="@{/items}">アイテム一覧</a></li>
+                        <li class="breadcrumb-item active" th:text="${item != null ? 'アイテム編集' : '新規アイテム'}">新規アイテム</li>
+                    </ol>
+                </nav>
+
+                <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pb-2 mb-3 border-bottom">
+                    <h1 class="h2">
+                        <i class="bi bi-box me-2"></i>
+                        <span th:text="${item != null ? 'アイテム編集' : '新規アイテム'}">新規アイテム</span>
+                    </h1>
+                    <div class="btn-toolbar mb-2 mb-md-0">
+                        <a th:href="@{/items}" class="btn btn-outline-secondary">
+                            <i class="bi bi-arrow-left me-1"></i>一覧に戻る
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Alert Messages -->
+                <div th:if="${message}" class="alert alert-success alert-dismissible fade show" role="alert">
+                    <i class="bi bi-check-circle me-2"></i>
+                    <span th:text="${message}">メッセージ</span>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+
+                <div th:if="${error}" class="alert alert-danger alert-dismissible fade show" role="alert">
+                    <i class="bi bi-exclamation-triangle me-2"></i>
+                    <span th:text="${error}">エラーメッセージ</span>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+
+                <!-- Item Form -->
+                <div class="row">
+                    <div class="col-lg-8">
+                        <div class="card">
+                            <div class="card-header">
+                                <h5 class="card-title mb-0">
+                                    <i class="bi bi-info-circle me-2"></i>アイテム情報
+                                </h5>
+                            </div>
+                            <div class="card-body">
+                                <form th:action="@{${item != null ? '/items/' + item.id : '/items'}}"
+                                        method="post"
+                                        th:object="${itemRequest}"
+                                        class="needs-validation" novalidate>
+                                      <div class="row mb-3">
+                                          <div class="col-md-8">
+                                              <div class="form-floating">
+                                                  <input type="text" class="form-control" 
+                                                        th:field="*{name}" 
+                                                        id="itemName" 
+                                                        placeholder="アイテム名" 
+                                                        required>
+                                                  <label for="itemName">アイテム名 <span class="text-danger">*</span></label>
+                                                  <div class="invalid-feedback">
+                                                      アイテム名を入力してください。
+                                                  </div>
+                                                  <div th:if="${#fields.hasErrors('name')}" class="text-danger small mt-1">
+                                                      <span th:errors="*{name}">エラー</span>
+                                                  </div>
+                                              </div>
+                                          </div>
+                                          <div class="col-md-4">
+                                              <div class="form-floating">
+                                                  <select class="form-select" 
+                                                          th:field="*{categoryName}"
+                                                          id="categoryName"
+                                                          required>
+                                                      <option value="">カテゴリを選択</option>
+                                                      <option th:each="category : ${categories}" 
+                                                              th:value="${category.name}"
+                                                              th:text="${category.name}">カテゴリ名</option>
+                                                  </select>
+                                                  <label for="categoryName">カテゴリ <span class="text-danger">*</span></label>
+
+                                                  <div th:if="${#fields.hasErrors('categoryName')}" class="text-danger small mt-1">
+                                                      <span th:errors="*{categoryName}">エラー</span>
+                                                  </div>
+                                              </div>
+                                          </div>
+                                      </div>
+
+                                      <div class="mb-3">
+                                          <div class="form-floating">
+                                              <textarea class="form-control" 
+                                                        id="description" 
+                                                        placeholder="アイテムの説明" 
+                                                        style="height: 100px"></textarea>
+                                              <label for="description">説明</label>
+                                          </div>
+                                      </div>
+
+                                      <div class="row mb-3">
+                                          <div class="col-md-4">
+                                              <div class="form-floating">
+                                                  <input type="number" class="form-control" 
+                                                        id="minimumStock" 
+                                                        placeholder="最小在庫" 
+                                                        min="0">
+                                                  <label for="minimumStock">最小在庫 <span class="text-danger">*</span></label>
+                                                  <div class="invalid-feedback">
+                                                      最小在庫を入力してください。
+                                                  </div>
+                                              </div>
+                                          </div>
+                                      </div>
+
+                                      <div class="row mb-3">
+                                          <div class="col-md-6">
+                                              <div class="form-floating">
+                                                  <input type="text" class="form-control" 
+                                                        id="location" 
+                                                        placeholder="保管場所">
+                                                  <label for="location">保管場所</label>
+                                                  <div class="form-text">例: 倉庫A-1-2、冷蔵庫など</div>
+                                              </div>
+                                          </div>
+                                      </div>
+
+                                      <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                                          <a th:href="@{/categories}" class="btn btn-outline-secondary me-md-2">
+                                              <i class="bi bi-x-circle me-1"></i>キャンセル
+                                          </a>
+                                          <button type="submit" class="btn btn-primary">
+                                              <i class="bi bi-check-circle me-1"></i>
+                                              <span th:text="${item != null ? '更新' : '作成'}">作成</span>
+                                          </button>
+                                      </div>
+                                  </form>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Side Information -->
+                    <div class="col-lg-4">
+                        <div class="card">
+                            <div class="card-header">
+                                <h5 class="card-title mb-0">
+                                    <i class="bi bi-lightbulb me-2"></i>ヒント
+                                </h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="mb-3">
+                                    <h6><i class="bi bi-info-circle me-1"></i>アイテム名</h6>
+                                    <p class="small text-muted">
+                                        識別しやすい名前を付けてください。同じカテゴリ内で重複する名前は使用できません。
+                                    </p>
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <h6><i class="bi bi-box me-1"></i>在庫レベル</h6>
+                                    <p class="small text-muted">
+                                        <strong>最小在庫:</strong> この数量を下回るとアラートが表示されます。<br>
+                                        <strong>最大在庫:</strong> 発注時の目安となります。
+                                    </p>
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <h6><i class="bi bi-geo-alt me-1"></i>保管場所</h6>
+                                    <p class="small text-muted">
+                                        アイテムの物理的な保管場所を記録しておくと、ピッキング時に便利です。
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Current Item Status (Edit mode only) -->
+                        <div th:if="${item != null}" class="card mt-3">
+                            <div class="card-header">
+                                <h5 class="card-title mb-0">
+                                    <i class="bi bi-bar-chart me-2"></i>現在のステータス
+                                </h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="mb-2">
+                                    <small class="text-muted">作成日時</small><br>
+                                    <span th:text="${#temporals.format(item.createdAt, 'yyyy年MM月dd日 HH:mm')}">2024年01月01日 12:00</span>
+                                </div>
+                                <div class="mb-2">
+                                    <small class="text-muted">最終更新</small><br>
+                                    <span th:text="${#temporals.format(item.updatedAt, 'yyyy年MM月dd日 HH:mm')}">2024年01月01日 12:00</span>
+                                </div>
+                                <div class="mb-2">
+                                    <small class="text-muted">在庫状況</small><br>
+                                    <span th:class="${item.currentStock <= item.minimumStock ? 'text-danger' : 
+                                                   (item.currentStock <= item.minimumStock * 2 ? 'text-warning' : 'text-success')}">
+                                        <i th:class="${item.currentStock <= item.minimumStock ? 'bi bi-exclamation-triangle' : 
+                                                     (item.currentStock <= item.minimumStock * 2 ? 'bi bi-dash-circle' : 'bi bi-check-circle')}"></i>
+                                        <span th:text="${item.currentStock <= item.minimumStock ? '在庫不足' : 
+                                                       (item.currentStock <= item.minimumStock * 2 ? '在庫少' : '在庫充分')}">在庫充分</span>
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <footer th:replace="~{fragments/layout :: footer}"></footer>
+    <th:block th:replace="~{fragments/layout :: scripts}"></th:block>
+</body>
+</html>

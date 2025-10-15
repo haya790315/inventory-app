@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="ja" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head(${category != null ? 'カテゴリ編集' : '新規カテゴリ'})}"></head>
+<body>
+    <nav th:replace="~{fragments/layout :: navbar(categories)}"></nav>
+    
+    <div class="container-fluid">
+        <div class="row">
+            <!-- Sidebar -->
+            <nav th:replace="~{fragments/layout :: sidebar(categories)}"></nav>
+
+            <!-- Main content -->
+            <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4 min-h-80">
+                <!-- Breadcrumb -->
+                <nav aria-label="breadcrumb" class="pt-3">
+                    <ol class="breadcrumb">
+                        <li class="breadcrumb-item"><a th:href="@{/}">ダッシュボード</a></li>
+                        <li class="breadcrumb-item"><a th:href="@{/categories}">カテゴリ一覧</a></li>
+                        <li class="breadcrumb-item active" th:text="${category != null ? 'カテゴリ編集' : '新規カテゴリ'}">新規カテゴリ</li>
+                    </ol>
+                </nav>
+
+                <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pb-2 mb-3 border-bottom">
+                    <h1 class="h2">
+                        <i class="bi bi-tags me-2"></i>
+                        <span th:text="${category != null ? 'カテゴリ編集' : '新規カテゴリ'}">新規カテゴリ</span>
+                    </h1>
+                    <div class="btn-toolbar mb-2 mb-md-0">
+                        <a th:href="@{/categories}" class="btn btn-outline-secondary">
+                            <i class="bi bi-arrow-left me-1"></i>一覧に戻る
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Alert Messages -->
+                <div th:if="${message}" class="alert alert-success alert-dismissible fade show" role="alert">
+                    <i class="bi bi-check-circle me-2"></i>
+                    <span th:text="${message}">メッセージ</span>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+
+                <div th:if="${error}" class="alert alert-danger alert-dismissible fade show" role="alert">
+                    <i class="bi bi-exclamation-triangle me-2"></i>
+                    <span th:text="${error}">エラーメッセージ</span>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+
+                <!-- Category Form -->
+                <div class="row">
+                    <div class="col-lg-8">
+                        <div class="card">
+                            <div class="card-header">
+                                <h5 class="card-title mb-0">
+                                    <i class="bi bi-info-circle me-2"></i>カテゴリ情報
+                                </h5>
+                            </div>
+                            <div class="card-body">
+                                <form th:action="${category != null ? '/categories/' + category.id : '/categories'}" 
+                                      th:method="${category != null ? 'PUT' : 'POST'}" 
+                                      th:object="${categoryRequest}" 
+                                      class="needs-validation" novalidate>
+                                    
+                                    <div class="mb-3">
+                                        <div class="form-floating">
+                                            <input type="text" class="form-control" 
+                                                  th:field="*{name}" 
+                                                  id="categoryName" 
+                                                  placeholder="カテゴリ名" 
+                                                  required>
+                                            <label for="categoryName">カテゴリ名 <span class="text-danger">*</span></label>
+                                            <div class="invalid-feedback">
+                                                カテゴリ名を入力してください。
+                                            </div>
+                                            <div th:if="${#fields.hasErrors('name')}" class="text-danger small mt-1">
+                                                <span th:errors="*{name}">エラー</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                                        <a th:href="@{/categories}" class="btn btn-outline-secondary me-md-2">
+                                            <i class="bi bi-x-circle me-1"></i>キャンセル
+                                        </a>
+                                        <button type="submit" class="btn btn-primary">
+                                            <i class="bi bi-check-circle me-1"></i>
+                                            <span th:text="${category != null ? '更新' : '作成'}">作成</span>
+                                        </button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Side Information -->
+                    <div class="col-lg-4">
+                        <div class="card">
+                            <div class="card-header">
+                                <h5 class="card-title mb-0">
+                                    <i class="bi bi-lightbulb me-2"></i>ガイドライン
+                                </h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="mb-3">
+                                    <h6><i class="bi bi-tag me-1"></i>カテゴリ名</h6>
+                                    <p class="small text-muted">
+                                        分かりやすく、短い名前を付けてください。重複する名前は使用できません。
+                                    </p>
+                                    <div class="alert alert-info">
+                                        <small><strong>例:</strong> 食品、文房具、電子機器、衣類など</small>
+                                    </div>
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <h6><i class="bi bi-file-text me-1"></i>説明</h6>
+                                    <p class="small text-muted">
+                                        このカテゴリにどのようなアイテムが含まれるかを明確に説明してください。
+                                        アイテム登録時の参考になります。
+                                    </p>
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <h6><i class="bi bi-info-circle me-1"></i>ヒント</h6>
+                                    <ul class="small text-muted">
+                                        <li>階層的な分類を考慮する</li>
+                                        <li>将来的な拡張性を考慮する</li>
+                                        <li>管理しやすい粒度で分類する</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Current Category Status (Edit mode only) -->
+                        <div th:if="${category != null}" class="card mt-3">
+                            <div class="card-header">
+                                <h5 class="card-title mb-0">
+                                    <i class="bi bi-bar-chart me-2"></i>現在のステータス
+                                </h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="mb-2">
+                                    <small class="text-muted">最終更新</small><br>
+                                    <span th:text="${#temporals.format(category.updatedAt, 'yyyy年MM月dd日 HH:mm')}">2024年01月01日 12:00</span>
+                                </div>
+                                <div class="mb-2">
+                                    <small class="text-muted">所属アイテム数</small><br>
+                                    <span class="fw-bold" th:text="${category.itemCount ?: 0}">0</span> 個
+                                </div>
+                                
+                                <div th:if="${category.itemCount > 0}" class="alert alert-warning mt-3">
+                                    <small>
+                                        <i class="bi bi-exclamation-triangle me-1"></i>
+                                        このカテゴリには <strong th:text="${category.itemCount}">0</strong> 個のアイテムが登録されています。
+                                        削除する場合は、事前にアイテムを他のカテゴリに移動するか削除してください。
+                                    </small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <footer th:replace="~{fragments/layout :: footer}"></footer>
+    <th:block th:replace="~{fragments/layout :: scripts}"></th:block>
+</body>
+</html>
