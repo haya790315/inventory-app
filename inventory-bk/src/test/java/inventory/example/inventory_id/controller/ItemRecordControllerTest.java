@@ -55,11 +55,11 @@ class ItemRecordControllerTest {
   private ObjectMapper objectMapper = new ObjectMapper()
     .registerModule(new JavaTimeModule());
 
-  private String testUserId = "testUserId";
-  private String itemNotFoundMsg = "アイテムが見つかりません";
-  private String serverErrorMsg = "サーバーエラーが発生しました";
-  private static String itemRecordNotFoundMsg =
-    "指定のレコードが存在しません。";
+  private final String testUserId = "testUserId";
+  private final String itemNotFoundMsg = "アイテムが見つかりません";
+  private final String serverErrorMsg = "サーバーエラーが発生しました";
+  private final String itemRecordNotFoundMsg = "指定のレコードが存在しません。";
+  private final String ITEM_RECORD_DELETED = "入出庫履歴を削除しました";
 
   @BeforeEach
   void setUp() {
@@ -544,7 +544,7 @@ class ItemRecordControllerTest {
           .contentType(MediaType.APPLICATION_JSON)
       )
       .andExpect(status().isAccepted())
-      .andExpect(jsonPath("$.message").value("入出庫履歴を削除しました"))
+      .andExpect(jsonPath("$.message").value(ITEM_RECORD_DELETED))
       .andExpect(jsonPath("$.deletedRecordIds[0]").value(recordId));
   }
 
@@ -552,7 +552,7 @@ class ItemRecordControllerTest {
   @Tag("DELETE: /api/item-record")
   @DisplayName("アイテム記録削除失敗 - 指定のレコードが存在しません。")
   void deleteItemRecord_notFound() throws Exception {
-    doThrow(new IllegalArgumentException("指定のレコードが存在しません。"))
+    doThrow(new IllegalArgumentException(itemRecordNotFoundMsg))
       .when(itemRecordService)
       .deleteItemRecord(any(Long.class), anyString());
 

@@ -25,6 +25,8 @@ public class ItemRecordController extends BaseController {
     this.itemRecordService = itemRecordService;
   }
 
+  private final String ITEM_RECORD_DELETED = "入出庫履歴を削除しました";
+
   @PostMapping
   public ResponseEntity<Object> createItemRecord(
     @RequestBody @Valid ItemRecordRequest request
@@ -60,7 +62,7 @@ public class ItemRecordController extends BaseController {
       );
       Map<String, Object> data = Map.of(
         "message",
-        "入出庫履歴を削除しました",
+        ITEM_RECORD_DELETED,
         "deletedRecordIds",
         deletedRecordIds
       );
