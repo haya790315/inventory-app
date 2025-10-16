@@ -1,5 +1,6 @@
 package inventory.example.inventory_id.service;
 
+import inventory.example.inventory_id.dto.ItemRecordDto;
 import inventory.example.inventory_id.enums.TransactionType;
 import inventory.example.inventory_id.model.Item;
 import inventory.example.inventory_id.model.ItemRecord;
@@ -135,7 +136,7 @@ public class ItemRecordService {
     return deletedIds;
   }
 
-  public ItemRecordDto getItemRecord(UUID id, String userId) {
+  public ItemRecordDto getItemRecord(Long id, String userId) {
     return itemRecordRepository
       .findByIdAndUserId(id, userId)
       .stream()
@@ -145,13 +146,15 @@ public class ItemRecordService {
           record.getItem().getCategory().getName(),
           record.getQuantity(),
           record.getPrice(),
-          record.getSource(),
+          record.getTransactionType(),
           record.getExpirationDate() != null
             ? record.getExpirationDate().toString()
             : null
         )
       )
       .findFirst()
-      .orElseThrow(() -> new IllegalArgumentException(itemRecordNotFoundMsg));
+      .orElseThrow(() ->
+        new ResponseStatusException(HttpStatus.NOT_FOUND, itemRecordNotFoundMsg)
+      );
   }
 }

@@ -11,16 +11,10 @@ import static org.mockito.Mockito.when;
 import inventory.example.inventory_id.dto.ItemRecordDto;
 import inventory.example.inventory_id.enums.TransactionType;
 import inventory.example.inventory_id.model.Category;
-import inventory.example.inventory_id.model.Category;
-import inventory.example.inventory_id.model.Item;
 import inventory.example.inventory_id.model.Item;
 import inventory.example.inventory_id.model.ItemRecord;
-import inventory.example.inventory_id.model.ItemRecord;
-import inventory.example.inventory_id.repository.ItemRecordRepository;
 import inventory.example.inventory_id.repository.ItemRecordRepository;
 import inventory.example.inventory_id.repository.ItemRepository;
-import inventory.example.inventory_id.repository.ItemRepository;
-import inventory.example.inventory_id.request.ItemRecordRequest;
 import inventory.example.inventory_id.request.ItemRecordRequest;
 import java.time.LocalDate;
 import java.util.List;
@@ -544,7 +538,9 @@ public class ItemRecordServiceTest {
     assertThat(result.getCategoryName()).isEqualTo(testItem.getCategoryName());
     assertThat(result.getQuantity()).isEqualTo(testItemRecord.getQuantity());
     assertThat(result.getPrice()).isEqualTo(testItemRecord.getPrice());
-    assertThat(result.getSource()).isEqualTo(testItemRecord.getSource());
+    assertThat(result.getTransactionType()).isEqualTo(
+      testItemRecord.getTransactionType()
+    );
     assertThat(result.getExpirationDate()).isEqualTo(
       testItemRecord.getExpirationDate().toString()
     );
@@ -557,7 +553,7 @@ public class ItemRecordServiceTest {
       testItem,
       testUserId,
       5,
-      ItemRecord.Source.OUT,
+      TransactionType.OUT,
       testItemRecord
     );
 
@@ -576,21 +572,24 @@ public class ItemRecordServiceTest {
       outRecord.getItem().getCategoryName()
     );
     assertThat(result.getQuantity()).isEqualTo(outRecord.getQuantity());
-    assertThat(result.getSource()).isEqualTo(outRecord.getSource());
+    assertThat(result.getTransactionType()).isEqualTo(
+      outRecord.getTransactionType()
+    );
     assertThat(result.getExpirationDate()).isNull();
   }
 
   @Test
-  @DisplayName("履歴取得失敗400 - 存在しない履歴を取得しようとした場合")
+  @DisplayName("履歴取得失敗 - 存在しない履歴を取得しようとした場合")
   void getItemRecord_throws_exception_when_record_not_found() {
     when(
       itemRecordRepository.findByIdAndUserId(testItemRecordId, testUserId)
     ).thenReturn(Optional.empty());
 
-    IllegalArgumentException exception = assertThrows(
-      IllegalArgumentException.class,
+    ResponseStatusException exception = assertThrows(
+      ResponseStatusException.class,
       () -> itemRecordService.getItemRecord(testItemRecordId, testUserId)
     );
-    assertThat(exception.getMessage()).isEqualTo(itemRecordNotFoundMsg);
+    assertThat(exception.getStatusCode()).isEqualTo(HttpStatus.NOT_FOUND);
+    assertThat(exception.getReason()).isEqualTo(itemRecordNotFoundMsg);
   }
 }

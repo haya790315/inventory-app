@@ -5,7 +5,6 @@ import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.when;
-import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -14,21 +13,14 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import inventory.example.inventory_id.dto.ItemRecordDto;
 import inventory.example.inventory_id.enums.TransactionType;
 import inventory.example.inventory_id.exception.AuthenticationException;
-import inventory.example.inventory_id.exception.AuthenticationException;
-import inventory.example.inventory_id.exception.ValidationException;
 import inventory.example.inventory_id.exception.ValidationException;
 import inventory.example.inventory_id.model.Category;
 import inventory.example.inventory_id.model.Item;
-import inventory.example.inventory_id.model.ItemRecord;
 import inventory.example.inventory_id.request.ItemRecordRequest;
-import inventory.example.inventory_id.request.ItemRecordRequest;
-import inventory.example.inventory_id.service.ItemRecordService;
 import inventory.example.inventory_id.service.ItemRecordService;
 import java.time.LocalDate;
 import java.util.List;
@@ -622,18 +614,18 @@ class ItemRecordControllerTest {
       categoryName,
       100,
       500,
-      ItemRecord.Source.IN,
+      TransactionType.IN,
       expirationDate
     );
 
     when(
-      itemRecordService.getItemRecord(any(UUID.class), anyString())
+      itemRecordService.getItemRecord(any(Long.class), anyString())
     ).thenReturn(itemRecordDto);
 
     mockMvc
       .perform(
         get("/api/item-record")
-          .param("record_id", UUID.randomUUID().toString())
+          .param("record_id", "1")
           .contentType(MediaType.APPLICATION_JSON)
       )
       .andExpect(status().isOk())
@@ -641,24 +633,29 @@ class ItemRecordControllerTest {
       .andExpect(jsonPath("$.categoryName").value(categoryName))
       .andExpect(jsonPath("$.quantity").value(100))
       .andExpect(jsonPath("$.price").value(500))
-      .andExpect(jsonPath("$.source").value("IN"))
+      .andExpect(jsonPath("$.transactionType").value("IN"))
       .andExpect(jsonPath("$.expirationDate").value(expirationDate));
   }
 
   @Test
   @Tag("GET: /api/item-record")
-  @DisplayName("アイテム記録取得-400 指定のレコードが存在しません。")
+  @DisplayName("アイテム記録取得-404 指定のレコードが存在しません。")
   void getItemRecords_notFound() throws Exception {
-    doThrow(new IllegalArgumentException("指定のレコードが存在しません。"))
+    doThrow(
+      new ResponseStatusException(
+        HttpStatus.NOT_FOUND,
+        "指定のレコードが存在しません。"
+      )
+    )
       .when(itemRecordService)
-      .getItemRecord(any(UUID.class), anyString());
+      .getItemRecord(any(Long.class), anyString());
     mockMvc
       .perform(
         get("/api/item-record")
-          .param("record_id", UUID.randomUUID().toString())
+          .param("record_id", "1")
           .contentType(MediaType.APPLICATION_JSON)
       )
-      .andExpect(status().isBadRequest())
+      .andExpect(status().isNotFound())
       .andExpect(
         content()
           .json(
@@ -675,12 +672,12 @@ class ItemRecordControllerTest {
   void getItemRecords_generalException() throws Exception {
     doThrow(new RuntimeException(serverErrorMsg))
       .when(itemRecordService)
-      .getItemRecord(any(UUID.class), anyString());
+      .getItemRecord(any(Long.class), anyString());
 
     mockMvc
       .perform(
         get("/api/item-record")
-          .param("record_id", UUID.randomUUID().toString())
+          .param("record_id", "1")
           .contentType(MediaType.APPLICATION_JSON)
       )
       .andExpect(status().isInternalServerError())

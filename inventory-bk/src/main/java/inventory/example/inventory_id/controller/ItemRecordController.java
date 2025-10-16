@@ -2,10 +2,7 @@ package inventory.example.inventory_id.controller;
 
 import inventory.example.inventory_id.dto.ItemRecordDto;
 import inventory.example.inventory_id.request.ItemRecordRequest;
-import inventory.example.inventory_id.request.ItemRecordRequest;
 import inventory.example.inventory_id.service.ItemRecordService;
-import inventory.example.inventory_id.service.ItemRecordService;
-import jakarta.validation.Valid;
 import jakarta.validation.Valid;
 import java.util.List;
 import java.util.Map;
@@ -81,7 +78,7 @@ public class ItemRecordController extends BaseController {
 
   @GetMapping
   public ResponseEntity<Object> getItemRecord(
-    @RequestParam("record_id") UUID recordId
+    @RequestParam("record_id") Long recordId
   ) {
     try {
       String userId = fetchUserIdFromToken();
@@ -90,8 +87,11 @@ public class ItemRecordController extends BaseController {
         userId
       );
       return response(HttpStatus.OK, itemRecord);
-    } catch (IllegalArgumentException e) {
-      return response(HttpStatus.BAD_REQUEST, e.getMessage());
+    } catch (ResponseStatusException e) {
+      return response(
+        HttpStatus.valueOf(e.getStatusCode().value()),
+        e.getReason()
+      );
     } catch (Exception e) {
       return response(HttpStatus.INTERNAL_SERVER_ERROR, e.getMessage());
     }
