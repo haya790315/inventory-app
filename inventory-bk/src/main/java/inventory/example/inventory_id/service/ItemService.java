@@ -1,25 +1,24 @@
 package inventory.example.inventory_id.service;
 
+import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpStatus;
+import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
+
 import inventory.example.inventory_id.dto.ItemDto;
 import inventory.example.inventory_id.model.Category;
 import inventory.example.inventory_id.model.Item;
 import inventory.example.inventory_id.repository.CategoryRepository;
 import inventory.example.inventory_id.repository.ItemRepository;
 import inventory.example.inventory_id.request.ItemRequest;
-import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.cache.annotation.CacheEvict;
-import org.springframework.cache.annotation.Cacheable;
-import org.springframework.http.HttpStatus;
-import org.springframework.stereotype.Service;
-import org.springframework.web.server.ResponseStatusException;
 
 @Service
 public class ItemService {
-
   @Autowired
   private ItemRepository itemRepository;
 
@@ -33,7 +32,6 @@ public class ItemService {
 
   private String itemsNotFoundMsg = "アイテムが見つかりません";
 
-  @CacheEvict(value = "items", key = "#userId + ':' + #itemRequest.categoryName")
   public void createItem(
       String userId,
       ItemRequest itemRequest) {
@@ -66,7 +64,6 @@ public class ItemService {
     categoryRepository.save(cate);
   }
 
-  @Cacheable(value = "items", key = "#userId + ':' + #categoryName")
   public List<ItemDto> getItems(
       String userId,
       String categoryName) {
@@ -87,7 +84,6 @@ public class ItemService {
         .toList();
   }
 
-  @CacheEvict(value = "items", allEntries = true)
   public void updateItem(
       String userId,
       UUID itemId,
@@ -121,7 +117,6 @@ public class ItemService {
     itemRepository.save(item);
   }
 
-  @CacheEvict(value = "items", allEntries = true)
   public void deleteItem(
       String userId,
       UUID itemId) {

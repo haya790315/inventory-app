@@ -7,8 +7,6 @@ import java.util.UUID;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.cache.annotation.CacheEvict;
-import org.springframework.cache.annotation.Cacheable;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
@@ -30,7 +28,6 @@ public class CategoryService {
 
   private String categoryNotFoundMsg = "カテゴリーが見つかりません";
 
-  @Cacheable(value = "categories", key = "#userId")
   public List<CategoryDto> getAllCategories(String userId) {
     // ユーザとデフォルトのカテゴリを取得
     List<Category> categories = categoryRepository.findNotDeleted(List.of(userId, systemUserId));
@@ -43,7 +40,6 @@ public class CategoryService {
         .toList();
   }
 
-  @Cacheable(value = "categoryItems", key = "#userId + ':' + #categoryId")
   public List<ItemDto> getCategoryItems(String userId, UUID categoryId) {
     List<Category> categories = categoryRepository.findNotDeleted(List.of(userId, systemUserId));
     // ユーザのカテゴリを取得
@@ -69,7 +65,6 @@ public class CategoryService {
     return itemDtos;
   }
 
-  @CacheEvict(value = "categories", key = "#userId", allEntries = true)
   public Category createCategory(CategoryRequest categoryRequest, String userId) {
 
     List<Category> categoryList = categoryRepository.findNotDeleted(List.of(userId, systemUserId));
@@ -94,7 +89,6 @@ public class CategoryService {
     return categoryRepository.save(category);
   }
 
-  @CacheEvict(value = "categories", key = "#userId", allEntries = true)
   public Category updateCategory(UUID categoryId, CategoryRequest categoryRequest, String userId) {
     Optional<Category> categoryOpt = categoryRepository.findUserCategory(List.of(userId, systemUserId), categoryId);
     if (!categoryOpt.isPresent()) {
@@ -115,7 +109,6 @@ public class CategoryService {
     return categoryRepository.save(category);
   }
 
-  @CacheEvict(value = "categories", key = "#userId", allEntries = true)
   public void deleteCategory(UUID id, String userId) {
     List<Category> categoryList = categoryRepository.findNotDeleted(List.of(userId, systemUserId));
     if (categoryList.isEmpty()) {
