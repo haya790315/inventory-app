@@ -2,20 +2,20 @@ package inventory.example.inventory_id.repository;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import inventory.example.inventory_id.enums.TransactionType;
+import inventory.example.inventory_id.model.Category;
+import inventory.example.inventory_id.model.Item;
+import inventory.example.inventory_id.model.ItemRecord;
 import java.util.Optional;
 import java.util.UUID;
-
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.test.context.ActiveProfiles;
-
-import inventory.example.inventory_id.model.Category;
-import inventory.example.inventory_id.model.Item;
-import inventory.example.inventory_id.model.ItemRecord;
 
 @DataJpaTest
 @ActiveProfiles("test")
@@ -34,6 +34,7 @@ public class ItemRecordRepositoryTest {
   private String otherUserId = "otherUserId";
   private ItemRecord testItemInRecord;
   private ItemRecord testItemOutRecord;
+  private ItemRecord deletedInRecord;
   private Item testUserItem;
   private Item otherUserItem;
 
@@ -58,167 +59,239 @@ public class ItemRecordRepositoryTest {
 
     // testUser入庫レコードを作成(10個、単価1000)
     testItemInRecord = new ItemRecord(
-        testUserItem,
-        testUserId,
-        10,
-        1000,
-        null,
-        ItemRecord.Source.IN);
+      testUserItem,
+      testUserId,
+      10,
+      1000,
+      null,
+      TransactionType.IN
+    );
     itemRecordRepository.save(testItemInRecord);
 
     // testUser出庫レコードを作成(5個出庫、残り5個)
     testItemOutRecord = new ItemRecord(
-        testUserItem,
-        testUserId,
-        5,
-        ItemRecord.Source.OUT,
-        testItemInRecord);
+      testUserItem,
+      testUserId,
+      5,
+      TransactionType.OUT,
+      testItemInRecord
+    );
     itemRecordRepository.save(testItemOutRecord);
+
+    // 削除フラグが立っているレコードを作成（対象外）
+    deletedInRecord = new ItemRecord(
+      testUserItem,
+      testUserId,
+      3,
+      1000,
+      null,
+      TransactionType.IN
+    );
+    deletedInRecord.setDeletedFlag(true);
+    itemRecordRepository.save(deletedInRecord);
+
+    ItemRecord deletedOutRecord = new ItemRecord(
+      testUserItem,
+      testUserId,
+      2,
+      TransactionType.OUT,
+      testItemInRecord
+    );
+    deletedOutRecord.setDeletedFlag(true);
+    itemRecordRepository.save(deletedOutRecord);
 
     // otherUser入庫レコードを作成（20個、単価2000）
     ItemRecord otherUserRecord = new ItemRecord(
-        otherUserItem,
-        otherUserId,
-        20,
-        2000,
-        null,
-        ItemRecord.Source.IN);
+      otherUserItem,
+      otherUserId,
+      20,
+      2000,
+      null,
+      TransactionType.IN
+    );
     itemRecordRepository.save(otherUserRecord);
 
     // otherUser出庫レコードを作成（20個出庫、残り0個）
     ItemRecord otherUserOutRecord = new ItemRecord(
-        otherUserItem,
-        otherUserId,
-        20,
-        ItemRecord.Source.OUT,
-        otherUserRecord);
+      otherUserItem,
+      otherUserId,
+      20,
+      TransactionType.OUT,
+      otherUserRecord
+    );
     itemRecordRepository.save(otherUserOutRecord);
   }
 
   @Test
+  @Tag("getRecordByUserIdAndId")
   @DisplayName("正しいユーザーIDとIDでアイテムレコードを取得できる")
   void testFindByUserIdAndId_Success() {
-    Optional<ItemRecord> result = itemRecordRepository.findByUserIdAndId(testUserId,
-        testItemInRecord.getId());
+    Optional<ItemRecord> result = itemRecordRepository.getRecordByUserIdAndId(
+      testUserId,
+      testItemInRecord.getId()
+    );
 
     assertThat(result).isPresent();
     assertThat(result.get().getId()).isEqualTo(testItemInRecord.getId());
     assertThat(result.get().getUserId()).isEqualTo(testUserId);
     assertThat(result.get().getQuantity()).isEqualTo(10);
     assertThat(result.get().getPrice()).isEqualTo(1000);
-    assertThat(result.get().getSource()).isEqualTo(ItemRecord.Source.IN);
+    assertThat(result.get().getTransactionType()).isEqualTo(TransactionType.IN);
 
-    Optional<ItemRecord> resultOut = itemRecordRepository.findByUserIdAndId(testUserId,
-        testItemOutRecord.getId());
+    Optional<ItemRecord> resultOut =
+      itemRecordRepository.getRecordByUserIdAndId(
+        testUserId,
+        testItemOutRecord.getId()
+      );
     assertThat(resultOut).isPresent();
     assertThat(resultOut.get().getId()).isEqualTo(testItemOutRecord.getId());
     assertThat(resultOut.get().getUserId()).isEqualTo(testUserId);
     assertThat(resultOut.get().getQuantity()).isEqualTo(5);
-    assertThat(resultOut.get().getSource()).isEqualTo(ItemRecord.Source.OUT);
+    assertThat(resultOut.get().getTransactionType()).isEqualTo(
+      TransactionType.OUT
+    );
   }
 
   @Test
+  @Tag("getRecordByUserIdAndId")
+  @DisplayName("削除フラグが立っている場合は取得しない")
+  void testFindByUserIdAndId_DeletedFlag() {
+    // 削除フラグが立っているレコードを取得しようとする
+    Optional<ItemRecord> result = itemRecordRepository.getRecordByUserIdAndId(
+      testUserId,
+      deletedInRecord.getId()
+    );
+    assertThat(result).isNotPresent();
+  }
+
+  @Test
+  @Tag("getRecordByUserIdAndId")
   @DisplayName("正しいユーザーIDとIDでアイテムレコードを取得- ゼロ件の場合")
   void testFindByUserIdAndId_ZeroRecords() {
-    Optional<ItemRecord> result = itemRecordRepository.findByUserIdAndId(testUserId,
-        UUID.randomUUID());
+    Optional<ItemRecord> result = itemRecordRepository.getRecordByUserIdAndId(
+      testUserId,
+      Long.MAX_VALUE
+    );
 
     assertThat(result).isNotPresent();
   }
 
   @Test
+  @Tag("getRecordByUserIdAndId")
   @DisplayName("存在しないIDでアイテムレコードを検索すると空のOptionalを返す")
   void testFindByUserIdAndId_NotFound() {
-    UUID nonExistId = UUID.randomUUID();
+    Long nonExistId = Long.MAX_VALUE;
 
-    Optional<ItemRecord> result = itemRecordRepository.findByUserIdAndId(testUserId, nonExistId);
-
-    assertThat(result).isNotPresent();
-  }
-
-  @Test
-  @DisplayName("異なるユーザーIDでアイテムレコードを検索すると空のOptionalを返す")
-  void testFindByUserIdAndId_WrongUserId() {
-    Optional<ItemRecord> result = itemRecordRepository.findByUserIdAndId(otherUserId, testItemInRecord.getId());
+    Optional<ItemRecord> result = itemRecordRepository.getRecordByUserIdAndId(
+      testUserId,
+      nonExistId
+    );
 
     assertThat(result).isNotPresent();
   }
 
   @Test
+  @Tag("getRecordByUserIdAndId")
   @DisplayName("ユーザーIDとレコードのユーザIDが異なる場合は空のOptionalを返す")
   void testFindByUserIdAndId_DifferentUserRecord() {
-    Optional<ItemRecord> result = itemRecordRepository.findByUserIdAndId(testUserId, otherUserItem.getId());
+    Optional<ItemRecord> result = itemRecordRepository.getRecordByUserIdAndId(
+      otherUserId,
+      testItemInRecord.getId()
+    );
     assertThat(result).isNotPresent();
   }
 
   @Test
+  @Tag("getInrecordRemainQuantity")
   @DisplayName("入庫レコードの残り数量を正しく計算する")
   void testGetRemainingQuantityForInRecord_NoOutRecords() {
-    Integer remainingQuantity = itemRecordRepository.getRemainingQuantityForInRecord(testItemInRecord.getId());
+    Integer remainingQuantity = itemRecordRepository.getInrecordRemainQuantity(
+      testItemInRecord.getId()
+    );
     assertThat(remainingQuantity).isEqualTo(5);
   }
 
   @Test
+  @Tag("getInrecordRemainQuantity")
   @DisplayName("入庫レコードの残り数量を正しく計算する - 複数の出庫がある場合")
   void testGetRemainingQuantityForInRecord_WithMultipleOut() {
     // 複数の出庫レコードを作成
     ItemRecord outRecord1 = new ItemRecord(
-        testUserItem,
-        testUserId,
-        3,
-        ItemRecord.Source.OUT,
-        testItemInRecord);
+      testUserItem,
+      testUserId,
+      3,
+      TransactionType.OUT,
+      testItemInRecord
+    );
     itemRecordRepository.save(outRecord1);
 
-    Integer remainingQuantity = itemRecordRepository.getRemainingQuantityForInRecord(testItemInRecord.getId());
+    Integer remainingQuantity = itemRecordRepository.getInrecordRemainQuantity(
+      testItemInRecord.getId()
+    );
 
     assertThat(remainingQuantity).isEqualTo(2);
   }
 
   @Test
+  @Tag("getInrecordRemainQuantity")
   @DisplayName("入庫レコードの残り数量を正しく計算する - 完全に出庫された場合")
   void testGetRemainingQuantityForInRecord_FullyOut() {
     ItemRecord outRecord = new ItemRecord(
-        testUserItem,
-        testUserId,
-        5,
-        ItemRecord.Source.OUT,
-        testItemInRecord);
+      testUserItem,
+      testUserId,
+      5,
+      TransactionType.OUT,
+      testItemInRecord
+    );
     itemRecordRepository.save(outRecord);
 
-    Integer remainingQuantity = itemRecordRepository.getRemainingQuantityForInRecord(testItemInRecord.getId());
+    Integer remainingQuantity = itemRecordRepository.getInrecordRemainQuantity(
+      testItemInRecord.getId()
+    );
 
     assertThat(remainingQuantity).isEqualTo(0);
   }
 
   @Test
+  @Tag("getInrecordRemainQuantity")
   @DisplayName("レコードが存在しない場合の残り数量はnullを返す")
   void testGetRemainingQuantityForInRecord_NoInRecords() {
-    Integer remainingQuantity = itemRecordRepository.getRemainingQuantityForInRecord(UUID.randomUUID());
+    Integer remainingQuantity = itemRecordRepository.getInrecordRemainQuantity(
+      Long.MAX_VALUE
+    );
     assertThat(remainingQuantity).isNull();
   }
 
   @Test
+  @Tag("getInrecordRemainQuantity")
   @DisplayName("出庫レコードIDを指定した場合はnullを返す")
   void testGetRemainingQuantityForInRecord_WithOutRecord() {
-    Integer remainingQuantity = itemRecordRepository.getRemainingQuantityForInRecord(testItemOutRecord.getId());
+    Integer remainingQuantity = itemRecordRepository.getInrecordRemainQuantity(
+      testItemOutRecord.getId()
+    );
     assertThat(remainingQuantity).isNull();
   }
 
   @Test
+  @Tag("getItemTotalQuantity")
   @DisplayName("アイテムの合計数量を正しく計算する")
   void testGetItemTotalQuantity_InOnly() {
-    Integer totalQuantity = itemRecordRepository.getItemTotalQuantity(testUserItem.getId());
+    Integer totalQuantity = itemRecordRepository.getItemTotalQuantity(
+      testUserItem.getId()
+    );
 
     assertThat(totalQuantity).isEqualTo(5);
   }
 
   @Test
+  @Tag("getItemTotalQuantity")
   @DisplayName("存在しないアイテムIDの合計数量は0を返す")
   void testGetItemTotalQuantity_NonExistentItem() {
     UUID nonExistentItemId = UUID.randomUUID();
 
-    Integer totalQuantity = itemRecordRepository.getItemTotalQuantity(nonExistentItemId);
+    Integer totalQuantity = itemRecordRepository.getItemTotalQuantity(
+      nonExistentItemId
+    );
 
     assertThat(totalQuantity).isEqualTo(0);
   }
@@ -230,7 +303,9 @@ public class ItemRecordRepositoryTest {
     categoryRepository.save(newCategory);
     Item newItem = new Item("New Item", testUserId, newCategory, false);
 
-    int totalQuantity = itemRecordRepository.getItemTotalQuantity(newItem.getId());
+    int totalQuantity = itemRecordRepository.getItemTotalQuantity(
+      newItem.getId()
+    );
 
     assertThat(totalQuantity).isEqualTo(0);
   }
@@ -238,7 +313,10 @@ public class ItemRecordRepositoryTest {
   @Test
   @DisplayName("IDとユーザーIDでレコードを取得成功")
   void testFindByIdAndUserId_Success() {
-    Optional<ItemRecord> result = itemRecordRepository.findByIdAndUserId(testItemInRecord.getId(), testUserId);
+    Optional<ItemRecord> result = itemRecordRepository.findByIdAndUserId(
+      testItemInRecord.getId(),
+      testUserId
+    );
     assertThat(result).isPresent();
     assertThat(result.get()).isEqualTo(testItemInRecord);
   }
@@ -246,7 +324,10 @@ public class ItemRecordRepositoryTest {
   @Test
   @DisplayName("IDとユーザーIDでレコードを取得失敗- ユーザーIDが異なる場合")
   void testFindByIdAndUserId_Failure_DifferentUser() {
-    Optional<ItemRecord> result = itemRecordRepository.findByIdAndUserId(testItemInRecord.getId(), otherUserId);
+    Optional<ItemRecord> result = itemRecordRepository.findByIdAndUserId(
+      testItemInRecord.getId(),
+      otherUserId
+    );
     assertThat(result).isNotPresent();
   }
 
