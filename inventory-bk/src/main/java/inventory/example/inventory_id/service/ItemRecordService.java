@@ -164,14 +164,23 @@ public class ItemRecordService {
   }
 
   public List<ItemRecordDto> getUserItemRecords(String userId) {
-    List<ItemRecord> itemRecords = itemRecordRepository.findUserItemRecords(userId);
-    return itemRecords.stream().map(record -> new ItemRecordDto(
-        record.getItem().getName(),
-        record.getItem().getCategoryName(),
-        record.getQuantity(),
-        record.getPrice(),
-        record.getSource(),
-        record.getExpirationDate() != null ? record.getExpirationDate().toString() : null))
-        .toList();
+    List<ItemRecord> itemRecords = itemRecordRepository.findUserItemRecords(
+      userId
+    );
+    return itemRecords
+      .stream()
+      .map(record ->
+        new ItemRecordDto(
+          record.getItem().getName(),
+          record.getItem().getCategoryName(),
+          record.getQuantity(),
+          record.getPrice(),
+          record.getTransactionType(),
+          record.getExpirationDate() != null
+            ? record.getExpirationDate().toString()
+            : null
+        )
+      )
+      .toList();
   }
 }

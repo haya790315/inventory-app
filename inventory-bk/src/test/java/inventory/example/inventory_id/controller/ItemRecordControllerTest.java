@@ -14,6 +14,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import com.google.cloud.firestore.Transaction;
 import inventory.example.inventory_id.dto.ItemRecordDto;
 import inventory.example.inventory_id.enums.TransactionType;
 import inventory.example.inventory_id.exception.AuthenticationException;
@@ -699,55 +700,74 @@ class ItemRecordControllerTest {
     String categoryName = "Test Category";
     String expirationDate = LocalDate.now().toString();
     ItemRecordDto itemRecordDto = new ItemRecordDto(
-        itemName,
-        categoryName,
-        100,
-        500,
-        ItemRecord.Source.IN,
-        expirationDate);
+      itemName,
+      categoryName,
+      100,
+      500,
+      TransactionType.IN,
+      expirationDate
+    );
 
-    when(itemRecordService.getUserItemRecords(anyString()))
-        .thenReturn(List.of(itemRecordDto));
-    mockMvc.perform(get("/api/item-record/history")
-        .contentType(MediaType.APPLICATION_JSON))
-        .andExpect(status().isOk())
-        .andExpect(content().json("""
+    when(itemRecordService.getUserItemRecords(anyString())).thenReturn(
+      List.of(itemRecordDto)
+    );
+    mockMvc
+      .perform(
+        get("/api/item-record/history").contentType(MediaType.APPLICATION_JSON)
+      )
+      .andExpect(status().isOk())
+      .andExpect(
+        content()
+          .json(
+            """
             [{
               "itemName": "%s",
               "categoryName": "%s",
               "quantity": 100,
               "price": 500,
-              "source": "IN",
+              "transactionType": "IN",
               "expirationDate": "%s"
             }]
-            """.formatted(itemName, categoryName, expirationDate)));
+            """.formatted(itemName, categoryName, expirationDate)
+          )
+      );
   }
 
   @Test
   @Tag("GET: /api/item-record/history")
   @DisplayName("ユーザーのアイテム記録一覧取得-200 正常系(履歴なし)")
   void getUserItemRecords_success_empty() throws Exception {
-    when(itemRecordService.getUserItemRecords(anyString()))
-        .thenReturn(List.of());
-    mockMvc.perform(get("/api/item-record/history")
-        .contentType(MediaType.APPLICATION_JSON))
-        .andExpect(status().isOk())
-        .andExpect(content().json("[]"));
+    when(itemRecordService.getUserItemRecords(anyString())).thenReturn(
+      List.of()
+    );
+    mockMvc
+      .perform(
+        get("/api/item-record/history").contentType(MediaType.APPLICATION_JSON)
+      )
+      .andExpect(status().isOk())
+      .andExpect(content().json("[]"));
   }
 
   @Test
   @Tag("GET: /api/item-record/history")
   @DisplayName("アイテム記録一覧取得-500 サーバーエラー")
   void getUserItemRecords_generalException() throws Exception {
-    doThrow(new RuntimeException(
-        serverErrorMsg))
-        .when(itemRecordService).getUserItemRecords(anyString());
+    doThrow(new RuntimeException(serverErrorMsg))
+      .when(itemRecordService)
+      .getUserItemRecords(anyString());
 
-    mockMvc.perform(get("/api/item-record/history")
-        .contentType(MediaType.APPLICATION_JSON))
-        .andExpect(status().isInternalServerError())
-        .andExpect(content().json("""
+    mockMvc
+      .perform(
+        get("/api/item-record/history").contentType(MediaType.APPLICATION_JSON)
+      )
+      .andExpect(status().isInternalServerError())
+      .andExpect(
+        content()
+          .json(
+            """
             {"message":"%s"}
-            """.formatted(serverErrorMsg)));
+            """.formatted(serverErrorMsg)
+          )
+      );
   }
 }

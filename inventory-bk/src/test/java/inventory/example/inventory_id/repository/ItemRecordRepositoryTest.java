@@ -12,7 +12,6 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.test.context.ActiveProfiles;
@@ -336,16 +335,21 @@ public class ItemRecordRepositoryTest {
   @DisplayName("ユーザーIDで全レコードを取得成功 - 順番はcreatedAtの降順")
   void testFindUserItemRecords_Success() {
     ItemRecord latestInRecord = new ItemRecord(
-        testUserItem,
-        testUserId,
-        15,
-        1500,
-        null,
-        ItemRecord.Source.IN);
+      testUserItem,
+      testUserId,
+      15,
+      1500,
+      null,
+      TransactionType.IN
+    );
     itemRecordRepository.save(latestInRecord);
     var results = itemRecordRepository.findUserItemRecords(testUserId);
     assertThat(results).hasSize(3);
-    assertThat(results).containsExactly(latestInRecord, testItemOutRecord, testItemInRecord);
+    assertThat(results).containsExactly(
+      latestInRecord,
+      testItemOutRecord,
+      testItemInRecord
+    );
   }
 
   @Test

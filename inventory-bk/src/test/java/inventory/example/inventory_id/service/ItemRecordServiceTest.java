@@ -603,10 +603,10 @@ public class ItemRecordServiceTest {
       20,
       100,
       LocalDate.now().plusYears(1),
-      ItemRecord.Source.IN,
+      TransactionType.IN,
       null
     );
-    anotherRecord.setId(UUID.randomUUID());
+    anotherRecord.setId(2L);
 
     when(itemRecordRepository.findUserItemRecords(testUserId)).thenReturn(
       List.of(testItemRecord, anotherRecord)
@@ -628,7 +628,9 @@ public class ItemRecordServiceTest {
       testItemRecord.getQuantity()
     );
     assertThat(firstRecord.getPrice()).isEqualTo(testItemRecord.getPrice());
-    assertThat(firstRecord.getSource()).isEqualTo(testItemRecord.getSource());
+    assertThat(firstRecord.getTransactionType()).isEqualTo(
+      testItemRecord.getTransactionType()
+    );
     assertThat(firstRecord.getExpirationDate()).isEqualTo(
       testItemRecord.getExpirationDate().toString()
     );
@@ -644,7 +646,9 @@ public class ItemRecordServiceTest {
       anotherRecord.getQuantity()
     );
     assertThat(secondRecord.getPrice()).isEqualTo(anotherRecord.getPrice());
-    assertThat(secondRecord.getSource()).isEqualTo(anotherRecord.getSource());
+    assertThat(secondRecord.getTransactionType()).isEqualTo(
+      anotherRecord.getTransactionType()
+    );
     assertThat(secondRecord.getExpirationDate()).isEqualTo(
       anotherRecord.getExpirationDate().toString()
     );
