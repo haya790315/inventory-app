@@ -27,6 +27,7 @@ public class ItemRecordController extends BaseController {
 
   private final String ITEM_RECORD_DELETED = "入出庫履歴を削除しました";
 
+  // TODO: 履歴の作成仕様はプレゼンテーション以降に修正する可能性がある、要確認。
   @PostMapping
   public ResponseEntity<Object> createItemRecord(
     @RequestBody @Valid ItemRecordRequest request
@@ -50,6 +51,7 @@ public class ItemRecordController extends BaseController {
     }
   }
 
+  // TODO: 履歴作成の仕様変更による修正する必要がある、要確認。
   @DeleteMapping
   public ResponseEntity<Object> deleteItemRecord(
     @RequestParam("record_id") Long recordId
