@@ -12,6 +12,7 @@ import java.util.List;
 import java.util.UUID;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.Caching;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
@@ -33,7 +34,20 @@ public class ItemRecordService {
     this.itemRepository = itemRepository;
   }
 
-  @CacheEvict(value = "itemRecord", key = "#userId")
+  @Caching(
+    evict = {
+      @CacheEvict(
+        //getUserItemRecordsのキャッシュ削除
+        value = "itemRecord",
+        key = "#userId"
+      ),
+      @CacheEvict(
+        //getAllRecordsByItemのキャッシュ削除
+        value = "itemRecord",
+        key = "#userId + ':' + #request.getItemId()"
+      ),
+    }
+  )
   public String createItemRecord(String userId, ItemRecordRequest request) {
     Item item = itemRepository
       .getActiveItemWithId(List.of(userId), request.getItemId())
@@ -186,6 +200,7 @@ public class ItemRecordService {
       .toList();
   }
 
+  @Cacheable(value = "itemRecord", key = "#userId + ':' + #itemId")
   public List<ItemRecordDto> getAllRecordsByItem(String userId, UUID itemId) {
     Item item = itemRepository
       .getActiveItemWithId(List.of(userId), itemId)
