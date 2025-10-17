@@ -163,6 +163,7 @@ public class ItemRecordService {
       );
   }
 
+  @Cacheable(value = "itemRecord", key = "#userId")
   public List<ItemRecordDto> getUserItemRecords(String userId) {
     List<ItemRecord> itemRecords = itemRecordRepository.findUserItemRecords(
       userId
