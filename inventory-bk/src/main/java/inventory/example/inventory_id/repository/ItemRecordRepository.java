@@ -105,13 +105,14 @@ public interface ItemRecordRepository extends JpaRepository<ItemRecord, Long> {
   @Query(
     value = """
     SELECT
-    *
+      *
     FROM
-    item_record
+      item_record
     WHERE
       user_id = :userId
       AND deleted_flag = FALSE
-    ORDER BY created_at DESC
+    ORDER BY
+      created_at DESC
     """,
     nativeQuery = true
   )
