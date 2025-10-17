@@ -14,7 +14,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
-import com.google.cloud.firestore.Transaction;
 import inventory.example.inventory_id.dto.ItemRecordDto;
 import inventory.example.inventory_id.enums.TransactionType;
 import inventory.example.inventory_id.exception.AuthenticationException;

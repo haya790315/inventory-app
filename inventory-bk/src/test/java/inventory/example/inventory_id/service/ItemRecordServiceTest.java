@@ -728,11 +728,12 @@ public class ItemRecordServiceTest {
     when(
       itemRepository.getActiveItemWithId(List.of(testUserId), testItemId)
     ).thenReturn(Optional.empty());
-    IllegalArgumentException exception = assertThrows(
-      IllegalArgumentException.class,
+    ResponseStatusException exception = assertThrows(
+      ResponseStatusException.class,
       () -> itemRecordService.getAllRecordsByItem(testUserId, testItemId)
     );
-    assertThat(exception.getMessage()).isEqualTo(itemNotFoundMsg);
+    assertThat(exception.getStatusCode()).isEqualTo(HttpStatus.NOT_FOUND);
+    assertThat(exception.getReason()).isEqualTo(itemNotFoundMsg);
   }
 
   @Test

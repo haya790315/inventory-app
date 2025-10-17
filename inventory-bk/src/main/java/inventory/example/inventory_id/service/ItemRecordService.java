@@ -204,7 +204,9 @@ public class ItemRecordService {
   public List<ItemRecordDto> getAllRecordsByItem(String userId, UUID itemId) {
     Item item = itemRepository
       .getActiveItemWithId(List.of(userId), itemId)
-      .orElseThrow(() -> new IllegalArgumentException(itemNotFoundMsg));
+      .orElseThrow(() ->
+        new ResponseStatusException(HttpStatus.NOT_FOUND, itemNotFoundMsg)
+      );
     List<ItemRecord> itemRecords =
       itemRecordRepository.getRecordsByItemIdAndUserId(item.getId(), userId);
     return itemRecords

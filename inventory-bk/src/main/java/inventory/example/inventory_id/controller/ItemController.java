@@ -142,13 +142,21 @@ public class ItemController extends BaseController {
   }
 
   @GetMapping("/{item_id}/records")
-  public ResponseEntity<Object> getItemRecords(@PathVariable("item_id") UUID itemId) {
+  public ResponseEntity<Object> getItemRecords(
+    @PathVariable("item_id") UUID itemId
+  ) {
     try {
       String userId = fetchUserIdFromToken();
-      List<ItemRecordDto> records = itemRecordService.getAllRecordsByItem(userId, itemId);
+      List<ItemRecordDto> records = itemRecordService.getAllRecordsByItem(
+        userId,
+        itemId
+      );
       return response(HttpStatus.OK, records);
-    } catch (IllegalArgumentException e) {
-      return response(HttpStatus.BAD_REQUEST, e.getMessage());
+    } catch (ResponseStatusException e) {
+      return response(
+        HttpStatus.valueOf(e.getStatusCode().value()),
+        e.getReason()
+      );
     } catch (Exception e) {
       return response(HttpStatus.INTERNAL_SERVER_ERROR, e.getMessage());
     }
