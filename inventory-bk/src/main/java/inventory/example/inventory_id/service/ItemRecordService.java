@@ -1,5 +1,6 @@
 package inventory.example.inventory_id.service;
 
+import inventory.example.inventory_id.dto.ItemRecordDto;
 import inventory.example.inventory_id.enums.TransactionType;
 import inventory.example.inventory_id.model.Item;
 import inventory.example.inventory_id.model.ItemRecord;
@@ -8,6 +9,8 @@ import inventory.example.inventory_id.repository.ItemRepository;
 import inventory.example.inventory_id.request.ItemRecordRequest;
 import java.util.ArrayList;
 import java.util.List;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
@@ -29,6 +32,7 @@ public class ItemRecordService {
     this.itemRepository = itemRepository;
   }
 
+  @CacheEvict(value = "itemRecord", key = "#userId")
   public String createItemRecord(String userId, ItemRecordRequest request) {
     Item item = itemRepository
       .getActiveItemWithId(List.of(userId), request.getItemId())
@@ -108,6 +112,7 @@ public class ItemRecordService {
     """.formatted(item.getName());
   }
 
+  @CacheEvict(value = "itemRecord", allEntries = true)
   public List<Long> deleteItemRecord(Long id, String userId) {
     ItemRecord itemRecord = itemRecordRepository
       .findByIdAndUserId(id, userId)
@@ -133,5 +138,28 @@ public class ItemRecordService {
       }
     }
     return deletedIds;
+  }
+
+  @Cacheable(value = "itemRecord", key = "#userId + ':' + #id")
+  public ItemRecordDto getItemRecord(Long id, String userId) {
+    return itemRecordRepository
+      .findByIdAndUserId(id, userId)
+      .stream()
+      .map(record ->
+        new ItemRecordDto(
+          record.getItem().getName(),
+          record.getItem().getCategory().getName(),
+          record.getQuantity(),
+          record.getPrice(),
+          record.getTransactionType(),
+          record.getExpirationDate() != null
+            ? record.getExpirationDate().toString()
+            : null
+        )
+      )
+      .findFirst()
+      .orElseThrow(() ->
+        new ResponseStatusException(HttpStatus.NOT_FOUND, itemRecordNotFoundMsg)
+      );
   }
 }

@@ -6,6 +6,7 @@ import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -13,6 +14,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import inventory.example.inventory_id.dto.ItemRecordDto;
 import inventory.example.inventory_id.enums.TransactionType;
 import inventory.example.inventory_id.exception.AuthenticationException;
 import inventory.example.inventory_id.exception.ValidationException;
@@ -584,6 +586,97 @@ class ItemRecordControllerTest {
     mockMvc
       .perform(
         delete("/api/item-record")
+          .param("record_id", "1")
+          .contentType(MediaType.APPLICATION_JSON)
+      )
+      .andExpect(status().isInternalServerError())
+      .andExpect(
+        content()
+          .json(
+            """
+            {"message":"%s"}
+            """.formatted(serverErrorMsg)
+          )
+      );
+  }
+
+  @Test
+  @Tag("GET: /api/item-record")
+  @DisplayName("アイテム記録取得-200 正常系")
+  void getItemRecords_success() throws Exception {
+    String itemName = "Test Item";
+    String categoryName = "Test Category";
+
+    String expirationDate = LocalDate.now().plusDays(30).toString();
+
+    ItemRecordDto itemRecordDto = new ItemRecordDto(
+      itemName,
+      categoryName,
+      100,
+      500,
+      TransactionType.IN,
+      expirationDate
+    );
+
+    when(
+      itemRecordService.getItemRecord(any(Long.class), anyString())
+    ).thenReturn(itemRecordDto);
+
+    mockMvc
+      .perform(
+        get("/api/item-record")
+          .param("record_id", "1")
+          .contentType(MediaType.APPLICATION_JSON)
+      )
+      .andExpect(status().isOk())
+      .andExpect(jsonPath("$.itemName").value(itemName))
+      .andExpect(jsonPath("$.categoryName").value(categoryName))
+      .andExpect(jsonPath("$.quantity").value(100))
+      .andExpect(jsonPath("$.price").value(500))
+      .andExpect(jsonPath("$.transactionType").value("IN"))
+      .andExpect(jsonPath("$.expirationDate").value(expirationDate));
+  }
+
+  @Test
+  @Tag("GET: /api/item-record")
+  @DisplayName("アイテム記録取得-404 指定のレコードが存在しません。")
+  void getItemRecords_notFound() throws Exception {
+    doThrow(
+      new ResponseStatusException(
+        HttpStatus.NOT_FOUND,
+        "指定のレコードが存在しません。"
+      )
+    )
+      .when(itemRecordService)
+      .getItemRecord(any(Long.class), anyString());
+    mockMvc
+      .perform(
+        get("/api/item-record")
+          .param("record_id", "1")
+          .contentType(MediaType.APPLICATION_JSON)
+      )
+      .andExpect(status().isNotFound())
+      .andExpect(
+        content()
+          .json(
+            """
+            {"message":"指定のレコードが存在しません。"}
+            """
+          )
+      );
+  }
+
+  @Test
+  @Tag("GET: /api/item-record")
+  @DisplayName("アイテム記録作成-500 サーバーエラーが発生しました")
+  void getItemRecords_generalException() throws Exception {
+    doThrow(new RuntimeException(serverErrorMsg))
+      .when(itemRecordService)
+      .getItemRecord(any(Long.class), anyString());
+
+    mockMvc
+      .perform(
+        get("/api/item-record")
           .param("record_id", "1")
           .contentType(MediaType.APPLICATION_JSON)
       )

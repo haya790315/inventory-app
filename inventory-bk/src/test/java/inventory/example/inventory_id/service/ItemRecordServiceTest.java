@@ -8,6 +8,7 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import inventory.example.inventory_id.dto.ItemRecordDto;
 import inventory.example.inventory_id.enums.TransactionType;
 import inventory.example.inventory_id.model.Category;
 import inventory.example.inventory_id.model.Item;
@@ -518,5 +519,77 @@ public class ItemRecordServiceTest {
     assertThat(exception.getMessage()).isEqualTo(itemRecordNotFoundMsg);
 
     verify(itemRecordRepository, times(0)).delete(any(ItemRecord.class));
+  }
+
+  @Test
+  @DisplayName("履歴取得 - 正常系（入庫）")
+  void getItemRecord_success() {
+    when(
+      itemRecordRepository.findByIdAndUserId(testItemRecordId, testUserId)
+    ).thenReturn(Optional.of(testItemRecord));
+
+    ItemRecordDto result = itemRecordService.getItemRecord(
+      testItemRecordId,
+      testUserId
+    );
+
+    assertThat(result).isNotNull();
+    assertThat(result.getItemName()).isEqualTo(testItem.getName());
+    assertThat(result.getCategoryName()).isEqualTo(testItem.getCategoryName());
+    assertThat(result.getQuantity()).isEqualTo(testItemRecord.getQuantity());
+    assertThat(result.getPrice()).isEqualTo(testItemRecord.getPrice());
+    assertThat(result.getTransactionType()).isEqualTo(
+      testItemRecord.getTransactionType()
+    );
+    assertThat(result.getExpirationDate()).isEqualTo(
+      testItemRecord.getExpirationDate().toString()
+    );
+  }
+
+  @Test
+  @DisplayName("履歴取得 - 正常系（出庫）")
+  void getItemRecord_success_out() {
+    ItemRecord outRecord = new ItemRecord(
+      testItem,
+      testUserId,
+      5,
+      TransactionType.OUT,
+      testItemRecord
+    );
+
+    when(
+      itemRecordRepository.findByIdAndUserId(outRecord.getId(), testUserId)
+    ).thenReturn(Optional.of(outRecord));
+
+    ItemRecordDto result = itemRecordService.getItemRecord(
+      outRecord.getId(),
+      testUserId
+    );
+
+    assertThat(result).isNotNull();
+    assertThat(result.getItemName()).isEqualTo(outRecord.getItemName());
+    assertThat(result.getCategoryName()).isEqualTo(
+      outRecord.getItem().getCategoryName()
+    );
+    assertThat(result.getQuantity()).isEqualTo(outRecord.getQuantity());
+    assertThat(result.getTransactionType()).isEqualTo(
+      outRecord.getTransactionType()
+    );
+    assertThat(result.getExpirationDate()).isNull();
+  }
+
+  @Test
+  @DisplayName("履歴取得失敗 - 存在しない履歴を取得しようとした場合")
+  void getItemRecord_throws_exception_when_record_not_found() {
+    when(
+      itemRecordRepository.findByIdAndUserId(testItemRecordId, testUserId)
+    ).thenReturn(Optional.empty());
+
+    ResponseStatusException exception = assertThrows(
+      ResponseStatusException.class,
+      () -> itemRecordService.getItemRecord(testItemRecordId, testUserId)
+    );
+    assertThat(exception.getStatusCode()).isEqualTo(HttpStatus.NOT_FOUND);
+    assertThat(exception.getReason()).isEqualTo(itemRecordNotFoundMsg);
   }
 }
