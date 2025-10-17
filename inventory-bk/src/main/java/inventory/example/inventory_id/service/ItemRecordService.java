@@ -9,6 +9,7 @@ import inventory.example.inventory_id.repository.ItemRepository;
 import inventory.example.inventory_id.request.ItemRecordRequest;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.http.HttpStatus;
@@ -186,16 +187,25 @@ public class ItemRecordService {
   }
 
   public List<ItemRecordDto> getAllRecordsByItem(String userId, UUID itemId) {
-    Item item = itemRepository.getActiveItemWithId(List.of(userId), itemId)
-        .orElseThrow(() -> new IllegalArgumentException(itemNotFoundMsg));
-    List<ItemRecord> itemRecords = itemRecordRepository.getRecordsByItemIdAndUserId(item.getId(), userId);
-    return itemRecords.stream().map(record -> new ItemRecordDto(
-        record.getItem().getName(),
-        record.getItem().getCategoryName(),
-        record.getQuantity(),
-        record.getPrice(),
-        record.getSource(),
-        record.getExpirationDate() != null ? record.getExpirationDate().toString() : null))
-        .toList();
+    Item item = itemRepository
+      .getActiveItemWithId(List.of(userId), itemId)
+      .orElseThrow(() -> new IllegalArgumentException(itemNotFoundMsg));
+    List<ItemRecord> itemRecords =
+      itemRecordRepository.getRecordsByItemIdAndUserId(item.getId(), userId);
+    return itemRecords
+      .stream()
+      .map(record ->
+        new ItemRecordDto(
+          record.getItem().getName(),
+          record.getItem().getCategoryName(),
+          record.getQuantity(),
+          record.getPrice(),
+          record.getTransactionType(),
+          record.getExpirationDate() != null
+            ? record.getExpirationDate().toString()
+            : null
+        )
+      )
+      .toList();
   }
 }
