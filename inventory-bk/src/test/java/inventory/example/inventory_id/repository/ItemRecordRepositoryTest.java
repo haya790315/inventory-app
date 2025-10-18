@@ -332,7 +332,7 @@ public class ItemRecordRepositoryTest {
 
   @Test
   @Tag("findUserItemRecords")
-  @DisplayName("ユーザーIDで全レコードを取得成功 - 順番はcreatedAtの降順")
+  @DisplayName("ユーザーIDで全レコードを取得成功 - 削除されていないレコードのみ、順番はcreatedAtの降順")
   void testFindUserItemRecords_Success() {
     ItemRecord latestInRecord = new ItemRecord(
       testUserItem,

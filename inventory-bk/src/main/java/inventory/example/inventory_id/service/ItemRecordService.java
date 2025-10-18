@@ -168,8 +168,9 @@ public class ItemRecordService {
           record.getPrice(),
           record.getTransactionType(),
           record.getExpirationDate() != null
-            ? record.getExpirationDate().toString()
-            : null
+            ? record.getExpirationDate()
+            : null,
+          record.getCreatedAt()
         )
       )
       .findFirst()
@@ -193,8 +194,9 @@ public class ItemRecordService {
           record.getPrice(),
           record.getTransactionType(),
           record.getExpirationDate() != null
-            ? record.getExpirationDate().toString()
-            : null
+            ? record.getExpirationDate()
+            : null,
+          record.getCreatedAt()
         )
       )
       .toList();

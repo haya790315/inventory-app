@@ -23,6 +23,7 @@ import inventory.example.inventory_id.model.Item;
 import inventory.example.inventory_id.request.ItemRecordRequest;
 import inventory.example.inventory_id.service.ItemRecordService;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
@@ -607,7 +608,7 @@ class ItemRecordControllerTest {
     String itemName = "Test Item";
     String categoryName = "Test Category";
 
-    String expirationDate = LocalDate.now().plusDays(30).toString();
+    LocalDate expirationDate = LocalDate.now().plusDays(30);
 
     ItemRecordDto itemRecordDto = new ItemRecordDto(
       itemName,
@@ -615,7 +616,8 @@ class ItemRecordControllerTest {
       100,
       500,
       TransactionType.IN,
-      expirationDate
+      expirationDate,
+      LocalDateTime.now()
     );
 
     when(
@@ -634,7 +636,7 @@ class ItemRecordControllerTest {
       .andExpect(jsonPath("$.quantity").value(100))
       .andExpect(jsonPath("$.price").value(500))
       .andExpect(jsonPath("$.transactionType").value("IN"))
-      .andExpect(jsonPath("$.expirationDate").value(expirationDate));
+      .andExpect(jsonPath("$.expirationDate").value(expirationDate.toString()));
   }
 
   @Test
@@ -697,14 +699,15 @@ class ItemRecordControllerTest {
   void getUserItemRecords_success() throws Exception {
     String itemName = "Test Item";
     String categoryName = "Test Category";
-    String expirationDate = LocalDate.now().toString();
+    LocalDate expirationDate = LocalDate.now().plusDays(30);
     ItemRecordDto itemRecordDto = new ItemRecordDto(
       itemName,
       categoryName,
       100,
       500,
       TransactionType.IN,
-      expirationDate
+      expirationDate,
+      LocalDateTime.now()
     );
 
     when(itemRecordService.getUserItemRecords(anyString())).thenReturn(
