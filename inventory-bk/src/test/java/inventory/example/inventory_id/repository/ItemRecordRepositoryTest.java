@@ -362,7 +362,7 @@ public class ItemRecordRepositoryTest {
 
   @Test
   @Tag("findAllByItemIdAndUserId")
-  @DisplayName("アイテムIDとユーザーIDで全レコードを取得成功 - 順番はcreatedAtの降順")
+  @DisplayName("アイテムIDとユーザーIDで全レコードを取得成功 - 削除されていないレコードのみ、順番はcreatedAtの降順")
   void testFindAllByItemIdAndUserId_Success() {
     var results = itemRecordRepository.getRecordsByItemIdAndUserId(testUserItem.getId(), testUserId);
     assertThat(results).hasSize(2);
