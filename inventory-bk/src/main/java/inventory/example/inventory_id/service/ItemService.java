@@ -77,14 +77,21 @@ public class ItemService {
         .findFirst()
         .orElseThrow(() -> new IllegalArgumentException(categoryNotFoundMsg));
 
-    List<Item> items = itemRepository.getActiveByCategoryName(List.of(userId, systemUserId), categoryName);
-    return items.stream()
-        .map(item -> new ItemDto(
-            item.getName(),
-            categoryName,
-            0,
-            0))
-        .toList();
+    List<Item> items = itemRepository.getActiveByCategoryName(
+      List.of(userId, systemUserId),
+      categoryName
+    );
+    return items
+      .stream()
+      .map(item ->
+        new ItemDto(
+          item.getName(),
+          categoryName,
+          item.getTotalQuantity(),
+          item.getTotalPrice()
+        )
+      )
+      .toList();
   }
 
   @CacheEvict(value = "items", allEntries = true)

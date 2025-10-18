@@ -5,6 +5,7 @@ import inventory.example.inventory_id.enums.TransactionType;
 import inventory.example.inventory_id.model.Item;
 import inventory.example.inventory_id.model.ItemRecord;
 import inventory.example.inventory_id.repository.ItemRecordRepository;
+import inventory.example.inventory_id.repository.ItemRecordRepository.ItemSummary;
 import inventory.example.inventory_id.repository.ItemRepository;
 import inventory.example.inventory_id.request.ItemRecordRequest;
 import java.util.ArrayList;
@@ -46,6 +47,7 @@ public class ItemRecordService {
         value = "itemRecord",
         key = "#userId + ':' + #request.getItemId()"
       ),
+      @CacheEvict(value = "items", allEntries = true),
     }
   )
   public String createItemRecord(String userId, ItemRecordRequest request) {
@@ -88,14 +90,6 @@ public class ItemRecordService {
       request.getTransactionType().name()
     );
 
-    // ソースレコードを取得（出庫の場合のみ）
-    ItemRecord sourceRecord = null;
-    if (request.getItemRecordId() != null) {
-      sourceRecord = itemRecordRepository
-        .getRecordByUserIdAndId(userId, request.getItemRecordId())
-        .orElseThrow(() -> new IllegalArgumentException(itemRecordNotFoundMsg));
-    }
-
     // アイテムレコードを作成
     ItemRecord itemRecord;
     if (transactionType == TransactionType.IN) {
@@ -109,25 +103,44 @@ public class ItemRecordService {
         transactionType
       );
       itemRecordRepository.save(itemRecord);
+
+      updateItemSummary(userId, item);
+
       return """
       %sが入庫しました\
       """.formatted(item.getName());
     }
-    // 出庫の場合
+    // ソースレコードを取得（出庫の場合のみ）
+    ItemRecord sourceRecord = null;
+    if (request.getItemRecordId() != null) {
+      sourceRecord = itemRecordRepository
+        .getRecordByUserIdAndId(userId, request.getItemRecordId())
+        .orElseThrow(() -> new IllegalArgumentException(itemRecordNotFoundMsg));
+    }
     itemRecord = new ItemRecord(
       item,
       userId,
       request.getQuantity(),
+      sourceRecord.getPrice(),
+      request.getExpirationDate(),
       transactionType,
       sourceRecord
     );
     itemRecordRepository.save(itemRecord);
+
+    updateItemSummary(userId, item);
+
     return """
     %sが出庫しました\
     """.formatted(item.getName());
   }
 
-  @CacheEvict(value = "itemRecord", allEntries = true)
+  @Caching(
+    evict = {
+      @CacheEvict(value = "itemRecord", allEntries = true),
+      @CacheEvict(value = "items", allEntries = true),
+    }
+  )
   public List<Long> deleteItemRecord(Long id, String userId) {
     ItemRecord itemRecord = itemRecordRepository
       .findByIdAndUserId(id, userId)
@@ -152,6 +165,11 @@ public class ItemRecordService {
         }
       }
     }
+
+    Item item = itemRecord.getItem();
+
+    updateItemSummary(userId, item);
+
     return deletedIds;
   }
 
@@ -227,5 +245,15 @@ public class ItemRecordService {
         )
       )
       .toList();
+  }
+
+  private void updateItemSummary(String userId, Item item) {
+    ItemSummary itemSummary = itemRecordRepository.getItemTotalPriceAndQuantity(
+      userId,
+      item.getId()
+    );
+    item.setTotalQuantity(itemSummary.getTotalQuantity());
+    item.setTotalPrice(itemSummary.getTotalPrice());
+    itemRepository.save(item);
   }
 }

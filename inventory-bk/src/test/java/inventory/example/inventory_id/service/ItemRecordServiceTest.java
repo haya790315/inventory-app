@@ -4,6 +4,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -14,6 +16,7 @@ import inventory.example.inventory_id.model.Category;
 import inventory.example.inventory_id.model.Item;
 import inventory.example.inventory_id.model.ItemRecord;
 import inventory.example.inventory_id.repository.ItemRecordRepository;
+import inventory.example.inventory_id.repository.ItemRecordRepository.ItemSummary;
 import inventory.example.inventory_id.repository.ItemRepository;
 import inventory.example.inventory_id.request.ItemRecordRequest;
 import java.time.LocalDate;
@@ -81,6 +84,30 @@ public class ItemRecordServiceTest {
       null
     );
     testItemRecord.setId(testItemRecordId);
+  }
+
+  @BeforeEach
+  void setDefaultSummary() {
+    ItemSummary defaultItemSummary = new ItemSummary() {
+      @Override
+      public Integer getTotalQuantity() {
+        return 0;
+      }
+
+      @Override
+      public Integer getTotalPrice() {
+        return 0;
+      }
+    };
+
+    lenient()
+      .when(
+        itemRecordRepository.getItemTotalPriceAndQuantity(
+          anyString(),
+          any(UUID.class)
+        )
+      )
+      .thenReturn(defaultItemSummary);
   }
 
   @Test
