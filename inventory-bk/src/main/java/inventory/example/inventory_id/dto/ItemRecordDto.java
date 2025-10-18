@@ -1,6 +1,9 @@
 package inventory.example.inventory_id.dto;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import inventory.example.inventory_id.enums.TransactionType;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -15,5 +18,10 @@ public class ItemRecordDto {
   private int quantity;
   private int price;
   private TransactionType transactionType;
-  private String expirationDate;
+
+  @JsonFormat(pattern = "yyyy-MM-dd")
+  private LocalDate expirationDate;
+
+  @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
+  private LocalDateTime createdAt;
 }
