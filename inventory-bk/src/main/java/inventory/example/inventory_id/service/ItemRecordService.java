@@ -1,14 +1,19 @@
 package inventory.example.inventory_id.service;
 
 import inventory.example.inventory_id.dto.ItemRecordDto;
+import inventory.example.inventory_id.enums.TransactionType;
 import inventory.example.inventory_id.model.Item;
 import inventory.example.inventory_id.model.ItemRecord;
 import inventory.example.inventory_id.repository.ItemRecordRepository;
+import inventory.example.inventory_id.repository.ItemRecordRepository.ItemSummary;
 import inventory.example.inventory_id.repository.ItemRepository;
 import inventory.example.inventory_id.request.ItemRecordRequest;
-import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.Caching;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
@@ -30,15 +35,30 @@ public class ItemRecordService {
     this.itemRepository = itemRepository;
   }
 
-  public void createItemRecord(String userId, ItemRecordRequest request) {
+  @Caching(
+    evict = {
+      @CacheEvict(
+        //getUserItemRecordsのキャッシュ削除
+        value = "itemRecord",
+        key = "#userId"
+      ),
+      @CacheEvict(
+        //getAllRecordsByItemのキャッシュ削除
+        value = "itemRecord",
+        key = "#userId + ':' + #request.getItemId()"
+      ),
+      @CacheEvict(value = "items", allEntries = true),
+    }
+  )
+  public String createItemRecord(String userId, ItemRecordRequest request) {
     Item item = itemRepository
       .getActiveItemWithId(List.of(userId), request.getItemId())
       .orElseThrow(() -> new IllegalArgumentException(itemNotFoundMsg));
 
-    if (request.getSource() == ItemRecordRequest.Source.OUT) {
+    if (request.getTransactionType() == TransactionType.OUT) {
       // itemRecordIdとitemIdの組み合わせが正しいかチェック
       ItemRecord itemRecord = itemRecordRepository
-        .findByUserIdAndId(userId, request.getItemRecordId())
+        .getRecordByUserIdAndId(userId, request.getItemRecordId())
         .orElseThrow(() -> new IllegalArgumentException(itemRecordNotFoundMsg));
       if (!itemRecord.getItem().getId().equals(request.getItemId())) {
         throw new ResponseStatusException(
@@ -47,50 +67,114 @@ public class ItemRecordService {
         );
       }
       // 出庫の場合、在庫数をチェック
-      Integer currentQuantity =
-        itemRecordRepository.getRemainingQuantityForInRecord(
-          request.getItemRecordId()
-        );
+      Integer currentQuantity = itemRecordRepository.getInrecordRemainQuantity(
+        request.getItemRecordId()
+      );
       if (currentQuantity == null) {
         throw new ResponseStatusException(
-          HttpStatus.CONFLICT,
+          HttpStatus.NOT_FOUND,
           itemRecordNotFoundMsg
         );
       }
       // 在庫数が足りない場合はエラー
       if (currentQuantity < request.getQuantity()) {
         throw new ResponseStatusException(
-          HttpStatus.CONFLICT,
+          HttpStatus.BAD_REQUEST,
           "在庫数が不足しています。"
         );
       }
     }
 
-    ItemRecord itemRecord = new ItemRecord(
+    // トランザクションタイプを変換
+    TransactionType transactionType = TransactionType.valueOf(
+      request.getTransactionType().name()
+    );
+
+    // アイテムレコードを作成
+    ItemRecord itemRecord;
+    if (transactionType == TransactionType.IN) {
+      // 入庫の場合
+      itemRecord = new ItemRecord(
+        item,
+        userId,
+        request.getQuantity(),
+        request.getPrice(),
+        request.getExpirationDate(),
+        transactionType
+      );
+      itemRecordRepository.save(itemRecord);
+
+      updateItemSummary(userId, item);
+
+      return """
+      %sが入庫しました\
+      """.formatted(item.getName());
+    }
+    // ソースレコードを取得（出庫の場合のみ）
+    ItemRecord sourceRecord = null;
+    if (request.getItemRecordId() != null) {
+      sourceRecord = itemRecordRepository
+        .getRecordByUserIdAndId(userId, request.getItemRecordId())
+        .orElseThrow(() -> new IllegalArgumentException(itemRecordNotFoundMsg));
+    }
+    itemRecord = new ItemRecord(
       item,
       userId,
       request.getQuantity(),
-      request.getPrice(),
-      request.getExpirationDate() != null ? request.getExpirationDate() : null,
-      ItemRecord.Source.valueOf(request.getSource().name()),
-      request.getItemRecordId() != null
-        ? itemRecordRepository
-          .findByUserIdAndId(userId, request.getItemRecordId())
-          .orElseThrow(() -> new IllegalArgumentException(itemRecordNotFoundMsg)
-          )
-        : null
+      sourceRecord.getPrice(),
+      request.getExpirationDate(),
+      transactionType,
+      sourceRecord
     );
     itemRecordRepository.save(itemRecord);
+
+    updateItemSummary(userId, item);
+
+    return """
+    %sが出庫しました\
+    """.formatted(item.getName());
   }
 
-  public void deleteItemRecord(UUID id, String userId) {
+  @Caching(
+    evict = {
+      @CacheEvict(value = "itemRecord", allEntries = true),
+      @CacheEvict(value = "items", allEntries = true),
+    }
+  )
+  public List<Long> deleteItemRecord(Long id, String userId) {
     ItemRecord itemRecord = itemRecordRepository
       .findByIdAndUserId(id, userId)
       .orElseThrow(() -> new IllegalArgumentException(itemRecordNotFoundMsg));
-    itemRecordRepository.delete(itemRecord);
+    itemRecord.setDeletedFlag(true);
+    itemRecordRepository.save(itemRecord);
+
+    List<Long> deletedIds = new ArrayList<>(List.of(id));
+
+    if (itemRecord.getTransactionType() == TransactionType.IN) {
+      // 入庫レコード削除時は、関連する出庫レコードも削除
+      List<ItemRecord> outRecords = itemRecord.getChildRecords();
+
+      if (outRecords != null && !outRecords.isEmpty()) {
+        for (ItemRecord outRecord : outRecords) {
+          if (outRecord.isDeletedFlag()) {
+            continue;
+          }
+          outRecord.setDeletedFlag(true);
+          deletedIds.add(outRecord.getId());
+          itemRecordRepository.save(outRecord);
+        }
+      }
+    }
+
+    Item item = itemRecord.getItem();
+
+    updateItemSummary(userId, item);
+
+    return deletedIds;
   }
 
-  public ItemRecordDto getItemRecord(UUID id, String userId) {
+  @Cacheable(value = "itemRecord", key = "#userId + ':' + #id")
+  public ItemRecordDto getItemRecord(Long id, String userId) {
     return itemRecordRepository
       .findByIdAndUserId(id, userId)
       .stream()
@@ -101,24 +185,24 @@ public class ItemRecordService {
           record.getItem().getCategory().getName(),
           record.getQuantity(),
           record.getPrice(),
-          record.getSource(),
+          record.getTransactionType(),
           record.getExpirationDate() != null
-            ? record.getExpirationDate().toString()
+            ? record.getExpirationDate()
             : null,
-          record.getCreatedAt().toString()
+          record.getCreatedAt()
         )
       )
       .findFirst()
-      .orElseThrow(() -> new IllegalArgumentException(itemRecordNotFoundMsg));
+      .orElseThrow(() ->
+        new ResponseStatusException(HttpStatus.NOT_FOUND, itemRecordNotFoundMsg)
+      );
   }
 
+  @Cacheable(value = "itemRecord", key = "#userId")
   public List<ItemRecordDto> getUserItemRecords(String userId) {
     List<ItemRecord> itemRecords = itemRecordRepository.findUserItemRecords(
       userId
     );
-    DateTimeFormatter DATETIME_FMT = DateTimeFormatter.ofPattern(
-      "yyyy-MM-dd HH:mm:ss"
-    );
     return itemRecords
       .stream()
       .map(record ->
@@ -128,25 +212,25 @@ public class ItemRecordService {
           record.getItem().getCategoryName(),
           record.getQuantity(),
           record.getPrice(),
-          record.getSource(),
+          record.getTransactionType(),
           record.getExpirationDate() != null
-            ? record.getExpirationDate().toString()
+            ? record.getExpirationDate()
             : null,
-          record.getCreatedAt().format(DATETIME_FMT)
+          record.getCreatedAt()
         )
       )
       .toList();
   }
 
+  @Cacheable(value = "itemRecord", key = "#userId + ':' + #itemId")
   public List<ItemRecordDto> getAllRecordsByItem(String userId, UUID itemId) {
     Item item = itemRepository
       .getActiveItemWithId(List.of(userId), itemId)
-      .orElseThrow(() -> new IllegalArgumentException(itemNotFoundMsg));
+      .orElseThrow(() ->
+        new ResponseStatusException(HttpStatus.NOT_FOUND, itemNotFoundMsg)
+      );
     List<ItemRecord> itemRecords =
       itemRecordRepository.getRecordsByItemIdAndUserId(item.getId(), userId);
-    DateTimeFormatter DATETIME_FMT = DateTimeFormatter.ofPattern(
-      "yyyy-MM-dd HH:mm:ss"
-    );
     return itemRecords
       .stream()
       .map(record ->
@@ -156,13 +240,23 @@ public class ItemRecordService {
           record.getItem().getCategoryName(),
           record.getQuantity(),
           record.getPrice(),
-          record.getSource(),
+          record.getTransactionType(),
           record.getExpirationDate() != null
-            ? record.getExpirationDate().toString()
+            ? record.getExpirationDate()
             : null,
-          record.getCreatedAt().format(DATETIME_FMT)
+          record.getCreatedAt()
         )
       )
       .toList();
+  }
+
+  private void updateItemSummary(String userId, Item item) {
+    ItemSummary itemSummary = itemRecordRepository.getItemTotalPriceAndQuantity(
+      userId,
+      item.getId()
+    );
+    item.setTotalQuantity(itemSummary.getTotalQuantity());
+    item.setTotalPrice(itemSummary.getTotalPrice());
+    itemRepository.save(item);
   }
 }

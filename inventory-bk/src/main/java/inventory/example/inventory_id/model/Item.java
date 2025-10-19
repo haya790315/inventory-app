@@ -73,6 +73,22 @@ public class Item {
     String name,
     String userId,
     Category category,
+    int total_quantity,
+    int total_price,
+    boolean deletedFlag
+  ) {
+    this.name = name;
+    this.userId = userId;
+    this.category = category;
+    this.totalQuantity = total_quantity;
+    this.totalPrice = total_price;
+    this.deletedFlag = deletedFlag;
+  }
+
+  public Item(
+    String name,
+    String userId,
+    Category category,
     boolean deletedFlag,
     LocalDateTime updatedAt
   ) {

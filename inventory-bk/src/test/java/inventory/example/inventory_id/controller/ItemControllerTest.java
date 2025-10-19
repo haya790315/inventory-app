@@ -358,37 +358,56 @@ class ItemControllerTest {
   @DisplayName("アイテム入出庫履歴取得-200 OK")
   void getItemRecords_success() throws Exception {
     UUID itemId = UUID.randomUUID();
-    List<ItemRecordDto> records = Arrays.asList(new ItemRecordDto(), new ItemRecordDto());
-    when(itemRecordService.getAllRecordsByItem(anyString(), eq(itemId))).thenReturn(records);
-    mockMvc.perform(get("/api/item/{item_id}/records", itemId))
-        .andExpect(status().isOk())
-        .andExpect(content().json(objectMapper.writeValueAsString(records)));
+    List<ItemRecordDto> records = Arrays.asList(
+      new ItemRecordDto(),
+      new ItemRecordDto()
+    );
+    when(
+      itemRecordService.getAllRecordsByItem(anyString(), eq(itemId))
+    ).thenReturn(records);
+    mockMvc
+      .perform(get("/api/item/{item_id}/records", itemId))
+      .andExpect(status().isOk())
+      .andExpect(content().json(objectMapper.writeValueAsString(records)));
   }
 
   @Test
   @Tag("GET: /api/item/{item_id}/records")
-  @DisplayName("アイテム入出庫履歴取得-200 OK - 履歴がない場合は空のリストを返す")
+  @DisplayName(
+    "アイテム入出庫履歴取得-200 OK - 履歴がない場合は空のリストを返す"
+  )
   void getItemRecords_empty() throws Exception {
     UUID itemId = UUID.randomUUID();
-    when(itemRecordService.getAllRecordsByItem(anyString(), eq(itemId)))
-        .thenReturn(new ArrayList<>());
-    mockMvc.perform(get("/api/item/{item_id}/records", itemId))
-        .andExpect(status().isOk())
-        .andExpect(content().json("[]"));
+    when(
+      itemRecordService.getAllRecordsByItem(anyString(), eq(itemId))
+    ).thenReturn(new ArrayList<>());
+    mockMvc
+      .perform(get("/api/item/{item_id}/records", itemId))
+      .andExpect(status().isOk())
+      .andExpect(content().json("[]"));
   }
 
   @Test
   @Tag("GET: /api/item/{item_id}/records")
-  @DisplayName("アイテム入出庫履歴取得-400 アイテムが見つかりません")
+  @DisplayName("アイテム入出庫履歴取得-404 アイテムが見つかりません")
   void getItemRecords_badRequest_itemNotFound() throws Exception {
     UUID itemId = UUID.randomUUID();
-    when(itemRecordService.getAllRecordsByItem(anyString(), eq(itemId)))
-        .thenThrow(new IllegalArgumentException(itemNotFoundMsg));
-    mockMvc.perform(get("/api/item/{item_id}/records", itemId))
-        .andExpect(status().isBadRequest())
-        .andExpect(content().json("""
+    when(
+      itemRecordService.getAllRecordsByItem(anyString(), eq(itemId))
+    ).thenThrow(
+      new ResponseStatusException(HttpStatus.NOT_FOUND, itemNotFoundMsg)
+    );
+    mockMvc
+      .perform(get("/api/item/{item_id}/records", itemId))
+      .andExpect(status().isNotFound())
+      .andExpect(
+        content()
+          .json(
+            """
             {"message":"%s"}
-            """.formatted(itemNotFoundMsg)));
+            """.formatted(itemNotFoundMsg)
+          )
+      );
   }
 
   @Test
@@ -396,12 +415,19 @@ class ItemControllerTest {
   @DisplayName("アイテム入出庫履歴取得-500 サーバーエラー")
   void getItemRecords_throws500() throws Exception {
     UUID itemId = UUID.randomUUID();
-    when(itemRecordService.getAllRecordsByItem(anyString(), eq(itemId)))
-        .thenThrow(new RuntimeException(serverErrorMsg));
-    mockMvc.perform(get("/api/item/{item_id}/records", itemId))
-        .andExpect(status().isInternalServerError())
-        .andExpect(content().json("""
+    when(
+      itemRecordService.getAllRecordsByItem(anyString(), eq(itemId))
+    ).thenThrow(new RuntimeException(serverErrorMsg));
+    mockMvc
+      .perform(get("/api/item/{item_id}/records", itemId))
+      .andExpect(status().isInternalServerError())
+      .andExpect(
+        content()
+          .json(
+            """
             {"message":"%s"}
-            """.formatted(serverErrorMsg)));
+            """.formatted(serverErrorMsg)
+          )
+      );
   }
 }
