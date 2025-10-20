@@ -122,7 +122,7 @@ public class ItemRecordService {
       userId,
       request.getQuantity(),
       sourceRecord.getPrice(),
-      request.getExpirationDate(),
+      sourceRecord.getExpirationDate(),
       transactionType,
       sourceRecord
     );
