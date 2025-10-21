@@ -611,6 +611,7 @@ class ItemRecordControllerTest {
     LocalDate expirationDate = LocalDate.now().plusDays(30);
 
     ItemRecordDto itemRecordDto = new ItemRecordDto(
+      2L,
       itemName,
       categoryName,
       100,
@@ -701,6 +702,7 @@ class ItemRecordControllerTest {
     String categoryName = "Test Category";
     LocalDate expirationDate = LocalDate.now().plusDays(30);
     ItemRecordDto itemRecordDto = new ItemRecordDto(
+      2L,
       itemName,
       categoryName,
       100,

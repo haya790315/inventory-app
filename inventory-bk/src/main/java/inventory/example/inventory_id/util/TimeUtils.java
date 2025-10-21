@@ -1,25 +1,20 @@
 package inventory.example.inventory_id.util;
 
 import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
 
 public class TimeUtils {
 
-  private static final DateTimeFormatter formatter =
-    DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
-
-  public static String calculateTimeAgo(String compareDate) {
+  public static String calculateTimeAgo(LocalDateTime compareDate) {
     try {
-      LocalDateTime createdAt = parseDateTime(compareDate);
       LocalDateTime now = LocalDateTime.now();
 
-      long minutes = ChronoUnit.MINUTES.between(createdAt, now);
-      long hours = ChronoUnit.HOURS.between(createdAt, now);
-      long days = ChronoUnit.DAYS.between(createdAt, now);
-      long weeks = ChronoUnit.WEEKS.between(createdAt, now);
-      long months = ChronoUnit.MONTHS.between(createdAt, now);
-      long years = ChronoUnit.YEARS.between(createdAt, now);
+      long minutes = ChronoUnit.MINUTES.between(compareDate, now);
+      long hours = ChronoUnit.HOURS.between(compareDate, now);
+      long days = ChronoUnit.DAYS.between(compareDate, now);
+      long weeks = ChronoUnit.WEEKS.between(compareDate, now);
+      long months = ChronoUnit.MONTHS.between(compareDate, now);
+      long years = ChronoUnit.YEARS.between(compareDate, now);
 
       if (years > 0) {
         return years + "年前";
@@ -41,19 +36,6 @@ public class TimeUtils {
         "Failed to parse date: " + compareDate + " - " + e.getMessage()
       );
       return "不明";
-    }
-  }
-
-  private static LocalDateTime parseDateTime(String dateStr) throws Exception {
-    try {
-      LocalDateTime result = LocalDateTime.parse(dateStr, formatter);
-      System.out.println("Successfully parsed with formatter: " + formatter);
-      return result;
-    } catch (Exception e) {
-      System.out.println(
-        "Failed with formatter " + formatter + ": " + e.getMessage()
-      );
-      throw new Exception("All parsing attempts failed for date: " + dateStr);
     }
   }
 }

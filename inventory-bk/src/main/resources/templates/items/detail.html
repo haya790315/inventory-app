@@ -160,10 +160,10 @@
                                                         <small  th:text="${record.id}">123e4567</small>
                                                     </td>
                                                     <td>
-                                                        <small th:text="${record.createdAt}">01/01 12:00</small>
+                                                        <small th:text="${record.createdAt != null} ? ${#temporals.format(record.createdAt, 'yyyy年MM月dd日 HH時mm分')} : '-'">01/01 12:00</small>
                                                     </td>
                                                     <td>
-                                                        <span th:switch="${record.source.name()}">
+                                                        <span th:switch="${record.transactionType.name()}">
                                                             <span th:case="'IN'" class="badge bg-success">入庫</span>
                                                             <span th:case="'OUT'" class="badge bg-danger">出庫</span>
                                                             <span th:case="*" class="badge bg-warning">調整</span>
@@ -172,7 +172,7 @@
                                                     <td th:text="${record.quantity}">10</td>
                                                     <td th:text="${record.price == 0 ? '-' : record.price}">1000</td>
                                                     <td>
-                                                        <small th:text="${record.expirationDate ?: '-'}" th:title="有効期限">有効期限</small>
+                                                        <small th:text="${#temporals.format(record.expirationDate, 'yyyy年MM月dd日') ?: '-'}" th:title="有効期限">有効期限</small>
                                                     </td>
                                                 </tr>
                                             </tbody>
@@ -282,7 +282,7 @@
                             <label for="inExpirationDate" class="form-label">有効期限</label>
                             <input type="date" class="form-control" id="inExpirationDate" name="expirationDate">
                         </div>
-                        <input type="hidden" name="source" value="IN">
+                        <input type="hidden" name="transactionType" value="IN">
                         <input type="hidden" name="itemId" value="${item.id}">
                     </div>
                     <div class="modal-footer">
@@ -315,7 +315,7 @@
                             <input type="number" class="form-control" id="outQuantity" name="quantity" 
                                   min="1" required>
                         </div>
-                        <input type="hidden" name="source" value="OUT">
+                        <input type="hidden" name="transactionType" value="OUT">
                         <input type="hidden" name="itemId" value="${item.id}">
                     </div>
                     <div class="modal-footer">

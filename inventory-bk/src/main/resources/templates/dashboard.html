@@ -92,21 +92,22 @@
                                     <div class="list-group list-group-flush">
                                         <div th:each="activity : ${recentActivities}" class="list-group-item list-group-item-action border-0">
                                             <div class="d-flex w-100 justify-content-between">
-                                                
                                                 <h6 class="mb-1">
-                                                    <span th:switch="${activity.type}">
+                                                    <span th:switch="${activity.type != null ? activity.type.name() : ''}">
                                                         <i th:case="'IN'" class="bi bi-plus-circle text-success me-1"></i>
                                                         <i th:case="'OUT'" class="bi bi-dash-circle text-danger me-1"></i>
                                                     </span>
                                                     <span th:text="${activity.itemName}">アイテム名</span>
-                                                    <span th:text="${activity.categoryName}" class="badge bg-info bg-gradient ms-2">カテゴリー名</span>
+                                                    <span th:text="${activity.categoryName}" class="badge bg-primary bg-gradient ms-2">カテゴリー名</span>
+                                                    <span>
+                                                      <span th:if="${activity.type != null and activity.type.name() == 'IN'}" class="badge bg-success ms-2">入庫</span>
+                                                      <span th:if="${activity.type != null and activity.type.name() == 'OUT'}"      class="badge bg-danger ms-2">出庫</span>
+                                                    </span>
                                                 </h6>
                                                 <small class="text-muted" th:text="${activity.timestamp}">5分前</small>
                                             </div>
                                             <p class="mb-1">
                                                 数量: <span th:text="${activity.quantity}">10</span>
-                                                <span th:if="${activity.type == 'IN'}" class="badge bg-success ms-2">入庫</span>
-                                                <span th:if="${activity.type == 'OUT'}" class="badge bg-danger ms-2">出庫</span>
                                             </p>
                                         </div>
                                     </div>

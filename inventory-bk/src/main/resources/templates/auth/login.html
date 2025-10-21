@@ -16,22 +16,36 @@
                             <button type="button" class="btn btn-sm btn-warning" onclick="signUpDemo()">
                                 <i class="bi bi-play me-1"></i>デモログイン
                             </button>
-                        </div>    
+                        </div>
+
+                        <form id="loginForm"
+                              class="mt-4 needs-validation">
+                            <div class="mb-3">
+                                <label for="email" class="form-label">メールアドレス</label>
+                                <input type="email" class="form-control" id="email" placeholder="you@example.com" required>
+                            </div>
+                            <div class="mb-3">
+                                <label for="password" class="form-label">パスワード</label>
+                                <input type="password" class="form-control" id="password" placeholder="パスワード" required>
+                            </div>
+                            <div class="d-grid gap-2">
+                                <button id="loginSubmitBtn" type="submit" class="btn btn-primary">ログイン</button>
+                            </div>
+                        </form>
                     </div>
                 </div>
             </div>
         </div>
     </div>
     <script>
-        function signUpDemo() {
-            // Show loading state
-            const button = event.target;
+        // Demo anonymous sign-up (keeps existing behavior)
+        function signUpDemo(event) {
+            const button = event ? event.currentTarget : document.querySelector('button[onclick="signUpDemo()"]');
             const originalHtml = button.innerHTML;
-            button.innerHTML = '<span class="spinner-border spinner-border-sm me-1" role="status"></span>ログイン中...';
+            button.innerHTML = '<span class="spinner-border spinner-border-sm me-1" role="status"></span>処理中...';
             button.disabled = true;
 
-            // Call the /api/signUp endpoint
-            fetch('/api/signUp', {
+            fetch('/api/auth/signUp', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -42,22 +56,77 @@
                 if (response.ok) {
                     return response.json();
                 } else {
-                    throw new Error('Login failed');
+                    throw new Error('Sign up failed');
                 }
             })
-            .then(data => {
+            .then(() => {
                 window.location.href = '/';
             })
             .catch(error => {
-                console.error('Login error:', error);
+                console.error('Sign up error:', error);
                 // Reset button state
                 button.innerHTML = originalHtml;
                 button.disabled = false;
-                
-                // Show error message
-                alert('ログインに失敗しました。もう一度お試しください。');
+                showAlert('デモログインに失敗しました。');
             });
         }
-    </script>
+
+        // Login form handling
+        document.addEventListener('DOMContentLoaded', function () {
+            const form = document.getElementById('loginForm');
+            const submitBtn = document.getElementById('loginSubmitBtn');
+
+            form.addEventListener('submit', async function (e) {
+                e.preventDefault();
+                const originalHtml = submitBtn.innerHTML;
+                submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-1" role="status"></span>サインイン中...';
+                submitBtn.disabled = true;
+
+                const email = document.getElementById('email').value.trim();
+                const password = document.getElementById('password').value;
+
+                try {
+                    const resp = await fetch('/api/auth/email/signIn', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        credentials: 'include',
+                        body: JSON.stringify({ email: email, password: password })
+                    });
+
+                    if (resp.ok) {
+                        window.location.href = '/';
+                        return;
+                    }
+
+                    let errorMsg = 'ログインに失敗しました。';
+                    try {
+                        const json = await resp.json();
+                        if (json && json.message) errorMsg = json.message;
+                    } catch (err) {
+                        // ignore parse errors
+                    }
+                    showAlert(errorMsg);
+                } catch (err) {
+                    console.error(err);
+                    showAlert('ネットワークエラーが発生しました。');
+                } finally {
+                    submitBtn.innerHTML = originalHtml;
+                    submitBtn.disabled = false;
+                }
+            });
+        });
+
+        function showAlert(message) {
+            let alertEl = document.getElementById('loginAlert');
+            if (!alertEl) {
+                alertEl = document.createElement('div');
+                alertEl.id = 'loginAlert';
+                alertEl.className = 'alert alert-danger mt-3';
+                const form = document.getElementById('loginForm');
+                form.parentNode.insertBefore(alertEl, form.nextSibling);
+            }
+            alertEl.textContent = message;
+        }
+    </script> 
 </body>
 </html>

@@ -3,9 +3,9 @@ package inventory.example.inventory_id.controller;
 import inventory.example.inventory_id.dto.CategoryDto;
 import inventory.example.inventory_id.dto.ItemDto;
 import inventory.example.inventory_id.dto.ItemRecordDto;
+import inventory.example.inventory_id.enums.TransactionType;
 import inventory.example.inventory_id.exception.AuthenticationException;
 import inventory.example.inventory_id.model.Item;
-import inventory.example.inventory_id.model.ItemRecord;
 import inventory.example.inventory_id.repository.ItemRepository;
 import inventory.example.inventory_id.request.CategoryRequest;
 import inventory.example.inventory_id.request.ItemRecordRequest;
@@ -17,6 +17,7 @@ import inventory.example.inventory_id.util.TimeUtils;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -126,7 +127,7 @@ public class WebController extends BaseController {
               new DashboardActivity(
                 record.getCategoryName(),
                 record.getItemName(),
-                record.getSource().toString(),
+                record.getTransactionType(),
                 record.getQuantity(),
                 record.getCreatedAt()
               )
@@ -475,13 +476,13 @@ public class WebController extends BaseController {
         "totalIn",
         records
           .stream()
-          .filter(r -> r.getSource() == ItemRecord.Source.IN)
+          .filter(r -> r.getTransactionType() == TransactionType.IN)
           .toList()
           .size(),
         "totalOut",
         records
           .stream()
-          .filter(r -> r.getSource() == ItemRecord.Source.OUT)
+          .filter(r -> r.getTransactionType() == TransactionType.OUT)
           .toList()
           .size(),
         "totalRecords",
@@ -500,19 +501,6 @@ public class WebController extends BaseController {
     } catch (Exception e) {
       return "redirect:/server-error";
     }
-  }
-
-  // @GetMapping("/records/new")
-  // public String newRecord(Model model) {
-  // model.addAttribute("recordRequest", new RecordRequest());
-  // model.addAttribute("categoriesWithItems", getCategoriesWithItems());
-  // model.addAttribute("recentRecords", getSampleRecentRecords());
-  // return "records/form";
-  // }
-
-  @GetMapping("/login")
-  public String loginPage() {
-    return "auth/login";
   }
 
   @PostMapping("/records")
@@ -542,22 +530,44 @@ public class WebController extends BaseController {
     return "redirect:/items/" + recordRequest.getItemId();
   }
 
+  // @GetMapping("/records/new")
+  // public String newRecord(Model model) {
+  // model.addAttribute("recordRequest", new RecordRequest());
+  // model.addAttribute("categoriesWithItems", getCategoriesWithItems());
+  // model.addAttribute("recentRecords", getSampleRecentRecords());
+  // return "records/form";
+  // }
+
+  @GetMapping("/login")
+  public String loginPage(Model model) {
+    return "auth/login";
+  }
+
+  @GetMapping("/logout")
+  public String logoutPage(Model model) {
+    HttpHeaders headers = getHeaders(request);
+    headers.set("Content-Type", "application/json");
+    HttpEntity<ItemRecordRequest> entity = new HttpEntity<>(headers);
+    restTemplate.postForEntity(apiUrl + "/auth/signOut", entity, Object.class);
+    return "redirect:/login";
+  }
+
   public static class DashboardActivity {
 
     public String categoryName;
     public String itemName;
-    public String type;
+    public TransactionType type;
     public int quantity;
-    public String createdAt;
+    public LocalDateTime createdAt;
     public String note;
     public final String timestamp;
 
     public DashboardActivity(
       String categoryName,
       String itemName,
-      String type,
+      TransactionType type,
       int quantity,
-      String createdAt
+      LocalDateTime createdAt
     ) {
       this.categoryName = categoryName;
       this.itemName = itemName;
@@ -572,7 +582,7 @@ public class WebController extends BaseController {
       return itemName;
     }
 
-    public String getType() {
+    public TransactionType getType() {
       return type;
     }
 
@@ -580,7 +590,7 @@ public class WebController extends BaseController {
       return quantity;
     }
 
-    public String getCreatedAt() {
+    public LocalDateTime getCreatedAt() {
       return createdAt;
     }
 

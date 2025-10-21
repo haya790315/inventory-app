@@ -82,7 +82,7 @@
                     <div class="col-md-3">
                         <div class="card text-center">
                             <div class="card-body">
-                                <h5 class="card-title text-success">総入庫</h5>
+                                <h5 class="card-title text-success">入庫</h5>
                                 <h3 class="text-success"
                                 th:text="${summary != null ? summary.totalIn : 0}"
                                 >0</h3>
@@ -92,7 +92,7 @@
                     <div class="col-md-3">
                         <div class="card text-center">
                             <div class="card-body">
-                                <h5 class="card-title text-danger">総出庫</h5>
+                                <h5 class="card-title text-danger">出庫</h5>
                                 <h3 class="text-danger"
                                 th:text="${summary != null ? summary.totalOut : 0}"
                                 >0</h3>
@@ -145,11 +145,11 @@
                                         <tr th:each="record : ${records}">
                                             <td>
                                                 <div>
-                                                    <small th:text="${record.createdAt}">01/01</small>
+                                                    <small th:text="${#temporals.format(record.createdAt,'yyyy年MM月dd日　HH:mm:ss')}">01/01</small>
                                                 </div>
                                             </td>
                                             <td>
-                                                <span th:switch="${record.source.name()}">
+                                                <span th:switch="${record.transactionType.name()}">
                                                     <span th:case="'IN'" class="badge bg-success">
                                                         <i class="bi bi-plus-circle me-1"></i>入庫
                                                     </span>

@@ -37,8 +37,7 @@ public class FirebaseAuthService {
   }
 
   public String verifyToken(String idToken) throws FirebaseAuthException {
-    FirebaseToken token = FirebaseAuth.getInstance()
-      .verifySessionCookie(idToken, true);
+    FirebaseToken token = FirebaseAuth.getInstance().verifyIdToken(idToken);
     return token.getUid();
   }
 

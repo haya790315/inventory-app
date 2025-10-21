@@ -13,7 +13,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class ItemRecordDto {
 
-  private Integer id;
+  private Long id;
   private String itemName;
   private String categoryName;
   private int quantity;
