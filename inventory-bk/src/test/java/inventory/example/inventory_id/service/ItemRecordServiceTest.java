@@ -754,12 +754,16 @@ public class ItemRecordServiceTest {
   @Test
   @DisplayName("updateItemSummary - 正常系（入庫レコードのみ）")
   void updateItemSummary_onlyInRecords() {
+    int firstInQuantity = 10;
+    int firstUnitPrice = 100;
+    int secondInQuantity = 5;
+    int secondUnitPrice = 200;
     List<ItemRecord> records = List.of(
       new ItemRecord(
         testItem,
         testUserId,
-        10,
-        100,
+        firstInQuantity,
+        firstUnitPrice,
         timeNow,
         TransactionType.IN,
         null
@@ -767,8 +771,8 @@ public class ItemRecordServiceTest {
       new ItemRecord(
         testItem,
         testUserId,
-        5,
-        200,
+        secondInQuantity,
+        secondUnitPrice,
         timeNow,
         TransactionType.IN,
         null
@@ -780,19 +784,26 @@ public class ItemRecordServiceTest {
 
     itemRecordService.updateItemSummary(testUserId, testItem);
 
-    assertThat(testItem.getTotalQuantity()).isEqualTo(15);
-    assertThat(testItem.getTotalPrice()).isEqualTo(10 * 100 + 5 * 200);
+    assertThat(testItem.getTotalQuantity()).isEqualTo(
+      firstInQuantity + secondInQuantity
+    );
+    assertThat(testItem.getTotalPrice()).isEqualTo(
+      firstInQuantity * firstUnitPrice + secondInQuantity * secondUnitPrice
+    );
     verify(itemRepository).save(testItem);
   }
 
   @Test
   @DisplayName("updateItemSummary - 正常系（入出庫レコード）")
   void updateItemSummary_mixedRecords() {
+    int inQuantity = 20;
+    int unitPrice = 100;
+    int outQuantity = 5;
     ItemRecord inRecord = new ItemRecord(
       testItem,
       testUserId,
-      20,
-      100,
+      inQuantity,
+      unitPrice,
       timeNow,
       TransactionType.IN
     );
@@ -800,8 +811,8 @@ public class ItemRecordServiceTest {
     ItemRecord outRecord = new ItemRecord(
       testItem,
       testUserId,
-      5,
-      inRecord.getPrice(),
+      outQuantity,
+      unitPrice,
       timeNow,
       TransactionType.OUT,
       inRecord
@@ -815,8 +826,10 @@ public class ItemRecordServiceTest {
 
     itemRecordService.updateItemSummary(testUserId, testItem);
 
-    assertThat(testItem.getTotalQuantity()).isEqualTo(20 - 5);
-    assertThat(testItem.getTotalPrice()).isEqualTo(20 * 100 - 5 * 100);
+    assertThat(testItem.getTotalQuantity()).isEqualTo(inQuantity - outQuantity);
+    assertThat(testItem.getTotalPrice()).isEqualTo(
+      inQuantity * unitPrice - outQuantity * unitPrice
+    );
     verify(itemRepository).save(testItem);
   }
 
