@@ -5,7 +5,6 @@ import inventory.example.inventory_id.enums.TransactionType;
 import inventory.example.inventory_id.model.Item;
 import inventory.example.inventory_id.model.ItemRecord;
 import inventory.example.inventory_id.repository.ItemRecordRepository;
-import inventory.example.inventory_id.repository.ItemRecordRepository.ItemSummary;
 import inventory.example.inventory_id.repository.ItemRepository;
 import inventory.example.inventory_id.request.ItemRecordRequest;
 import java.util.ArrayList;
@@ -247,13 +246,39 @@ public class ItemRecordService {
       .toList();
   }
 
-  private void updateItemSummary(String userId, Item item) {
-    ItemSummary itemSummary = itemRecordRepository.getItemTotalPriceAndQuantity(
-      userId,
-      item.getId()
-    );
-    item.setTotalQuantity(itemSummary.getTotalQuantity());
-    item.setTotalPrice(itemSummary.getTotalPrice());
+  public void updateItemSummary(String userId, Item item) {
+    List<ItemRecord> itemRecords =
+      itemRecordRepository.getRecordsByItemIdAndUserId(item.getId(), userId);
+    int totalQuantity = itemRecords
+      .stream()
+      .reduce(
+        0,
+        (acc, record) -> {
+          if (record.getTransactionType() == TransactionType.IN) {
+            return acc + record.getQuantity();
+          } else {
+            return acc - record.getQuantity();
+          }
+        },
+        Integer::sum
+      );
+
+    int totalPrice = itemRecords
+      .stream()
+      .reduce(
+        0,
+        (acc, record) -> {
+          if (record.getTransactionType() == TransactionType.IN) {
+            return acc + record.getQuantity() * record.getPrice();
+          } else {
+            return acc - record.getQuantity() * record.getPrice();
+          }
+        },
+        Integer::sum
+      );
+
+    item.setTotalQuantity(totalQuantity);
+    item.setTotalPrice(totalPrice);
     itemRepository.save(item);
   }
 }

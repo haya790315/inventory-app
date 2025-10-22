@@ -4,8 +4,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -16,7 +14,6 @@ import inventory.example.inventory_id.model.Category;
 import inventory.example.inventory_id.model.Item;
 import inventory.example.inventory_id.model.ItemRecord;
 import inventory.example.inventory_id.repository.ItemRecordRepository;
-import inventory.example.inventory_id.repository.ItemRecordRepository.ItemSummary;
 import inventory.example.inventory_id.repository.ItemRepository;
 import inventory.example.inventory_id.request.ItemRecordRequest;
 import java.time.LocalDate;
@@ -84,30 +81,6 @@ public class ItemRecordServiceTest {
       null
     );
     testItemRecord.setId(testItemRecordId);
-  }
-
-  @BeforeEach
-  void setDefaultSummary() {
-    ItemSummary defaultItemSummary = new ItemSummary() {
-      @Override
-      public Integer getTotalQuantity() {
-        return 0;
-      }
-
-      @Override
-      public Integer getTotalPrice() {
-        return 0;
-      }
-    };
-
-    lenient()
-      .when(
-        itemRecordRepository.getItemTotalPriceAndQuantity(
-          anyString(),
-          any(UUID.class)
-        )
-      )
-      .thenReturn(defaultItemSummary);
   }
 
   @Test
@@ -776,5 +749,102 @@ public class ItemRecordServiceTest {
       itemRecordService.getAllRecordsByItem(testUserId, testItemId)
     );
     assertThat(exception.getMessage()).isEqualTo(serverErrorMsg);
+  }
+
+  @Test
+  @DisplayName("updateItemSummary - 正常系（入庫レコードのみ）")
+  void updateItemSummary_onlyInRecords() {
+    List<ItemRecord> records = List.of(
+      new ItemRecord(
+        testItem,
+        testUserId,
+        10,
+        100,
+        timeNow,
+        TransactionType.IN,
+        null
+      ),
+      new ItemRecord(
+        testItem,
+        testUserId,
+        5,
+        200,
+        timeNow,
+        TransactionType.IN,
+        null
+      )
+    );
+    when(
+      itemRecordRepository.getRecordsByItemIdAndUserId(testItemId, testUserId)
+    ).thenReturn(records);
+
+    itemRecordService.updateItemSummary(testUserId, testItem);
+
+    assertThat(testItem.getTotalQuantity()).isEqualTo(15);
+    assertThat(testItem.getTotalPrice()).isEqualTo(10 * 100 + 5 * 200);
+    verify(itemRepository).save(testItem);
+  }
+
+  @Test
+  @DisplayName("updateItemSummary - 正常系（入出庫レコード）")
+  void updateItemSummary_mixedRecords() {
+    ItemRecord inRecord = new ItemRecord(
+      testItem,
+      testUserId,
+      20,
+      100,
+      timeNow,
+      TransactionType.IN
+    );
+
+    ItemRecord outRecord = new ItemRecord(
+      testItem,
+      testUserId,
+      5,
+      inRecord.getPrice(),
+      timeNow,
+      TransactionType.OUT,
+      inRecord
+    );
+
+    List<ItemRecord> records = List.of(inRecord, outRecord);
+
+    when(
+      itemRecordRepository.getRecordsByItemIdAndUserId(testItemId, testUserId)
+    ).thenReturn(records);
+
+    itemRecordService.updateItemSummary(testUserId, testItem);
+
+    assertThat(testItem.getTotalQuantity()).isEqualTo(20 - 5);
+    assertThat(testItem.getTotalPrice()).isEqualTo(20 * 100 - 5 * 100);
+    verify(itemRepository).save(testItem);
+  }
+
+  @Test
+  @DisplayName("updateItemSummary - 正常系（履歴なし）")
+  void updateItemSummary_emptyRecords() {
+    when(
+      itemRecordRepository.getRecordsByItemIdAndUserId(testItemId, testUserId)
+    ).thenReturn(List.of());
+
+    itemRecordService.updateItemSummary(testUserId, testItem);
+
+    assertThat(testItem.getTotalQuantity()).isEqualTo(0);
+    assertThat(testItem.getTotalPrice()).isEqualTo(0);
+    verify(itemRepository).save(testItem);
+  }
+
+  @Test
+  @DisplayName("updateItemSummary - 異常性（セレクターエラー）")
+  void updateItemSummary_selectorError() {
+    when(
+      itemRecordRepository.getRecordsByItemIdAndUserId(testItemId, testUserId)
+    ).thenThrow(new RuntimeException("DBエラー"));
+
+    assertThrows(RuntimeException.class, () ->
+      itemRecordService.updateItemSummary(testUserId, testItem)
+    );
+
+    verify(itemRepository, times(0)).save(testItem);
   }
 }

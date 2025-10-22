@@ -11,11 +11,6 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public interface ItemRecordRepository extends JpaRepository<ItemRecord, Long> {
-  interface ItemSummary {
-    Integer getTotalQuantity();
-    Integer getTotalPrice();
-  }
-
   /**
    * ユーザーIDとレコードIDでItemRecordを取得
    */
@@ -146,48 +141,5 @@ public interface ItemRecordRepository extends JpaRepository<ItemRecord, Long> {
   List<ItemRecord> getRecordsByItemIdAndUserId(
     @Param("itemId") UUID itemId,
     @Param("userId") String userId
-  );
-
-  @Query(
-    value = """
-      SELECT
-        COALESCE(SUM(
-          CASE
-            WHEN
-              ir.transaction_type = 'IN'
-            THEN
-              ir.quantity
-            WHEN
-              ir.transaction_type = 'OUT'
-            THEN
-              -ir.quantity
-            ELSE 0
-          END
-        ), 0) AS total_quantity,
-        COALESCE(SUM(
-          CASE
-            WHEN
-              ir.transaction_type = 'IN'
-            THEN
-              ir.price * ir.quantity
-            WHEN
-              ir.transaction_type = 'OUT'
-            THEN
-              -ir.price * ir.quantity
-            ELSE 0
-          END
-        ), 0) AS total_price
-      FROM
-        item_record ir
-      WHERE
-        ir.deleted_flag = FALSE
-        AND ir.item_id = :itemId
-        AND ir.user_id = :userId
-    """,
-    nativeQuery = true
-  )
-  ItemSummary getItemTotalPriceAndQuantity(
-    @Param("userId") String userId,
-    @Param("itemId") UUID itemId
   );
 }
