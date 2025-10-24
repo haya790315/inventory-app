@@ -784,9 +784,11 @@ public class ItemRecordServiceTest {
 
     itemRecordService.updateItemSummary(testUserId, testItem);
 
+    // 検証 : 入庫の総数量は firstInQuantity(10) + secondInQuantity(5) = 15 になる
     assertThat(testItem.getTotalQuantity()).isEqualTo(
       firstInQuantity + secondInQuantity
     );
+    // 検証 : 入庫の総価格は firstInQuantity(10)×firstUnitPrice(100) + secondInQuantity(5)×secondUnitPrice(200) = 1300 になる
     assertThat(testItem.getTotalPrice()).isEqualTo(
       firstInQuantity * firstUnitPrice + secondInQuantity * secondUnitPrice
     );
@@ -826,7 +828,9 @@ public class ItemRecordServiceTest {
 
     itemRecordService.updateItemSummary(testUserId, testItem);
 
+    // 検証 : 総数量は inQuantity(20) - outQuantity(5) = 15 になる
     assertThat(testItem.getTotalQuantity()).isEqualTo(inQuantity - outQuantity);
+    // 検証 : 総金額は inQuantity(20)×unitPrice(100) - outQuantity(5)×unitPrice(100) = 1500 になる
     assertThat(testItem.getTotalPrice()).isEqualTo(
       inQuantity * unitPrice - outQuantity * unitPrice
     );
@@ -842,6 +846,7 @@ public class ItemRecordServiceTest {
 
     itemRecordService.updateItemSummary(testUserId, testItem);
 
+    // 検証 : 履歴がない場合、総数量と総価格は0になる
     assertThat(testItem.getTotalQuantity()).isEqualTo(0);
     assertThat(testItem.getTotalPrice()).isEqualTo(0);
     verify(itemRepository).save(testItem);
