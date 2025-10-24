@@ -788,7 +788,7 @@ public class ItemRecordServiceTest {
     assertThat(testItem.getTotalQuantity()).isEqualTo(
       firstInQuantity + secondInQuantity
     );
-    // 検証 : 入庫の総価格は firstInQuantity(10)×firstUnitPrice(100) + secondInQuantity(5)×secondUnitPrice(200) = 1300 になる
+    // 検証 : 入庫の総価格は firstInQuantity(10)×firstUnitPrice(100) + secondInQuantity(5)×secondUnitPrice(200) = 2000 になる
     assertThat(testItem.getTotalPrice()).isEqualTo(
       firstInQuantity * firstUnitPrice + secondInQuantity * secondUnitPrice
     );
