@@ -5,7 +5,6 @@ import inventory.example.inventory_id.enums.TransactionType;
 import inventory.example.inventory_id.model.Item;
 import inventory.example.inventory_id.model.ItemRecord;
 import inventory.example.inventory_id.repository.ItemRecordRepository;
-import inventory.example.inventory_id.repository.ItemRecordRepository.ItemSummary;
 import inventory.example.inventory_id.repository.ItemRepository;
 import inventory.example.inventory_id.request.ItemRecordRequest;
 import java.util.ArrayList;
@@ -250,13 +249,49 @@ public class ItemRecordService {
       .toList();
   }
 
-  private void updateItemSummary(String userId, Item item) {
-    ItemSummary itemSummary = itemRecordRepository.getItemTotalPriceAndQuantity(
-      userId,
-      item.getId()
-    );
-    item.setTotalQuantity(itemSummary.getTotalQuantity());
-    item.setTotalPrice(itemSummary.getTotalPrice());
+  /**
+   * アイテムの管理および在庫集計を行うサービスクラスです。
+   * アイテムの在庫数・在庫金額の集計処理を提供します。
+   */
+  static class ItemSummary {
+
+    int quantity;
+    int price;
+  }
+
+  /**
+   * 指定ユーザー・アイテムの全レコードから在庫数・在庫金額を集計し、アイテム情報を更新します。
+   *
+   * @param userId ユーザーID
+   * @param item 集計対象のアイテム
+   */
+  public void updateItemSummary(String userId, Item item) {
+    List<ItemRecord> itemRecords =
+      itemRecordRepository.getRecordsByItemIdAndUserId(item.getId(), userId);
+
+    ItemSummary itemSummary = itemRecords
+      .stream()
+      .reduce(
+        new ItemSummary(),
+        (aggregateSummary, record) -> {
+          if (record.getTransactionType() == TransactionType.IN) {
+            aggregateSummary.quantity += record.getQuantity();
+            aggregateSummary.price += record.getQuantity() * record.getPrice();
+          } else {
+            aggregateSummary.quantity -= record.getQuantity();
+            aggregateSummary.price -= record.getQuantity() * record.getPrice();
+          }
+          return aggregateSummary;
+        },
+        (reducedSummary, nextSummary) -> {
+          reducedSummary.quantity += nextSummary.quantity;
+          reducedSummary.price += nextSummary.price;
+          return reducedSummary;
+        }
+      );
+
+    item.setTotalQuantity(itemSummary.quantity);
+    item.setTotalPrice(itemSummary.price);
     itemRepository.save(item);
   }
 }

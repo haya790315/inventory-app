@@ -4,8 +4,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -16,7 +14,6 @@ import inventory.example.inventory_id.model.Category;
 import inventory.example.inventory_id.model.Item;
 import inventory.example.inventory_id.model.ItemRecord;
 import inventory.example.inventory_id.repository.ItemRecordRepository;
-import inventory.example.inventory_id.repository.ItemRecordRepository.ItemSummary;
 import inventory.example.inventory_id.repository.ItemRepository;
 import inventory.example.inventory_id.request.ItemRecordRequest;
 import java.time.LocalDate;
@@ -84,30 +81,6 @@ public class ItemRecordServiceTest {
       null
     );
     testItemRecord.setId(testItemRecordId);
-  }
-
-  @BeforeEach
-  void setDefaultSummary() {
-    ItemSummary defaultItemSummary = new ItemSummary() {
-      @Override
-      public Integer getTotalQuantity() {
-        return 0;
-      }
-
-      @Override
-      public Integer getTotalPrice() {
-        return 0;
-      }
-    };
-
-    lenient()
-      .when(
-        itemRecordRepository.getItemTotalPriceAndQuantity(
-          anyString(),
-          any(UUID.class)
-        )
-      )
-      .thenReturn(defaultItemSummary);
   }
 
   @Test
@@ -776,5 +749,120 @@ public class ItemRecordServiceTest {
       itemRecordService.getAllRecordsByItem(testUserId, testItemId)
     );
     assertThat(exception.getMessage()).isEqualTo(serverErrorMsg);
+  }
+
+  @Test
+  @DisplayName("updateItemSummary - 正常系（入庫レコードのみ）")
+  void updateItemSummary_onlyInRecords() {
+    int firstInQuantity = 10;
+    int firstUnitPrice = 100;
+    int secondInQuantity = 5;
+    int secondUnitPrice = 200;
+    List<ItemRecord> records = List.of(
+      new ItemRecord(
+        testItem,
+        testUserId,
+        firstInQuantity,
+        firstUnitPrice,
+        timeNow,
+        TransactionType.IN,
+        null
+      ),
+      new ItemRecord(
+        testItem,
+        testUserId,
+        secondInQuantity,
+        secondUnitPrice,
+        timeNow,
+        TransactionType.IN,
+        null
+      )
+    );
+    when(
+      itemRecordRepository.getRecordsByItemIdAndUserId(testItemId, testUserId)
+    ).thenReturn(records);
+
+    itemRecordService.updateItemSummary(testUserId, testItem);
+
+    // 検証 : 入庫の総数量は firstInQuantity(10) + secondInQuantity(5) = 15 になる
+    assertThat(testItem.getTotalQuantity()).isEqualTo(
+      firstInQuantity + secondInQuantity
+    );
+    // 検証 : 入庫の総価格は firstInQuantity(10)×firstUnitPrice(100) + secondInQuantity(5)×secondUnitPrice(200) = 2000 になる
+    assertThat(testItem.getTotalPrice()).isEqualTo(
+      firstInQuantity * firstUnitPrice + secondInQuantity * secondUnitPrice
+    );
+    verify(itemRepository).save(testItem);
+  }
+
+  @Test
+  @DisplayName("updateItemSummary - 正常系（入出庫レコード）")
+  void updateItemSummary_mixedRecords() {
+    int inQuantity = 20;
+    int unitPrice = 100;
+    int outQuantity = 5;
+    ItemRecord inRecord = new ItemRecord(
+      testItem,
+      testUserId,
+      inQuantity,
+      unitPrice,
+      timeNow,
+      TransactionType.IN
+    );
+
+    ItemRecord outRecord = new ItemRecord(
+      testItem,
+      testUserId,
+      outQuantity,
+      unitPrice,
+      timeNow,
+      TransactionType.OUT,
+      inRecord
+    );
+
+    List<ItemRecord> records = List.of(inRecord, outRecord);
+
+    when(
+      itemRecordRepository.getRecordsByItemIdAndUserId(testItemId, testUserId)
+    ).thenReturn(records);
+
+    itemRecordService.updateItemSummary(testUserId, testItem);
+
+    // 検証 : 総数量は inQuantity(20) - outQuantity(5) = 15 になる
+    assertThat(testItem.getTotalQuantity()).isEqualTo(inQuantity - outQuantity);
+    // 検証 : 総金額は inQuantity(20)×unitPrice(100) - outQuantity(5)×unitPrice(100) = 1500 になる
+    assertThat(testItem.getTotalPrice()).isEqualTo(
+      inQuantity * unitPrice - outQuantity * unitPrice
+    );
+    verify(itemRepository).save(testItem);
+  }
+
+  @Test
+  @DisplayName("updateItemSummary - 正常系（履歴なし）")
+  void updateItemSummary_emptyRecords() {
+    when(
+      itemRecordRepository.getRecordsByItemIdAndUserId(testItemId, testUserId)
+    ).thenReturn(List.of());
+
+    itemRecordService.updateItemSummary(testUserId, testItem);
+
+    // 検証 : 履歴がない場合、総数量と総価格は0になる
+    assertThat(testItem.getTotalQuantity()).isEqualTo(0);
+    assertThat(testItem.getTotalPrice()).isEqualTo(0);
+    verify(itemRepository).save(testItem);
+  }
+
+  @Test
+  @DisplayName("updateItemSummary - 異常性（セレクターエラー）")
+  void updateItemSummary_selectorError() {
+    when(
+      itemRecordRepository.getRecordsByItemIdAndUserId(testItemId, testUserId)
+    ).thenThrow(new RuntimeException("DBエラー"));
+
+    assertThrows(RuntimeException.class, () ->
+      itemRecordService.updateItemSummary(testUserId, testItem)
+    );
+
+    verify(itemRepository, times(0)).save(testItem);
   }
 }
