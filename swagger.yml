@@ -1,0 +1,518 @@
+openapi: 3.0.4
+info:
+  title: 在庫管理システムAPI仕様書
+  description: 在庫管理APIの説明
+  version: "1.0"
+servers:
+  - url: http://localhost:8080
+    description: Generated server url
+tags:
+  - name: アイテム
+    description: アイテム管理用APIです。ユーザーはアイテムの新規作成、更新、削除、取得が可能です。各アイテムは指定のカテゴリに属して作成します。
+  - name: カテゴリ
+    description: カテゴリ管理用APIです。ユーザーはカテゴリの新規作成、更新、削除、取得が可能です。システムには複数のデフォルトカテゴリが用意されており、これらは全ユーザーが利用できますが、デフォルトカテゴリは編集・削除できません。ユーザー自身が作成したカスタムカテゴリについては、自由に編集・削除が可能です。カテゴリ取得時にはデフォルトカテゴリとユーザー作成カテゴリが辞書順一覧で返されます。
+  - name: 認証
+    description: ユーザー認証操作のためのAPI
+paths:
+  /api/item:
+    get:
+      tags:
+        - アイテム
+      summary: アイテム一覧の取得
+      description: |-
+        指定したカテゴリ名に属する、現在ログイン中のユーザーが所有する全てのアイテムを取得します。
+
+         取得したアイテムは、各アイテムの更新日時（updated_at）を基準に新しい順で並べて返します。
+      operationId: getItems
+      parameters:
+        - name: category_name
+          in: query
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: アイテム一覧取得成功のレスポンス
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ItemDto"
+        "400":
+          description: 指定のカテゴリがない時のレスポンス
+          content:
+            application/json:
+              example:
+                message: カテゴリーが見つかりません
+        "404":
+          description: 指定のカテゴリに属するアイテムがない時のレスポンス
+          content:
+            application/json:
+              example:
+                message: アイテムが登録されていません
+        "500":
+          description: サーバーエラーが発生時のレスポンス
+          content:
+            application/json:
+              example:
+                message: サーバーエラーが発生しました
+    put:
+      tags:
+        - アイテム
+      summary: アイテムの更新
+      description: |-
+        指定したアイテムの情報を更新します。
+
+        - アイテム名を変更する場合、変更後の名称が既に登録しているものと重複した場合は更新できません
+
+        - アイテムの属するカテゴリ変更はできません
+      operationId: updateItem
+      parameters:
+        - name: item_id
+          in: query
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ItemRequest"
+        required: true
+      responses:
+        "200":
+          description: アイテム更新成功時のレスポンス
+          content:
+            application/json:
+              example:
+                message: アイテムの更新が完了しました
+        "400":
+          description: インプットが不正な時のレスポンス
+          content:
+            application/json:
+              examples:
+                カテゴリ名がない:
+                  description: カテゴリ名がない場合のレスポンス
+                  value:
+                    error: カテゴリは必須です
+                カテゴリ名が長すぎる:
+                  description: カテゴリ名が50文字超える場合のレスポンス
+                  value:
+                    error: カテゴリは50文字以内で入力してください
+                アイテム名がない:
+                  description: アイテム名がない場合のレスポンス
+                  value:
+                    error: アイテム名は必須です
+                アイテム名が長すぎる:
+                  description: アイテム名が50文字超える場合のレスポンス
+                  value:
+                    error: アイテム名は50文字以内で入力してください
+        "404":
+          description: アイテムが見つからない時のレスポンス
+          content:
+            application/json:
+              example:
+                message: アイテムが見つかりません
+        "500":
+          description: サーバーエラーが発生時のレスポンス
+          content:
+            application/json:
+              example:
+                message: サーバーエラーが発生しました
+    post:
+      tags:
+        - アイテム
+      summary: アイテムの作成
+      description: |-
+        新しいアイテムを作成します
+        - 各アイテムは指定のカテゴリに属します
+        - 同じカテゴリに属するアイテムは、アイテム名が重複して登録できません
+      operationId: createItem
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ItemRequest"
+        required: true
+      responses:
+        "201":
+          description: アイテム作成成功時のレスポンス
+          content:
+            application/json:
+              example:
+                message: アイテムの作成が完了しました
+        "400":
+          description: インプットが不正な時のレスポンス
+          content:
+            application/json:
+              examples:
+                カテゴリ名がない:
+                  description: カテゴリ名がない場合のレスポンス
+                  value:
+                    error: カテゴリは必須です
+                カテゴリ名が長すぎる:
+                  description: カテゴリ名が50文字超える場合のレスポンス
+                  value:
+                    error: カテゴリは50文字以内で入力してください
+                アイテム名がない:
+                  description: アイテム名がない場合のレスポンス
+                  value:
+                    error: アイテム名は必須です
+                アイテム名が長すぎる:
+                  description: アイテム名が50文字超える場合のレスポンス
+                  value:
+                    error: アイテム名は50文字以内で入力してください
+        "404":
+          description: カテゴリ名が見つからない時のレスポンス
+          content:
+            application/json:
+              example:
+                message: カテゴリーが見つかりません
+        "409":
+          description: アイテム名は重複時のレスポンス
+          content:
+            application/json:
+              example:
+                message: アイテム名は既に存在します
+        "500":
+          description: サーバーエラーが発生時のレスポンス
+          content:
+            application/json:
+              example:
+                message: サーバーエラーが発生しました
+    delete:
+      tags:
+        - アイテム
+      summary: アイテムの削除
+      description: 指定したアイテムを削除します
+      operationId: deleteItem
+      parameters:
+        - name: item_id
+          in: query
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: アイテム削除成功時のレスポンス
+          content:
+            application/json:
+              example:
+                message: アイテムの削除が完了しました
+        "404":
+          description: アイテムが見つかりません時のレスポンス
+          content:
+            application/json:
+              example:
+                message: アイテムが見つかりません
+        "500":
+          description: サーバーエラーが発生時のレスポンス
+          content:
+            application/json:
+              example:
+                message: サーバーエラーが発生しました
+  /api/category:
+    get:
+      tags:
+        - カテゴリ
+      summary: カテゴリの取得
+      description: |
+        システムのデフォルトカテゴリも含めてユーザ自分のカテゴリ一覧を取得、辞書順に表示する。
+        具体的には以下の優先度で比較・整列されます。
+        1. 数字 (0–9)
+        2. 英字 (A–Z, a–z)
+        3. ひらがな
+        4. カタカナ
+        5. 漢字
+      operationId: getAllCategories
+      responses:
+        "200":
+          description: カテゴリ一覧取得、辞書順に表示する
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/CategoryDto"
+              example:
+                - name: 123Food
+                - name: Apple
+                - name: banana
+                - name: あさひ
+                - name: カタログ
+                - name: 東京
+        "500":
+          description: サーバーエラーが発生時のレスポンス
+          content:
+            application/json:
+              example:
+                message: サーバーエラーが発生しました
+    put:
+      tags:
+        - カテゴリ
+      summary: カスタムカテゴリの更新
+      description: |-
+        指定のカスタムカテゴリを更新します
+        - デフォルトカテゴリは編集できません
+        - すでに存在するカテゴリ名に変更しようとした場合、更新はできません
+      operationId: putMethodName
+      parameters:
+        - name: category_id
+          in: query
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CategoryRequest"
+        required: true
+      responses:
+        "200":
+          description: カテゴリ更新成功時のレスポンス
+          content:
+            application/json:
+              example:
+                message: カスタムカテゴリの更新が完了しました
+        "400":
+          description: インプットが不正な時のレスポンス
+          content:
+            application/json:
+              examples:
+                カテゴリ名がない:
+                  description: カテゴリ名がない場合のレスポンス
+                  value:
+                    error: カテゴリ名は必須
+                カテゴリ名が長すぎる:
+                  description: カテゴリ名が50文字を超える場合のレスポンス
+                  value:
+                    error: カテゴリ名は50文字以内
+        "409":
+          description: カテゴリ更新失敗時のレスポンス
+          content:
+            application/json:
+              example:
+                message: カテゴリー名はすでに存在します
+        "500":
+          description: サーバーエラーが発生時のレスポンス
+          content:
+            application/json:
+              example:
+                message: サーバーエラーが発生しました
+    post:
+      tags:
+        - カテゴリ
+      summary: カスタムカテゴリの作成
+      description: |-
+        新しいカスタムカテゴリを作成します
+        - 各ユーザは最大50個のカスタムカテゴリを作成できます
+        - 同じユーザーが所有するカテゴリ内では、カテゴリ名は一意である必要があります
+      operationId: createCategory
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CategoryRequest"
+        required: true
+      responses:
+        "201":
+          description: カスタムカテゴリ作成成功時のレスポンス
+          content:
+            application/json:
+              example:
+                message: カスタムカテゴリの作成が完了しました
+        "400":
+          description: インプットが不正な時のレスポンス
+          content:
+            application/json:
+              examples:
+                カテゴリ名がない:
+                  description: カテゴリ名がない場合のレスポンス
+                  value:
+                    error: カテゴリ名は必須
+                カテゴリ名が長すぎる:
+                  description: カテゴリ名が50文字を超える場合のレスポンス
+                  value:
+                    error: カテゴリ名は50文字以内
+        "409":
+          description: カテゴリ作成失敗時のレスポンス
+          content:
+            application/json:
+              example:
+                message: 登録できるカテゴリの上限に達しています
+        "500":
+          description: サーバーエラーが発生時のレスポンス
+          content:
+            application/json:
+              example:
+                message: サーバーエラーが発生しました
+    delete:
+      tags:
+        - カテゴリ
+      summary: カスタムカテゴリの削除
+      description: |-
+        指定のカスタムカテゴリを削除します
+        - デフォルトカテゴリは削除できません
+        - 指定のカテゴリにアイテムが存在する場合は削除できません
+      operationId: deleteCategory
+      parameters:
+        - name: category_id
+          in: query
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: カスタムカテゴリ削除時のレスポンス
+          content:
+            application/json:
+              example:
+                message: カスタムカテゴリの削除が完了しました
+        "400":
+          description: カテゴリを削除不可のレスポンス
+          content:
+            application/json:
+              examples:
+                デフォルトカテゴリを削除:
+                  description: デフォルトカテゴリを削除しようとした場合のレスポンス
+                  value:
+                    message: デフォルトカテゴリは削除できません
+                アイテムが存在のカテゴリを削除:
+                  description: 指定のカテゴリにアイテムが存在する場合のレスポンス
+                  value:
+                    message: アイテムが存在するため削除できません
+        "404":
+          description: 指定のカテゴリがない時のレスポンス
+          content:
+            application/json:
+              example:
+                message: 指定したカテゴリが見つかりません
+        "500":
+          description: サーバーエラーが発生しました
+          content:
+            application/json:
+              example:
+                message: サーバーエラーが発生しました
+  /api/signUp:
+    post:
+      tags:
+        - 認証
+      summary: ユーザー登録
+      description: 新しいユーザーを登録します
+      operationId: signUp
+      responses:
+        "200":
+          description: ユーザー登録成功
+          content:
+            application/json:
+              example:
+                message: ユーザー登録が完了しました
+        "401":
+          description: サーバーエラーが発生しました
+          content:
+            application/json:
+              example:
+                message: ユーザー登録に失敗しました
+        "500":
+          description: サーバーエラーが発生しました
+          content:
+            application/json:
+              example:
+                message: サーバーエラーが発生しました
+  /api/category/items:
+    get:
+      tags:
+        - カテゴリ
+      summary: カテゴリに属するアイテム一覧を取得
+      description: 指定したカテゴリに属するアイテム一覧を取得します、更新日時の降順で表示します
+      operationId: getCategoryItems
+      parameters:
+        - name: categoryId
+          in: query
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: カテゴリー取得成功時のレスポンス
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ItemDto"
+        "500":
+          description: サーバーエラーが発生時のレスポンス
+          content:
+            application/json:
+              example:
+                message: サーバーエラーが発生しました
+components:
+  schemas:
+    ItemRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          description: アイテム名
+          example: 鉛筆
+          maxLength: 50
+          minLength: 0
+          pattern: .*[^\s　].*
+        categoryName:
+          type: string
+          description: カテゴリ名
+          example: 文房具
+          maxLength: 50
+          minLength: 0
+          pattern: .*[^\s　].*
+      required:
+        - categoryName
+        - name
+    CategoryRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          description: カテゴリ名
+          example: 文房具
+          maxLength: 50
+          minLength: 0
+          pattern: .*[^\s　].*
+      required:
+        - name
+    ItemDto:
+      type: object
+      properties:
+        name:
+          type: string
+          description: アイテム名
+          example: 鉛筆
+        categoryName:
+          type: string
+          description: カテゴリ名
+          example: 文房具
+        totalQuantity:
+          type: integer
+          format: int32
+          description: 在庫総数量
+          example: 10
+        totalPrice:
+          type: integer
+          format: int32
+          description: 在庫総金額
+          example: 500
+    CategoryDto:
+      type: object
+      properties:
+        name:
+          type: string
+          description: カテゴリ名
+          example: 文房具
