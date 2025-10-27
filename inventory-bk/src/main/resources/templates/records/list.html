@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="ja" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('入出庫記録')}"></head>
+<body>
+    <nav th:replace="~{fragments/layout :: navbar(records)}"></nav>
+    
+    <div class="container-fluid">
+        <div class="row">
+            <!-- Sidebar -->
+            <nav th:replace="~{fragments/layout :: sidebar(records)}"></nav>
+
+            <!-- Main content -->
+            <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4 min-h-80">
+                <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+                    <h1 class="h2">
+                        <i class="bi bi-journal-text me-2"></i>入出庫記録
+                    </h1>
+                    <div class="btn-toolbar mb-2 mb-md-0">
+                        <div class="btn-group me-2">
+                            <button type="button" class="btn btn-sm btn-outline-secondary">
+                                <i class="bi bi-download me-1"></i>エクスポート
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                <!-- Alert Messages -->
+                <div th:if="${message}" class="alert alert-success alert-dismissible fade show" role="alert">
+                    <i class="bi bi-check-circle me-2"></i>
+                    <span th:text="${message}">メッセージ</span>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+                
+                <div th:if="${error}" class="alert alert-danger alert-dismissible fade show" role="alert">
+                    <i class="bi bi-exclamation-triangle me-2"></i>
+                    <span th:text="${error}">エラーメッセージ</span>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+
+                <!-- Search and Filter Section -->
+                <div class="search-filter-section">
+                    <form th:action="@{/records}" method="get" class="row g-3">
+                        <div class="col-md-3">
+                            <div class="form-floating">
+                                <input type="text" class="form-control" id="itemSearch" name="itemName" 
+                                      th:value="${param.itemName}" placeholder="アイテム名で検索">
+                                <label for="itemSearch">アイテム名</label>
+                            </div>
+                        </div>
+                        <div class="col-md-2">
+                            <div class="form-floating">
+                                <select class="form-select" id="typeFilter" name="type">
+                                    <option value="">すべて</option>
+                                    <option value="IN" th:selected="${param.type == 'IN'}">入庫</option>
+                                    <option value="OUT" th:selected="${param.type == 'OUT'}">出庫</option>
+                                    <option value="ADJUSTMENT" th:selected="${param.type == 'ADJUSTMENT'}">調整</option>
+                                </select>
+                                <label for="typeFilter">種類</label>
+                            </div>
+                        </div>
+                        <div class="col-md-2">
+                            <div class="form-floating">
+                                <input type="date" class="form-control" id="dateFrom" name="dateFrom" 
+                                      th:value="${param.dateFrom}">
+                                <label for="dateFrom">開始日</label>
+                            </div>
+                        </div>
+                        <div class="col-md-2">
+                            <div class="form-floating">
+                                <input type="date" class="form-control" id="dateTo" name="dateTo" 
+                                      th:value="${param.dateTo}">
+                                <label for="dateTo">終了日</label>
+                            </div>
+                        </div>
+                        <div class="col-md-2">
+                            <div class="form-floating">
+                                <select class="form-select" id="sortFilter" name="sort">
+                                    <option value="createdAt" th:selected="${param.sort == 'createdAt'}">作成日時順</option>
+                                    <option value="itemName" th:selected="${param.sort == 'itemName'}">アイテム名順</option>
+                                    <option value="quantity" th:selected="${param.sort == 'quantity'}">数量順</option>
+                                </select>
+                                <label for="sortFilter">並び順</label>
+                            </div>
+                        </div>
+                        <div class="col-md-1">
+                            <button type="submit" class="btn btn-primary h-100 w-100">
+                                <i class="bi bi-search"></i>
+                            </button>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- Summary Cards -->
+                <div class="row mb-4">
+                    <div class="col-md-3">
+                        <div class="card text-center">
+                            <div class="card-body">
+                                <h5 class="card-title text-success">入庫</h5>
+                                <h3 class="text-success"
+                                th:text="${summary != null ? summary.totalIn : 0}"
+                                >0</h3>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="card text-center">
+                            <div class="card-body">
+                                <h5 class="card-title text-danger">出庫</h5>
+                                <h3 class="text-danger"
+                                th:text="${summary != null ? summary.totalOut : 0}"
+                                >0</h3>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="card text-center">
+                            <div class="card-body">
+                                <h5 class="card-title text-info">記録数</h5>
+                                <h3 class="text-info"
+                                th:text="${summary != null ? summary.totalRecords : 0}"
+                                >0</h3>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Records Table -->
+                <div class="card">
+                    <div class="card-body">
+                        <div th:if="${records != null and !records.empty}">
+                            <div class="table-responsive">
+                                <table class="table table-hover">
+                                    <thead class="table-light">
+                                        <tr>
+                                            <th scope="col">
+                                                <a th:href="@{/records(sort='createdAt',order=${sortOrder == 'asc' ? 'desc' : 'asc'})}" 
+                                                  class="text-decoration-none">
+                                                    日時
+                                                    <i th:if="${sortField == 'createdAt'}" 
+                                                      th:class="${sortOrder == 'asc' ? 'bi bi-arrow-up' : 'bi bi-arrow-down'}"></i>
+                                                </a>
+                                            </th>
+                                            <th scope="col">種類</th>
+                                            <th scope="col">
+                                                <a th:href="@{/records(sort='itemName',order=${sortOrder == 'asc' ? 'desc' : 'asc'})}" 
+                                                  class="text-decoration-none">
+                                                    アイテム
+                                                    <i th:if="${sortField == 'itemName'}" 
+                                                      th:class="${sortOrder == 'asc' ? 'bi bi-arrow-up' : 'bi bi-arrow-down'}"></i>
+                                                </a>
+                                            </th>
+                                            <th scope="col">数量</th>
+                                            <th scope="col">単位金額</th>
+                                            <th scope="col">有効期限</th>
+                                            <th scope="col">操作</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr th:each="record : ${records}">
+                                            <td>
+                                                <div>
+                                                    <small th:text="${#temporals.format(record.createdAt,'yyyy年MM月dd日　HH:mm:ss')}">01/01</small>
+                                                </div>
+                                            </td>
+                                            <td>
+                                                <span th:switch="${record.transactionType.name()}">
+                                                    <span th:case="'IN'" class="badge bg-success">
+                                                        <i class="bi bi-plus-circle me-1"></i>入庫
+                                                    </span>
+                                                    <span th:case="'OUT'" class="badge bg-danger">
+                                                        <i class="bi bi-dash-circle me-1"></i>出庫
+                                                    </span>
+                                                    <span th:case="'ADJUSTMENT'" class="badge bg-warning">
+                                                        <i class="bi bi-arrow-repeat me-1"></i>調整
+                                                    </span>
+                                                </span>
+                                            </td>
+                                            <td>
+                                                <div>
+                                                    <strong 
+                                                        class="fw-bold text-decoration-none" 
+                                                        th:text="${record.itemName}">アイテム名</strong>
+                                                    /
+                                                    <small class="text-muted" th:text="${record.categoryName}">カテゴリ</small>
+                                                </div>
+                                            </td>
+                                            <td>
+                                                <span th:text="${record.quantity}">10</span>
+                                            </td>
+                                            <td>
+                                                <span th:text="${record.price}">10000</span>
+                                            </td>
+                                            <td>
+                                                <small th:text="${record.expirationDate}">2025-03-05</small>
+                                            </td>
+                                            <td>
+                                                <a th:href="@{/records/delete/{id}(id=${record.id})}" class="text-danger">削除</a>
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+
+                            <!-- Pagination -->
+                            <!--<nav th:if="${totalPages > 1}">
+                                <ul class="pagination justify-content-center">
+                                    <li class="page-item" th:classappend="${currentPage == 0} ? 'disabled' : ''">
+                                        <a class="page-link" th:href="@{/records(page=${currentPage - 1}, size=${pageSize})}">
+                                            <i class="bi bi-chevron-left"></i>
+                                        </a>
+                                    </li>
+                                    
+                                    <li th:each="pageNum : ${#numbers.sequence(0, totalPages - 1)}" 
+                                        class="page-item" 
+                                        th:classappend="${pageNum == currentPage} ? 'active' : ''">
+                                        <a class="page-link" 
+                                          th:href="@{/records(page=${pageNum}, size=${pageSize})}" 
+                                          th:text="${pageNum + 1}">1</a>
+                                    </li>
+                                    
+                                    <li class="page-item" th:classappend="${currentPage == totalPages - 1} ? 'disabled' : ''">
+                                        <a class="page-link" th:href="@{/records(page=${currentPage + 1}, size=${pageSize})}">
+                                            <i class="bi bi-chevron-right"></i>
+                                        </a>
+                                    </li>
+                                </ul>
+                            </nav> -->
+                        </div>
+
+                        <!-- Empty State -->
+                        <div th:if="${records == null or records.empty}" class="text-center py-5">
+                            <i class="bi bi-journal-text display-1 text-muted"></i>
+                            <h4 class="text-muted mt-3">記録が見つかりません</h4>
+                            <p class="text-muted">新しい入出庫記録を追加するか、検索条件を変更してください。</p>
+                        </div>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <footer th:replace="~{fragments/layout :: footer}"></footer>
+    <th:block th:replace="~{fragments/layout :: scripts}"></th:block>
+</body>
+</html>

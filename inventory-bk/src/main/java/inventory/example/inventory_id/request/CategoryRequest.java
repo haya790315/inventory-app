@@ -8,9 +8,10 @@ import lombok.Data;
 
 @Data
 public class CategoryRequest {
+
   @NotBlank(message = "カテゴリ名は必須")
   @Size(max = 50, message = "カテゴリ名は50文字以内")
   @Schema(example = "文房具", description = "カテゴリ名")
-  @Pattern(regexp = ".*[^\\s　].*", message = "カテゴリ名は必須")
+  @Pattern(regexp = ".*[^\\s　].*", message = "カテゴリ名は空白不可です")
   private String name;
 }

@@ -1,0 +1,575 @@
+<!DOCTYPE html>
+<html lang="ja" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('入出庫記録作成')}"></head>
+<body>
+    <nav th:replace="~{fragments/layout :: navbar('records')}"></nav>
+    
+    <div class="container-fluid">
+        <div class="row">
+            <!-- Sidebar -->
+            <nav th:replace="~{fragments/layout :: sidebar('records')}"></nav>
+
+            <!-- Main content -->
+            <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4 min-h-80">
+                <!-- Breadcrumb -->
+                <nav aria-label="breadcrumb" class="pt-3">
+                    <ol class="breadcrumb">
+                        <li class="breadcrumb-item"><a th:href="@{/}">ダッシュボード</a></li>
+                        <li class="breadcrumb-item"><a th:href="@{/records}">入出庫記録</a></li>
+                        <li class="breadcrumb-item active">新規記録作成</li>
+                    </ol>
+                </nav>
+
+                <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pb-2 mb-3 border-bottom">
+                    <h1 class="h2">
+                        <i class="bi bi-journal-plus me-2"></i>入出庫記録作成
+                    </h1>
+                    <div class="btn-toolbar mb-2 mb-md-0">
+                        <a th:href="@{/records}" class="btn btn-outline-secondary">
+                            <i class="bi bi-arrow-left me-1"></i>一覧に戻る
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Alert Messages -->
+                <div th:if="${message}" class="alert alert-success alert-dismissible fade show" role="alert">
+                    <i class="bi bi-check-circle me-2"></i>
+                    <span th:text="${message}">メッセージ</span>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+
+                <div th:if="${error}" class="alert alert-danger alert-dismissible fade show" role="alert">
+                    <i class="bi bi-exclamation-triangle me-2"></i>
+                    <span th:text="${error}">エラーメッセージ</span>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+
+                <!-- Record Form -->
+                <div class="row">
+                    <div class="col-lg-8">
+                        <div class="card">
+                            <div class="card-header">
+                                <h5 class="card-title mb-0">
+                                    <i class="bi bi-info-circle me-2"></i>記録情報
+                                </h5>
+                            </div>
+                            <div class="card-body">
+                                <form th:action="@{/records}" method="post" th:object="${recordRequest}" class="needs-validation" novalidate>
+                                    
+                                    <!-- Record Type Selection -->
+                                    <div class="mb-4">
+                                        <label class="form-label">記録種類 <span class="text-danger">*</span></label>
+                                        <div class="row">
+                                            <div class="col-md-4">
+                                                <div class="form-check">
+                                                    <input class="form-check-input" type="radio" 
+                                                           th:field="*{transactionType}" value="IN" id="typeIn" required>
+                                                    <label class="form-check-label text-success" for="typeIn">
+                                                        <i class="bi bi-plus-circle me-1"></i>入庫
+                                                    </label>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-4">
+                                                <div class="form-check">
+                                                    <input class="form-check-input" type="radio" 
+                                                           th:field="*{transactionType}" value="OUT" id="typeOut" required>
+                                                    <label class="form-check-label text-danger" for="typeOut">
+                                                        <i class="bi bi-dash-circle me-1"></i>出庫
+                                                    </label>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div th:if="${#fields.hasErrors('transactionType')}" class="text-danger small mt-1">
+                                            <span th:errors="*{transactionType}">エラー</span>
+                                        </div>
+                                    </div>
+
+                                    <!-- Item Selection (with Category filter) -->
+                                    <div class="row mb-3">
+                                        <div class="col-md-6">
+                                            <!-- Category select (client-side only) -->
+                                            <div class="mb-2">
+                                                <label class="form-label" for="categoryId">カテゴリ</label>
+                                                <select class="form-select" id="categoryId" aria-label="カテゴリ選択">
+                                                    <option value="">すべてのカテゴリ</option>
+                                                    <option th:each="category : ${categories}"
+                                                            th:value="${category.id}"
+                                                            th:text="${category.name}">カテゴリ名</option>
+                                                </select>
+                                            </div>
+
+                                            <div class="form-floating">
+                                                <select class="form-select" th:field="*{itemId}" id="itemId" required >
+                                                    <option value="">アイテムを選択</option>
+                            <optgroup th:each="category : ${categories}" th:label="${category.name}"
+                                  th:attr="data-category-id=${category.id}">
+                            <option th:each="item : ${category.items}"
+                                th:value="${item.id}"
+                                th:text="${item.name}"
+                               >アイテム名</option>
+                            </optgroup>
+                                                </select>
+                                                <label for="itemId">アイテム <span class="text-danger">*</span></label>
+                                                <div class="invalid-feedback">
+                                                    アイテムを選択してください。
+                                                </div>
+                                                <div th:if="${#fields.hasErrors('itemId')}" class="text-danger small mt-1">
+                                                    <span th:errors="*{itemId}">エラー</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="form-floating">
+                                                <input type="number" class="form-control" 
+                                                       th:field="*{quantity}" 
+                                                       id="quantity" 
+                                                       placeholder="数量" 
+                                                       min="1" 
+                                                       required>
+                                                <label for="quantity">数量 <span class="text-danger">*</span></label>
+                                                <div class="invalid-feedback">
+                                                    数量を入力してください。
+                                                </div>
+                                                <div th:if="${#fields.hasErrors('quantity')}" class="text-danger small mt-1">
+                                                    <span th:errors="*{quantity}">エラー</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Item Information Display -->
+                                    <div id="itemInfo" class="alert alert-info d-none mb-3">
+                                        <div class="row">
+                                            <div class="col-md-4">
+                                                <small class="text-muted">現在在庫</small><br>
+                                                <strong id="currentStock">-</strong> <span id="stockUnit">個</span>
+                                            </div>
+                                            <div class="col-md-4">
+                                                <small class="text-muted">保管場所</small><br>
+                                                <span id="itemLocation">-</span>
+                                            </div>
+                                            <div class="col-md-4">
+                                                <small class="text-muted">記録後在庫予想</small><br>
+                                                <strong id="expectedStock" class="text-primary">-</strong>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Submit Buttons -->
+                                    <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                                        <a th:href="@{/records}" class="btn btn-outline-secondary me-md-2">
+                                            <i class="bi bi-x-circle me-1"></i>キャンセル
+                                        </a>
+                                        <button type="button" class="btn btn-outline-primary me-md-2" onclick="previewRecord()">
+                                            <i class="bi bi-eye me-1"></i>プレビュー
+                                        </button>
+                                        <button type="submit" class="btn btn-primary">
+                                            <i class="bi bi-check-circle me-1"></i>記録作成
+                                        </button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Side Information -->
+                    <div class="col-lg-4">
+                        <!-- Record Type Guide -->
+                        <div class="card">
+                            <div class="card-header">
+                                <h5 class="card-title mb-0">
+                                    <i class="bi bi-info-circle me-2"></i>記録種類について
+                                </h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="mb-3">
+                                    <h6 class="text-success">
+                                        <i class="bi bi-plus-circle me-1"></i>入庫
+                                    </h6>
+                                    <p class="small text-muted">
+                                        商品の入荷、製造完了、返品受入などで在庫が増加する場合に使用します。
+                                    </p>
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <h6 class="text-danger">
+                                        <i class="bi bi-dash-circle me-1"></i>出庫
+                                    </h6>
+                                    <p class="small text-muted">
+                                        商品の出荷、販売、消費、廃棄などで在庫が減少する場合に使用します。
+                                    </p>
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <h6 class="text-warning">
+                                        <i class="bi bi-arrow-repeat me-1"></i>調整
+                                    </h6>
+                                    <p class="small text-muted">
+                                        棚卸結果による差異修正、破損による減少、その他の理由による在庫調整に使用します。
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Quick Templates -->
+                        <div class="card mt-3">
+                            <div class="card-header">
+                                <h5 class="card-title mb-0">
+                                    <i class="bi bi-lightning me-2"></i>クイックテンプレート
+                                </h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="d-grid gap-2">
+                                    <button type="button" class="btn btn-outline-success btn-sm" 
+                                            onclick="applyTemplate('IN', '仕入れによる入荷')">
+                                        <i class="bi bi-truck me-1"></i>仕入れ入荷
+                                    </button>
+                                    <button type="button" class="btn btn-outline-danger btn-sm" 
+                                            onclick="applyTemplate('OUT', '顧客への出荷')">
+                                        <i class="bi bi-box-arrow-right me-1"></i>顧客出荷
+                                    </button>
+                                    <button type="button" class="btn btn-outline-warning btn-sm" 
+                                            onclick="applyTemplate('ADJUSTMENT', '棚卸による在庫調整')">
+                                        <i class="bi bi-clipboard-check me-1"></i>棚卸調整
+                                    </button>
+                                    <button type="button" class="btn btn-outline-secondary btn-sm" 
+                                            onclick="applyTemplate('OUT', '破損・廃棄による減少')">
+                                        <i class="bi bi-trash me-1"></i>廃棄処理
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Recent Records -->
+                        <div class="card mt-3">
+                            <div class="card-header">
+                                <h5 class="card-title mb-0">
+                                    <i class="bi bi-clock-history me-2"></i>最近の記録
+                                </h5>
+                            </div>
+                            <div class="card-body">
+                                <div th:if="${recentRecords != null and !recentRecords.empty}">
+                                    <div th:each="record : ${recentRecords}" class="mb-2">
+                                        <div class="d-flex justify-content-between align-items-start">
+                                            <div class="flex-grow-1">
+                                                <small class="fw-bold" th:text="${record.itemName}">アイテム名</small>
+                                                <br>
+                                                <span th:switch="${record.type}">
+                                                    <small th:case="'IN'" class="text-success">+<span th:text="${record.quantity}">10</span></small>
+                                                    <small th:case="'OUT'" class="text-danger">-<span th:text="${record.quantity}">5</span></small>
+                                                    <small th:case="*" class="text-warning">調整<span th:text="${record.quantity}">3</span></small>
+                                                </span>
+                                            </div>
+                                            <small class="text-muted" th:text="${#temporals.format(record.createdAt, 'MM/dd HH:mm')}">01/01 12:00</small>
+                                        </div>
+                                        <hr th:unless="${recordStat.last}" class="my-2">
+                                    </div>
+                                </div>
+                                <div th:if="${recentRecords == null or recentRecords.empty}" 
+                                     class="text-center text-muted py-3">
+                                    <i class="bi bi-inbox"></i><br>
+                                    <small>最近の記録はありません</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <!-- Preview Modal -->
+    <div class="modal fade" id="previewModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">記録プレビュー</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div id="previewContent">
+                        <!-- Preview content will be inserted here -->
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">閉じる</button>
+                    <button type="button" class="btn btn-primary" onclick="submitForm()">記録作成</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <footer th:replace="~{fragments/layout :: footer}"></footer>
+    <th:block th:replace="~{fragments/layout :: scripts}"></th:block>
+
+    <script>
+        // Set current date and time
+        function setCurrentDateTime() {
+            const now = new Date();
+            const year = now.getFullYear();
+            const month = String(now.getMonth() + 1).padStart(2, '0');
+            const day = String(now.getDate()).padStart(2, '0');
+            const hours = String(now.getHours()).padStart(2, '0');
+            const minutes = String(now.getMinutes()).padStart(2, '0');
+            
+            const dateTimeString = `${year}-${month}-${day}T${hours}:${minutes}`;
+            document.getElementById('recordDate').value = dateTimeString;
+        }
+
+        // Filter item options by selected category (client-side)
+        // This implementation saves the original options (with optgroup labels)
+        // and rebuilds the <select> contents on category change. This is more
+        // reliable than toggling `hidden`/`display` on <option> elements.
+        let __originalItemMap = null; // { categoryId -> { label, optionsHtml: [] } }
+        function _buildOriginalItemMap() {
+            const itemSelect = document.getElementById('itemId');
+            if (!itemSelect) return {};
+
+            const map = {};
+            Array.from(itemSelect.querySelectorAll('optgroup')).forEach(og => {
+                const label = og.label || '';
+                const ogCatId = og.getAttribute('data-category-id') || '';
+                Array.from(og.querySelectorAll('option')).forEach(opt => {
+                    const val = opt.value;
+                    if (!val) return; // skip placeholder
+                    // prefer explicit data on option, fallback to optgroup's data-category-id
+                    const catId = opt.getAttribute('data-category-id') || ogCatId || '';
+                    if (!map[catId]) map[catId] = { label: label, optionsHtml: [] };
+                    map[catId].optionsHtml.push(opt.outerHTML);
+                });
+            });
+
+            // Also handle options that are direct children of select (without optgroup)
+            try {
+                Array.from(itemSelect.querySelectorAll(':scope > option')).forEach(opt => {
+                    const val = opt.value;
+                    if (!val) return;
+                    const catId = opt.getAttribute('data-category-id') || '';
+                    if (!map[catId]) map[catId] = { label: '', optionsHtml: [] };
+                    map[catId].optionsHtml.push(opt.outerHTML);
+                });
+            } catch (e) {
+                // Fallback for environments without :scope support
+                Array.from(itemSelect.children).forEach(child => {
+                    if (child.tagName === 'OPTION') {
+                        const opt = child;
+                        const val = opt.value;
+                        if (!val) return;
+                        const catId = opt.getAttribute('data-category-id') || '';
+                        if (!map[catId]) map[catId] = { label: '', optionsHtml: [] };
+                        map[catId].optionsHtml.push(opt.outerHTML);
+                    }
+                });
+            }
+
+            return map;
+        }
+
+        function filterItemsByCategory() {
+            const categorySelect = document.getElementById('categoryId');
+            const itemSelect = document.getElementById('itemId');
+            if (!categorySelect || !itemSelect) return;
+
+            if (!__originalItemMap) {
+                __originalItemMap = _buildOriginalItemMap();
+            }
+
+            console.log('filterItemsByCategory: originalItemMap keys=', Object.keys(__originalItemMap));
+
+            const selectedCategory = categorySelect.value; // empty = all
+            const previousSelectedValue = itemSelect.value;
+
+            // Rebuild select: start with placeholder
+            itemSelect.innerHTML = '<option value="">アイテムを選択</option>';
+
+            const appendHtml = (html) => {
+                const tmp = document.createElement('div');
+                tmp.innerHTML = html;
+                const node = tmp.firstElementChild;
+                if (node) itemSelect.appendChild(node);
+            };
+
+            if (!selectedCategory) {
+                // append all categories in original order
+                Object.keys(__originalItemMap).forEach(catId => {
+                    const entry = __originalItemMap[catId];
+                    if (!entry) return;
+                    if (entry.label) {
+                        const og = document.createElement('optgroup');
+                        og.label = entry.label;
+                        entry.optionsHtml.forEach(ohtml => {
+                            const tmp = document.createElement('div'); tmp.innerHTML = ohtml;
+                            og.appendChild(tmp.firstElementChild);
+                        });
+                        itemSelect.appendChild(og);
+                    } else {
+                        entry.optionsHtml.forEach(ohtml => appendHtml(ohtml));
+                    }
+                });
+            } else {
+                const entry = __originalItemMap[selectedCategory];
+                if (entry) {
+                    if (entry.label) {
+                        const og = document.createElement('optgroup');
+                        og.label = entry.label;
+                        entry.optionsHtml.forEach(ohtml => {
+                            const tmp = document.createElement('div'); tmp.innerHTML = ohtml;
+                            og.appendChild(tmp.firstElementChild);
+                        });
+                        itemSelect.appendChild(og);
+                    } else {
+                        entry.optionsHtml.forEach(ohtml => appendHtml(ohtml));
+                    }
+                }
+            }
+
+            // After rebuilding, ensure onchange handler is preserved
+            itemSelect.setAttribute('onchange', 'updateItemInfo()');
+
+            // Restore previous selection if it still exists; otherwise reset
+            if (previousSelectedValue) {
+                const optionStillExists = Array.from(itemSelect.options).some(opt => opt.value === previousSelectedValue);
+                if (optionStillExists) {
+                    itemSelect.value = previousSelectedValue;
+                } else {
+                    itemSelect.selectedIndex = 0;
+                    const itemInfo = document.getElementById('itemInfo');
+                    if (itemInfo) itemInfo.classList.add('d-none');
+                }
+            }
+
+            // Update item info based on current selection
+            updateItemInfo();
+        }
+
+        // Update item information when item is selected
+        function updateItemInfo() {
+            const itemSelect = document.getElementById('itemId');
+            const selectedOption = itemSelect.options[itemSelect.selectedIndex];
+            const itemInfo = document.getElementById('itemInfo');
+            
+            if (selectedOption && selectedOption.value) {
+                const stock = selectedOption.getAttribute('data-stock') || '0';
+                const unit = selectedOption.getAttribute('data-unit') || '個';
+                const location = selectedOption.getAttribute('data-location') || 'なし';
+                
+                document.getElementById('currentStock').textContent = stock;
+                document.getElementById('stockUnit').textContent = unit;
+                document.getElementById('itemLocation').textContent = location;
+                
+                itemInfo.classList.remove('d-none');
+                updateExpectedStock();
+            } else {
+                if (itemInfo) itemInfo.classList.add('d-none');
+            }
+        }
+
+        // Update expected stock based on record type and quantity
+        function updateExpectedStock() {
+            const itemSelect = document.getElementById('itemId');
+            const selectedOption = itemSelect.options[itemSelect.selectedIndex];
+            const currentStock = parseInt(selectedOption.getAttribute('data-stock') || '0');
+            const quantity = parseInt(document.getElementById('quantity').value || '0');
+            const recordType = document.querySelector('input[name="transactionType"]:checked')?.value;
+            
+            let expectedStock = currentStock;
+            if (recordType === 'IN') {
+                expectedStock = currentStock + quantity;
+            } else if (recordType === 'OUT') {
+                expectedStock = currentStock - quantity;
+            }
+            
+            document.getElementById('expectedStock').textContent = expectedStock;
+            
+            // Update color based on expected stock
+            const expectedStockEl = document.getElementById('expectedStock');
+            expectedStockEl.className = expectedStock < 0 ? 'text-danger' : 'text-primary';
+        }
+
+        // Apply template values
+        function applyTemplate(type, note) {
+            const radio = document.querySelector(`input[name="transactionType"][value="${type}"]`);
+            if (radio) radio.checked = true;
+            document.getElementById('note').value = note;
+            setCurrentDateTime();
+            updateExpectedStock();
+        }
+
+        // Preview record before submitting
+        function previewRecord() {
+            const form = document.querySelector('form');
+            const formData = new FormData(form);
+            
+            // Build preview content
+            const itemSelect = document.getElementById('itemId');
+            const itemName = itemSelect.options[itemSelect.selectedIndex].text;
+            const type = formData.get('transactionType');
+            const quantity = formData.get('quantity');
+            const recordDate = formData.get('recordDate');
+            const note = formData.get('note') || 'なし';
+            
+            const typeLabels = {
+                'IN': '<span class="badge bg-success">入庫</span>',
+                'OUT': '<span class="badge bg-danger">出庫</span>',
+                'ADJUSTMENT': '<span class="badge bg-warning">調整</span>'
+            };
+            
+            const previewContent = `
+                <div class="row">
+                    <div class="col-6"><strong>種類:</strong></div>
+                    <div class="col-6">${typeLabels[type] || type}</div>
+                </div>
+                <div class="row">
+                    <div class="col-6"><strong>アイテム:</strong></div>
+                    <div class="col-6">${itemName}</div>
+                </div>
+                <div class="row">
+                    <div class="col-6"><strong>数量:</strong></div>
+                    <div class="col-6">${quantity}</div>
+                </div>
+                <div class="row">
+                    <div class="col-6"><strong>記録日時:</strong></div>
+                    <div class="col-6">${recordDate}</div>
+                </div>
+                <div class="row">
+                    <div class="col-6"><strong>備考:</strong></div>
+                    <div class="col-6">${note}</div>
+                </div>
+            `;
+            
+            document.getElementById('previewContent').innerHTML = previewContent;
+            new bootstrap.Modal(document.getElementById('previewModal')).show();
+        }
+
+        // Submit form programmatically
+        function submitForm() {
+            document.querySelector('form').submit();
+        }
+
+        // Event listeners
+        document.addEventListener('DOMContentLoaded', function() {
+            // Set default date to current time
+            setCurrentDateTime();
+            
+            // Add event listeners for real-time updates
+            const quantityEl = document.getElementById('quantity');
+            if (quantityEl) quantityEl.addEventListener('input', updateExpectedStock);
+
+            document.querySelectorAll('input[name="transactionType"]').forEach(radio => {
+                radio.addEventListener('change', updateExpectedStock);
+            });
+
+            // Category filter wiring
+            const categoryEl = document.getElementById('categoryId');
+            if (categoryEl) {
+                categoryEl.addEventListener('change', function() {
+                    filterItemsByCategory();
+                });
+            }
+
+            // Initialize filter state on load
+            filterItemsByCategory();
+        });
+    </script>
+</body>
+</html>

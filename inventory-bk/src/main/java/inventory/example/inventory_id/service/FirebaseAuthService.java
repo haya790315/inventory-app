@@ -1,24 +1,28 @@
 package inventory.example.inventory_id.service;
 
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Service;
-import org.springframework.web.client.RestClient;
-
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseAuthException;
 import com.google.firebase.auth.FirebaseToken;
-
+import com.google.firebase.auth.SessionCookieOptions;
+import inventory.example.inventory_id.enums.AuthMessage;
 import inventory.example.inventory_id.exception.AuthenticationException;
 import inventory.example.inventory_id.request.FirebaseSignUpRequest;
 import inventory.example.inventory_id.response.FirebaseSignUpResponse;
 import io.github.cdimascio.dotenv.Dotenv;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestClient;
 
 @Service
 public class FirebaseAuthService {
+
   private final Dotenv dotenv;
 
   @Value("${firebase.signUpBaseUrl}")
   private String signUpBaseUrl;
+
+  @Value("${firebase.signInBaseUrl}")
+  private String signInBaseUrl;
 
   private static final String API_KEY_PARAM = "key";
 
@@ -38,24 +42,71 @@ public class FirebaseAuthService {
   }
 
   public FirebaseSignUpResponse anonymouslySignUp() {
-
-    FirebaseSignUpRequest requestBody = new FirebaseSignUpRequest(true);
+    FirebaseSignUpRequest requestBody = new FirebaseSignUpRequest();
     try {
       return RestClient.create(signUpBaseUrl)
-          .post()
-          .uri(uriBuilder -> uriBuilder
-              .queryParam(API_KEY_PARAM, getApiKey())
-              .build())
-          .body(requestBody)
-          .retrieve()
-          .body(FirebaseSignUpResponse.class);
+        .post()
+        .uri(uriBuilder ->
+          uriBuilder.queryParam(API_KEY_PARAM, getApiKey()).build()
+        )
+        .body(requestBody)
+        .retrieve()
+        .body(FirebaseSignUpResponse.class);
     } catch (Exception e) {
-      throw new AuthenticationException("登録失敗しました");
+      throw new AuthenticationException(
+        AuthMessage.REGISTER_ERROR_MSG.getMessage()
+      );
     }
   }
 
-  public String signUp() {
-    FirebaseSignUpResponse response = anonymouslySignUp();
-    return response.getIdToken();
+  public FirebaseSignUpResponse emailSignUp(String email, String password) {
+    FirebaseSignUpRequest requestBody = new FirebaseSignUpRequest(
+      email,
+      password
+    );
+    try {
+      return RestClient.create(signUpBaseUrl)
+        .post()
+        .uri(uriBuilder ->
+          uriBuilder.queryParam(API_KEY_PARAM, getApiKey()).build()
+        )
+        .body(requestBody)
+        .retrieve()
+        .body(FirebaseSignUpResponse.class);
+    } catch (Exception e) {
+      throw new AuthenticationException(
+        AuthMessage.REGISTER_ERROR_MSG.getMessage()
+      );
+    }
+  }
+
+  public FirebaseSignUpResponse emailSignIn(String email, String password) {
+    FirebaseSignUpRequest requestBody = new FirebaseSignUpRequest(
+      email,
+      password
+    );
+    try {
+      return RestClient.create(signInBaseUrl)
+        .post()
+        .uri(uriBuilder ->
+          uriBuilder.queryParam(API_KEY_PARAM, getApiKey()).build()
+        )
+        .body(requestBody)
+        .retrieve()
+        .body(FirebaseSignUpResponse.class);
+    } catch (Exception e) {
+      throw new AuthenticationException(
+        AuthMessage.SIGNIN_FAILED_MSG.getMessage()
+      );
+    }
+  }
+
+  public String createSessionCookie(String idToken) throws Exception {
+    long expiresIn = 7 * 24 * 60 * 60 * 1000;
+    SessionCookieOptions options = SessionCookieOptions.builder()
+      .setExpiresIn(expiresIn)
+      .build();
+    // Create session cookie
+    return FirebaseAuth.getInstance().createSessionCookie(idToken, options);
   }
 }

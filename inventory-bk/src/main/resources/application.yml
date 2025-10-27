@@ -1,4 +1,8 @@
 spring:
+  mvc:
+    hiddenmethod:
+        filter: 
+          enabled: true
   application:
     name: inventory-bk
   datasource:
@@ -9,8 +13,8 @@ spring:
   jpa:
     database-platform: org.hibernate.dialect.H2Dialect
     hibernate:
-      ddl-auto: create-drop
-    show-sql: true
+      ddl-auto: update
+    show-sql: false
   h2:
     console:
       enabled: true
@@ -21,6 +25,16 @@ spring:
       enabled: true
     livereload:
       enabled: true
+  data:
+    redis:
+      host: localhost
+      port: 6379
+      password: # Leave empty if no password
+      timeout: 2000ms
+  cache:
+    type: redis
+    redis:
+      time-to-live: 5d
 
 logging:
   level:
@@ -34,3 +48,4 @@ system:
 
 firebase:
   signUpBaseUrl: https://identitytoolkit.googleapis.com/v1/accounts:signUp
+  signInBaseUrl: https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword

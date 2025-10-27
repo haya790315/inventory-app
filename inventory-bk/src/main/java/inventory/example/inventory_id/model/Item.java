@@ -1,11 +1,7 @@
 package inventory.example.inventory_id.model;
 
-import java.time.LocalDateTime;
-import java.util.UUID;
-
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
-
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -15,6 +11,8 @@ import jakarta.persistence.ManyToOne;
 import jakarta.persistence.PrePersist;
 import jakarta.persistence.PreUpdate;
 import jakarta.persistence.Table;
+import java.time.LocalDateTime;
+import java.util.UUID;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
@@ -25,20 +23,24 @@ import lombok.ToString;
 @Table(name = "item")
 @ToString(exclude = "category")
 public class Item {
+
   @Id
   @GeneratedValue(strategy = GenerationType.AUTO)
   private UUID id;
+
   private String name;
   private String userId;
+
   @ManyToOne
   @JoinColumn(name = "category_id")
   @JsonIgnore
   private Category category;
+
   private boolean deletedFlag = false;
   private LocalDateTime updatedAt;
 
-  int totalQuantity = 0;
-  int totalPrice = 0;
+  private int totalQuantity = 0;
+  private int totalPrice = 0;
 
   @PrePersist
   @PreUpdate
@@ -56,10 +58,11 @@ public class Item {
   }
 
   public Item(
-      String name,
-      String userId,
-      Category category,
-      boolean deletedFlag) {
+    String name,
+    String userId,
+    Category category,
+    boolean deletedFlag
+  ) {
     this.name = name;
     this.userId = userId;
     this.category = category;
@@ -67,12 +70,13 @@ public class Item {
   }
 
   public Item(
-      String name,
-      String userId,
-      Category category,
-      int total_quantity,
-      int total_price,
-      boolean deletedFlag) {
+    String name,
+    String userId,
+    Category category,
+    int total_quantity,
+    int total_price,
+    boolean deletedFlag
+  ) {
     this.name = name;
     this.userId = userId;
     this.category = category;
@@ -82,11 +86,12 @@ public class Item {
   }
 
   public Item(
-      String name,
-      String userId,
-      Category category,
-      boolean deletedFlag,
-      LocalDateTime updatedAt) {
+    String name,
+    String userId,
+    Category category,
+    boolean deletedFlag,
+    LocalDateTime updatedAt
+  ) {
     this.name = name;
     this.userId = userId;
     this.category = category;
