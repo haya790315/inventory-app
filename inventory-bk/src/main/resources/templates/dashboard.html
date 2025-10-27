@@ -135,10 +135,10 @@
                                         <div th:each="item : ${lowStockAlerts}" class="list-group-item border-0 px-0">
                                             <div class="d-flex justify-content-between align-items-center">
                                                 <div>
-                                                    <h6 class="mb-0" th:text="${item.name}">アイテム名</h6>
+                                                    <h6 class="mb-0" th:text="${item.itemName}">アイテム名</h6>
                                                     <small class="text-muted" th:text="${item.categoryName}">カテゴリ</small>
                                                 </div>
-                                                <span class="badge bg-warning" th:text="${item.currentStock}">5</span>
+                                                <span class="badge bg-danger" th:text="${item.warning}">アラート</span>
                                             </div>
                                         </div>
                                     </div>

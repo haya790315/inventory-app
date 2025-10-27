@@ -1,6 +1,7 @@
 package inventory.example.inventory_id.controller;
 
 import inventory.example.inventory_id.dto.ItemRecordDto;
+import inventory.example.inventory_id.exception.AuthenticationException;
 import inventory.example.inventory_id.request.ItemRecordRequest;
 import inventory.example.inventory_id.service.ItemRecordService;
 import jakarta.validation.Valid;
@@ -94,6 +95,8 @@ public class ItemRecordController extends BaseController {
         HttpStatus.valueOf(e.getStatusCode().value()),
         e.getReason()
       );
+    } catch (AuthenticationException e) {
+      return response(HttpStatus.UNAUTHORIZED, e.getMessage());
     } catch (Exception e) {
       return response(HttpStatus.INTERNAL_SERVER_ERROR, e.getMessage());
     }
@@ -103,8 +106,12 @@ public class ItemRecordController extends BaseController {
   public ResponseEntity<Object> getUserItemRecords() {
     try {
       String userId = fetchUserIdFromToken();
-      List<ItemRecordDto> itemRecords = itemRecordService.getUserItemRecords(userId);
+      List<ItemRecordDto> itemRecords = itemRecordService.getUserItemRecords(
+        userId
+      );
       return response(HttpStatus.OK, itemRecords);
+    } catch (AuthenticationException e) {
+      return response(HttpStatus.UNAUTHORIZED, e.getMessage());
     } catch (Exception e) {
       return response(HttpStatus.INTERNAL_SERVER_ERROR, e.getMessage());
     }

@@ -54,7 +54,7 @@
                                 </h5>
                             </div>
                             <div class="card-body">
-                                <form th:action="@{${item != null ? '/items/' + item.id : '/items'}}"
+                                <form th:action="${item != null} ? @{/items/{id}(id=${item.id})} : @{/items}"
                                         method="post"
                                         th:object="${itemRequest}"
                                         class="needs-validation" novalidate>
@@ -133,14 +133,13 @@
                                       </div>
 
                                       <div class="d-grid gap-2 d-md-flex justify-content-md-end">
-                                          <a th:href="@{/categories}" class="btn btn-outline-secondary me-md-2">
-                                              <i class="bi bi-x-circle me-1"></i>キャンセル
-                                          </a>
+                                          <button type="button" class="btn btn-outline-secondary me-md-2" onclick="history.back()"><i class="bi bi-x-circle me-1"></i>キャンセル</button>
                                           <button type="submit" class="btn btn-primary">
                                               <i class="bi bi-check-circle me-1"></i>
                                               <span th:text="${item != null ? '更新' : '作成'}">作成</span>
                                           </button>
                                       </div>
+                                      <input type="hidden" name="_method" value="put" th:if="${item != null}">
                                   </form>
                             </div>
                         </div>

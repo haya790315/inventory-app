@@ -21,7 +21,11 @@
                         </a>
                     </div>
                 </div>
-
+                <div th:if="${message}" class="alert alert-success alert-dismissible fade show" role="alert">
+                    <i class="bi bi-check-circle me-2"></i>
+                    <span th:text="${message}">メッセージ</span>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
                 <!-- Search and Filter Section -->
                 <div class="search-filter-section">
                     <form th:action="@{/items}" method="get" class="row g-3">
@@ -39,7 +43,7 @@
                                     <option th:each="category : ${categories}" 
                                             th:value="${category.id}" 
                                             th:text="${category.name}"
-                                            th:selected="${param.category == category.id}">
+                                            th:selected="${selectedCategory == category.name}">
                                         カテゴリ名
                                     </option>
                                 </select>
@@ -72,10 +76,18 @@
                                             </th>
                                             <th scope="col">カテゴリ</th>
                                             <th scope="col">
-                                                <a th:href="@{/items(sort='currentStock',order=${sortOrder == 'asc' ? 'desc' : 'asc'})}" 
+                                                <a th:href="@{/items(sort='totalQuantity',order=${sortOrder == 'asc' ? 'desc' : 'asc'})}" 
                                                   class="text-decoration-none">
                                                   現在在庫
-                                                  <i th:if="${sortField == 'currentStock'}" 
+                                                  <i th:if="${sortField == 'totalQuantity'}" 
+                                                      th:class="${sortOrder == 'asc' ? 'bi bi-arrow-up' : 'bi bi-arrow-down'}"></i>
+                                                </a>
+                                            </th>
+                                            <th scope="col">
+                                                <a th:href="@{/items(sort='totalPrice',order=${sortOrder == 'asc' ? 'desc' : 'asc'})}" 
+                                                  class="text-decoration-none">
+                                                  在庫金額
+                                                  <i th:if="${sortField == 'totalPrice'}" 
                                                       th:class="${sortOrder == 'asc' ? 'bi bi-arrow-up' : 'bi bi-arrow-down'}"></i>
                                                 </a>
                                             </th>
@@ -93,8 +105,8 @@
                                     <tbody>
                                         <tr th:each="item : ${items}">
                                             <td>
-                                                <div class="d-flex align-items-center">
-                                                    <a th:href="@{/items/{id}(id=${item.id})}" class="me-3">
+                                                <div class="d-flex align-items-center link-hover-primary">
+                                                    <a th:href="@{/items/{id}(id=${item.id})}" class="me-3 text-dark ">
                                                         <strong th:text="${item.name}">アイテム名</strong>
                                                         <br>
                                                     </a>
@@ -104,9 +116,12 @@
                                                 <span class="badge bg-info" th:text="${item.categoryName}">カテゴリ</span>
                                             </td>
                                             <td>
-                                              <span th:class="${item.totalQuantity <= 50 ? 'inventory-low' : 
-                                                              (item.totalQuantity <= 100 ? 'inventory-medium' : 'inventory-high')}"
+                                              <span th:class="${item.totalQuantity <= 30 ? 'inventory-low' : 
+                                                              (item.totalQuantity <= 50 ? 'inventory-medium' : 'inventory-high')}"
                                                       th:text="${item.totalQuantity}">10</span>
+                                            </td>
+                                            <td>
+                                              <span th:text="${item.totalPrice}">10000</span>
                                             </td>
                                             <td>
                                                 <small th:text="${#temporals.format(item.updatedAt, 'yyyy/MM/dd HH:mm')}">
@@ -129,14 +144,10 @@
                                                         </li>
                                                         <li><hr class="dropdown-divider"></li>
                                                         <li>
-                                                            <form th:action="@{/items/{id}/delete(id=${item.id})}" 
-                                                                  method="post" 
-                                                                  style="margin: 0;"
-                                                                  onsubmit="return confirm('このアイテムを削除してもよろしいですか？')">
-                                                                <button type="submit" class="dropdown-item text-danger">
+                                                            <a th:href="@{/items/{id}/delete(id=${item.id})}" 
+                                                            class="dropdown-item text-danger">
                                                                     <i class="bi bi-trash me-2"></i>削除
-                                                                </button>
-                                                            </form>
+                                                            </a>
                                                         </li>
                                                     </ul>
                                                 </div>
@@ -150,7 +161,7 @@
                             <nav th:if="${totalPages > 1}">
                                 <ul class="pagination justify-content-center">
                                     <li class="page-item" th:classappend="${currentPage == 0} ? 'disabled' : ''">
-                                        <a class="page-link" th:href="@{/items(page=${currentPage - 1}, size=${pageSize})}">
+                                        <a class="page-link" th:href="@{/items(page=${currentPage - 1}, size=${pageSize},category=${param.category})}">
                                             <i class="bi bi-chevron-left"></i>
                                         </a>
                                     </li>
@@ -159,12 +170,12 @@
                                         class="page-item" 
                                         th:classappend="${pageNum == currentPage} ? 'active' : ''">
                                         <a class="page-link" 
-                                          th:href="@{/items(page=${pageNum}, size=${pageSize})}" 
+                                          th:href="@{/items(page=${pageNum}, size=${pageSize}, category=${param.category})}" 
                                           th:text="${pageNum + 1}">1</a>
                                     </li>
                                     
                                     <li class="page-item" th:classappend="${currentPage == totalPages - 1} ? 'disabled' : ''">
-                                        <a class="page-link" th:href="@{/items(page=${currentPage + 1}, size=${pageSize})}">
+                                        <a class="page-link" th:href="@{/items(page=${currentPage + 1}, size=${pageSize}, category=${param.category})}">
                                             <i class="bi bi-chevron-right"></i>
                                         </a>
                                     </li>

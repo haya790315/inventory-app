@@ -6,14 +6,23 @@ import inventory.example.inventory_id.model.Category;
 import inventory.example.inventory_id.model.Item;
 import inventory.example.inventory_id.repository.CategoryRepository;
 import inventory.example.inventory_id.request.CategoryRequest;
+import inventory.example.inventory_id.spec.CategorySpecs;
+import inventory.example.inventory_id.spec.ItemSpecs;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.stream.Collectors;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
@@ -29,18 +38,53 @@ public class CategoryService {
 
   private String categoryNotFoundMsg = "カテゴリーが見つかりません";
 
-  @Cacheable(value = "categories", key = "#userId")
-  public List<CategoryDto> getAllCategories(String userId) {
+  @Cacheable(
+    value = "categories",
+    key = "#userId + ':' + #pageable.pageNumber + ':' + #pageable.pageSize + ':' + #pageable.sort.toString()"
+  )
+  public Page<CategoryDto> getAllCategories(Pageable pageable, String userId) {
+    Specification<Category> spec = Specification.unrestricted();
+    spec = spec
+      .and(CategorySpecs.belongsToUser(List.of(userId, systemUserId)))
+      .and(CategorySpecs.isNotDeleted());
     // ユーザとデフォルトのカテゴリを取得
+
+    Page<Category> categories = categoryRepository.findAll(spec, pageable);
+
+    return categories.map(category ->
+      new CategoryDto(
+        category.getId(),
+        category.getName(),
+        (int) category
+          .getItems()
+          .stream()
+          .filter(
+            item -> !item.isDeletedFlag() && item.getUserId().equals(userId)
+          )
+          .count(),
+        category.getUpdatedAt()
+      )
+    );
+    // List<CategoryDto> dtoList = categories
+    //   .getContent()
+    //   .stream()
+    //   .sorted(Comparator.comparing(Category::getName))
+    //   .map(category ->
+    //     new CategoryDto(
+    //       category.getId(),
+    //       category.getName(),
+    //       (int) category.getItems().stream().count(),
+    //       category.getUpdatedAt()
+    //     )
+    //   )
+    //   .toList();
+    // return new PageImpl<>(dtoList, pageable, categories.getTotalElements());
+  }
+
+  public List<CategoryDto> getAllCategories(String userId) {
     List<Category> categories = categoryRepository.findNotDeleted(
       List.of(userId, systemUserId)
     );
-    if (categories.isEmpty()) {
-      throw new ResponseStatusException(
-        HttpStatus.NOT_FOUND,
-        categoryNotFoundMsg
-      );
-    }
     return categories
       .stream()
       .sorted(Comparator.comparing(Category::getName))
@@ -48,14 +92,13 @@ public class CategoryService {
         new CategoryDto(
           category.getId(),
           category.getName(),
-          category
+          (int) category
             .getItems()
             .stream()
             .filter(
               item -> !item.isDeletedFlag() && item.getUserId().equals(userId)
             )
-            .toList()
-            .size(),
+            .count(),
           category.getUpdatedAt()
         )
       )

@@ -169,6 +169,11 @@
   background: #a8a8a8;
 }
 
+.link-hover-primary:hover>a {
+  color: #007bff !important;
+  text-decoration: underline !important;
+}
+
 /* Responsive adjustments */
 @media (max-width: 991.98px) {
   .sidebar {

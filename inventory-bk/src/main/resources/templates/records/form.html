@@ -2,37 +2,12 @@
 <html lang="ja" xmlns:th="http://www.thymeleaf.org">
 <head th:replace="~{fragments/layout :: head('入出庫記録作成')}"></head>
 <body>
-    <nav th:replace="~{fragments/layout :: navbar}"></nav>
+    <nav th:replace="~{fragments/layout :: navbar('records')}"></nav>
     
     <div class="container-fluid">
         <div class="row">
             <!-- Sidebar -->
-            <nav class="col-md-3 col-lg-2 d-md-block bg-light sidebar collapse">
-                <div class="position-sticky pt-3">
-                    <ul class="nav flex-column">
-                        <li class="nav-item">
-                            <a class="nav-link" th:href="@{/}">
-                                <i class="bi bi-speedometer2 me-2"></i>ダッシュボード
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" th:href="@{/items}">
-                                <i class="bi bi-box me-2"></i>アイテム管理
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" th:href="@{/categories}">
-                                <i class="bi bi-tags me-2"></i>カテゴリ管理
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link active" th:href="@{/records}">
-                                <i class="bi bi-journal-text me-2"></i>入出庫記録
-                            </a>
-                        </li>
-                    </ul>
-                </div>
-            </nav>
+            <nav th:replace="~{fragments/layout :: sidebar('records')}"></nav>
 
             <!-- Main content -->
             <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4 min-h-80">
@@ -88,7 +63,7 @@
                                             <div class="col-md-4">
                                                 <div class="form-check">
                                                     <input class="form-check-input" type="radio" 
-                                                           th:field="*{type}" value="IN" id="typeIn" required>
+                                                           th:field="*{transactionType}" value="IN" id="typeIn" required>
                                                     <label class="form-check-label text-success" for="typeIn">
                                                         <i class="bi bi-plus-circle me-1"></i>入庫
                                                     </label>
@@ -97,41 +72,42 @@
                                             <div class="col-md-4">
                                                 <div class="form-check">
                                                     <input class="form-check-input" type="radio" 
-                                                           th:field="*{type}" value="OUT" id="typeOut" required>
+                                                           th:field="*{transactionType}" value="OUT" id="typeOut" required>
                                                     <label class="form-check-label text-danger" for="typeOut">
                                                         <i class="bi bi-dash-circle me-1"></i>出庫
                                                     </label>
                                                 </div>
                                             </div>
-                                            <div class="col-md-4">
-                                                <div class="form-check">
-                                                    <input class="form-check-input" type="radio" 
-                                                           th:field="*{type}" value="ADJUSTMENT" id="typeAdjustment" required>
-                                                    <label class="form-check-label text-warning" for="typeAdjustment">
-                                                        <i class="bi bi-arrow-repeat me-1"></i>調整
-                                                    </label>
-                                                </div>
-                                            </div>
                                         </div>
-                                        <div th:if="${#fields.hasErrors('type')}" class="text-danger small mt-1">
-                                            <span th:errors="*{type}">エラー</span>
+                                        <div th:if="${#fields.hasErrors('transactionType')}" class="text-danger small mt-1">
+                                            <span th:errors="*{transactionType}">エラー</span>
                                         </div>
                                     </div>
 
-                                    <!-- Item Selection -->
+                                    <!-- Item Selection (with Category filter) -->
                                     <div class="row mb-3">
                                         <div class="col-md-6">
+                                            <!-- Category select (client-side only) -->
+                                            <div class="mb-2">
+                                                <label class="form-label" for="categoryId">カテゴリ</label>
+                                                <select class="form-select" id="categoryId" aria-label="カテゴリ選択">
+                                                    <option value="">すべてのカテゴリ</option>
+                                                    <option th:each="category : ${categories}"
+                                                            th:value="${category.id}"
+                                                            th:text="${category.name}">カテゴリ名</option>
+                                                </select>
+                                            </div>
+
                                             <div class="form-floating">
-                                                <select class="form-select" th:field="*{itemId}" id="itemId" required onchange="updateItemInfo()">
+                                                <select class="form-select" th:field="*{itemId}" id="itemId" required >
                                                     <option value="">アイテムを選択</option>
-                                                    <optgroup th:each="category : ${categoriesWithItems}" th:label="${category.name}">
-                                                        <option th:each="item : ${category.items}" 
-                                                                th:value="${item.id}" 
-                                                                th:text="${item.name}"
-                                                                th:data-stock="${item.currentStock}"
-                                                                th:data-unit="${item.unit}"
-                                                                th:data-location="${item.location}">アイテム名</option>
-                                                    </optgroup>
+                            <optgroup th:each="category : ${categories}" th:label="${category.name}"
+                                  th:attr="data-category-id=${category.id}">
+                            <option th:each="item : ${category.items}"
+                                th:value="${item.id}"
+                                th:text="${item.name}"
+                               >アイテム名</option>
+                            </optgroup>
                                                 </select>
                                                 <label for="itemId">アイテム <span class="text-danger">*</span></label>
                                                 <div class="invalid-feedback">
@@ -175,46 +151,6 @@
                                             <div class="col-md-4">
                                                 <small class="text-muted">記録後在庫予想</small><br>
                                                 <strong id="expectedStock" class="text-primary">-</strong>
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                    <!-- Date and Time -->
-                                    <div class="row mb-3">
-                                        <div class="col-md-6">
-                                            <div class="form-floating">
-                                                <input type="datetime-local" class="form-control" 
-                                                       th:field="*{recordDate}" 
-                                                       id="recordDate" 
-                                                       required>
-                                                <label for="recordDate">記録日時 <span class="text-danger">*</span></label>
-                                                <div class="invalid-feedback">
-                                                    記録日時を入力してください。
-                                                </div>
-                                                <div th:if="${#fields.hasErrors('recordDate')}" class="text-danger small mt-1">
-                                                    <span th:errors="*{recordDate}">エラー</span>
-                                                </div>
-                                            </div>
-                                        </div>
-                                        <div class="col-md-6">
-                                            <button type="button" class="btn btn-outline-secondary h-100 w-100" onclick="setCurrentDateTime()">
-                                                <i class="bi bi-clock me-1"></i>現在時刻を設定
-                                            </button>
-                                        </div>
-                                    </div>
-
-                                    <!-- Note -->
-                                    <div class="mb-3">
-                                        <div class="form-floating">
-                                            <textarea class="form-control" 
-                                                      th:field="*{note}" 
-                                                      id="note" 
-                                                      placeholder="備考" 
-                                                      style="height: 100px"></textarea>
-                                            <label for="note">備考</label>
-                                            <div class="form-text">入出庫の理由や詳細情報を記録してください。</div>
-                                            <div th:if="${#fields.hasErrors('note')}" class="text-danger small mt-1">
-                                                <span th:errors="*{note}">エラー</span>
                                             </div>
                                         </div>
                                     </div>
@@ -380,13 +316,139 @@
             document.getElementById('recordDate').value = dateTimeString;
         }
 
+        // Filter item options by selected category (client-side)
+        // This implementation saves the original options (with optgroup labels)
+        // and rebuilds the <select> contents on category change. This is more
+        // reliable than toggling `hidden`/`display` on <option> elements.
+        let __originalItemMap = null; // { categoryId -> { label, optionsHtml: [] } }
+        function _buildOriginalItemMap() {
+            const itemSelect = document.getElementById('itemId');
+            if (!itemSelect) return {};
+
+            const map = {};
+            Array.from(itemSelect.querySelectorAll('optgroup')).forEach(og => {
+                const label = og.label || '';
+                const ogCatId = og.getAttribute('data-category-id') || '';
+                Array.from(og.querySelectorAll('option')).forEach(opt => {
+                    const val = opt.value;
+                    if (!val) return; // skip placeholder
+                    // prefer explicit data on option, fallback to optgroup's data-category-id
+                    const catId = opt.getAttribute('data-category-id') || ogCatId || '';
+                    if (!map[catId]) map[catId] = { label: label, optionsHtml: [] };
+                    map[catId].optionsHtml.push(opt.outerHTML);
+                });
+            });
+
+            // Also handle options that are direct children of select (without optgroup)
+            try {
+                Array.from(itemSelect.querySelectorAll(':scope > option')).forEach(opt => {
+                    const val = opt.value;
+                    if (!val) return;
+                    const catId = opt.getAttribute('data-category-id') || '';
+                    if (!map[catId]) map[catId] = { label: '', optionsHtml: [] };
+                    map[catId].optionsHtml.push(opt.outerHTML);
+                });
+            } catch (e) {
+                // Fallback for environments without :scope support
+                Array.from(itemSelect.children).forEach(child => {
+                    if (child.tagName === 'OPTION') {
+                        const opt = child;
+                        const val = opt.value;
+                        if (!val) return;
+                        const catId = opt.getAttribute('data-category-id') || '';
+                        if (!map[catId]) map[catId] = { label: '', optionsHtml: [] };
+                        map[catId].optionsHtml.push(opt.outerHTML);
+                    }
+                });
+            }
+
+            return map;
+        }
+
+        function filterItemsByCategory() {
+            const categorySelect = document.getElementById('categoryId');
+            const itemSelect = document.getElementById('itemId');
+            if (!categorySelect || !itemSelect) return;
+
+            if (!__originalItemMap) {
+                __originalItemMap = _buildOriginalItemMap();
+            }
+
+            console.log('filterItemsByCategory: originalItemMap keys=', Object.keys(__originalItemMap));
+
+            const selectedCategory = categorySelect.value; // empty = all
+            const previousSelectedValue = itemSelect.value;
+
+            // Rebuild select: start with placeholder
+            itemSelect.innerHTML = '<option value="">アイテムを選択</option>';
+
+            const appendHtml = (html) => {
+                const tmp = document.createElement('div');
+                tmp.innerHTML = html;
+                const node = tmp.firstElementChild;
+                if (node) itemSelect.appendChild(node);
+            };
+
+            if (!selectedCategory) {
+                // append all categories in original order
+                Object.keys(__originalItemMap).forEach(catId => {
+                    const entry = __originalItemMap[catId];
+                    if (!entry) return;
+                    if (entry.label) {
+                        const og = document.createElement('optgroup');
+                        og.label = entry.label;
+                        entry.optionsHtml.forEach(ohtml => {
+                            const tmp = document.createElement('div'); tmp.innerHTML = ohtml;
+                            og.appendChild(tmp.firstElementChild);
+                        });
+                        itemSelect.appendChild(og);
+                    } else {
+                        entry.optionsHtml.forEach(ohtml => appendHtml(ohtml));
+                    }
+                });
+            } else {
+                const entry = __originalItemMap[selectedCategory];
+                if (entry) {
+                    if (entry.label) {
+                        const og = document.createElement('optgroup');
+                        og.label = entry.label;
+                        entry.optionsHtml.forEach(ohtml => {
+                            const tmp = document.createElement('div'); tmp.innerHTML = ohtml;
+                            og.appendChild(tmp.firstElementChild);
+                        });
+                        itemSelect.appendChild(og);
+                    } else {
+                        entry.optionsHtml.forEach(ohtml => appendHtml(ohtml));
+                    }
+                }
+            }
+
+            // After rebuilding, ensure onchange handler is preserved
+            itemSelect.setAttribute('onchange', 'updateItemInfo()');
+
+            // Restore previous selection if it still exists; otherwise reset
+            if (previousSelectedValue) {
+                const optionStillExists = Array.from(itemSelect.options).some(opt => opt.value === previousSelectedValue);
+                if (optionStillExists) {
+                    itemSelect.value = previousSelectedValue;
+                } else {
+                    itemSelect.selectedIndex = 0;
+                    const itemInfo = document.getElementById('itemInfo');
+                    if (itemInfo) itemInfo.classList.add('d-none');
+                }
+            }
+
+            // Update item info based on current selection
+            updateItemInfo();
+        }
+
         // Update item information when item is selected
         function updateItemInfo() {
             const itemSelect = document.getElementById('itemId');
             const selectedOption = itemSelect.options[itemSelect.selectedIndex];
             const itemInfo = document.getElementById('itemInfo');
             
-            if (selectedOption.value) {
+            if (selectedOption && selectedOption.value) {
                 const stock = selectedOption.getAttribute('data-stock') || '0';
                 const unit = selectedOption.getAttribute('data-unit') || '個';
                 const location = selectedOption.getAttribute('data-location') || 'なし';
@@ -398,7 +460,7 @@
                 itemInfo.classList.remove('d-none');
                 updateExpectedStock();
             } else {
-                itemInfo.classList.add('d-none');
+                if (itemInfo) itemInfo.classList.add('d-none');
             }
         }
 
@@ -408,7 +470,7 @@
             const selectedOption = itemSelect.options[itemSelect.selectedIndex];
             const currentStock = parseInt(selectedOption.getAttribute('data-stock') || '0');
             const quantity = parseInt(document.getElementById('quantity').value || '0');
-            const recordType = document.querySelector('input[name="type"]:checked')?.value;
+            const recordType = document.querySelector('input[name="transactionType"]:checked')?.value;
             
             let expectedStock = currentStock;
             if (recordType === 'IN') {
@@ -426,7 +488,8 @@
 
         // Apply template values
         function applyTemplate(type, note) {
-            document.querySelector(`input[value="${type}"]`).checked = true;
+            const radio = document.querySelector(`input[name="transactionType"][value="${type}"]`);
+            if (radio) radio.checked = true;
             document.getElementById('note').value = note;
             setCurrentDateTime();
             updateExpectedStock();
@@ -440,7 +503,7 @@
             // Build preview content
             const itemSelect = document.getElementById('itemId');
             const itemName = itemSelect.options[itemSelect.selectedIndex].text;
-            const type = formData.get('type');
+            const type = formData.get('transactionType');
             const quantity = formData.get('quantity');
             const recordDate = formData.get('recordDate');
             const note = formData.get('note') || 'なし';
@@ -489,10 +552,23 @@
             setCurrentDateTime();
             
             // Add event listeners for real-time updates
-            document.getElementById('quantity').addEventListener('input', updateExpectedStock);
-            document.querySelectorAll('input[name="type"]').forEach(radio => {
+            const quantityEl = document.getElementById('quantity');
+            if (quantityEl) quantityEl.addEventListener('input', updateExpectedStock);
+
+            document.querySelectorAll('input[name="transactionType"]').forEach(radio => {
                 radio.addEventListener('change', updateExpectedStock);
             });
+
+            // Category filter wiring
+            const categoryEl = document.getElementById('categoryId');
+            if (categoryEl) {
+                categoryEl.addEventListener('change', function() {
+                    filterItemsByCategory();
+                });
+            }
+
+            // Initialize filter state on load
+            filterItemsByCategory();
         });
     </script>
 </body>

@@ -23,6 +23,18 @@
                         </div>
                     </div>
                 </div>
+                <!-- Alert Messages -->
+                <div th:if="${message}" class="alert alert-success alert-dismissible fade show" role="alert">
+                    <i class="bi bi-check-circle me-2"></i>
+                    <span th:text="${message}">メッセージ</span>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+                
+                <div th:if="${error}" class="alert alert-danger alert-dismissible fade show" role="alert">
+                    <i class="bi bi-exclamation-triangle me-2"></i>
+                    <span th:text="${error}">エラーメッセージ</span>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
 
                 <!-- Search and Filter Section -->
                 <div class="search-filter-section">
@@ -139,6 +151,7 @@
                                             <th scope="col">数量</th>
                                             <th scope="col">単位金額</th>
                                             <th scope="col">有効期限</th>
+                                            <th scope="col">操作</th>
                                         </tr>
                                     </thead>
                                     <tbody>
@@ -179,13 +192,16 @@
                                             <td>
                                                 <small th:text="${record.expirationDate}">2025-03-05</small>
                                             </td>
+                                            <td>
+                                                <a th:href="@{/records/delete/{id}(id=${record.id})}" class="text-danger">削除</a>
+                                            </td>
                                         </tr>
                                     </tbody>
                                 </table>
                             </div>
 
                             <!-- Pagination -->
-                            <nav th:if="${totalPages > 1}">
+                            <!--<nav th:if="${totalPages > 1}">
                                 <ul class="pagination justify-content-center">
                                     <li class="page-item" th:classappend="${currentPage == 0} ? 'disabled' : ''">
                                         <a class="page-link" th:href="@{/records(page=${currentPage - 1}, size=${pageSize})}">
@@ -207,7 +223,7 @@
                                         </a>
                                     </li>
                                 </ul>
-                            </nav>
+                            </nav> -->
                         </div>
 
                         <!-- Empty State -->
@@ -215,9 +231,6 @@
                             <i class="bi bi-journal-text display-1 text-muted"></i>
                             <h4 class="text-muted mt-3">記録が見つかりません</h4>
                             <p class="text-muted">新しい入出庫記録を追加するか、検索条件を変更してください。</p>
-                            <a th:href="@{/records/new}" class="btn btn-primary">
-                                <i class="bi bi-plus me-1"></i>新規記録作成
-                            </a>
                         </div>
                     </div>
                 </div>

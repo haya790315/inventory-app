@@ -55,11 +55,10 @@
                                 </h5>
                             </div>
                             <div class="card-body">
-                                <form th:action="${category != null ? '/categories/' + category.id : '/categories'}" 
-                                      th:method="${category != null ? 'PUT' : 'POST'}" 
-                                      th:object="${categoryRequest}" 
+                                <form th:action="${category != null} ? @{/categories/{id}(id=${category.id})} : @{/categories}"
+                                      th:method="post"
+                                      th:object="${categoryRequest}"
                                       class="needs-validation" novalidate>
-                                    
                                     <div class="mb-3">
                                         <div class="form-floating">
                                             <input type="text" class="form-control" 
@@ -94,6 +93,7 @@
                                             <span th:text="${category != null ? '更新' : '作成'}">作成</span>
                                         </button>
                                     </div>
+                                    <input type="hidden" name="_method" value="put" th:if="${category != null}">
                                 </form>
                             </div>
                         </div>

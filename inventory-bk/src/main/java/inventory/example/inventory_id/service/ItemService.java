@@ -6,19 +6,30 @@ import inventory.example.inventory_id.model.Item;
 import inventory.example.inventory_id.repository.CategoryRepository;
 import inventory.example.inventory_id.repository.ItemRepository;
 import inventory.example.inventory_id.request.ItemRequest;
+import inventory.example.inventory_id.spec.ItemSpecs;
+import java.net.URLDecoder;
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.Caching;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
 @Service
 public class ItemService {
+
+  private static final Logger log = LoggerFactory.getLogger(ItemService.class);
 
   @Autowired
   private ItemRepository itemRepository;
@@ -33,9 +44,14 @@ public class ItemService {
 
   private String itemsNotFoundMsg = "アイテムが見つかりません";
 
-  @CacheEvict(
-    value = "items",
-    key = "#userId + ':' + #itemRequest.categoryName"
+  @Caching(
+    evict = {
+      @CacheEvict(
+        value = "items",
+        key = "#userId + ':' + #itemRequest.categoryName"
+      ),
+      @CacheEvict(value = "categories", allEntries = true),
+    }
   )
   public void createItem(String userId, ItemRequest itemRequest) {
     List<Category> categoryList = categoryRepository.findActiveCateByName(
@@ -75,31 +91,37 @@ public class ItemService {
   }
 
   @Cacheable(value = "items", key = "#userId + ':' + #categoryName")
-  public List<ItemDto> getItems(String userId, String categoryName) {
-    // カテゴリーが存在するかチェック
-    categoryRepository
-      .findActiveCateByName(List.of(userId, systemUserId), categoryName)
-      .stream()
-      .findFirst()
-      .orElseThrow(() -> new IllegalArgumentException(categoryNotFoundMsg));
+  public Page<ItemDto> getItems(
+    Pageable pageable,
+    String userId,
+    String categoryName
+  ) {
+    Specification<Item> spec = Specification.unrestricted();
+    spec = spec
+      .and(ItemSpecs.belongsToUser(userId))
+      .and(ItemSpecs.isNotDeleted());
 
-    List<Item> items = itemRepository.getActiveByCategoryName(
-      List.of(userId, systemUserId),
-      categoryName
-    );
-    return items
-      .stream()
-      .map(item ->
-        new ItemDto(
-          item.getId(),
-          item.getName(),
-          categoryName,
-          item.getTotalQuantity(),
-          item.getTotalPrice(),
-          item.getUpdatedAt()
-        )
+    if (categoryName != null) {
+      String decodedCategory = URLDecoder.decode(
+        categoryName,
+        StandardCharsets.UTF_8
+      );
+
+      spec = spec.and(ItemSpecs.hasCategoryName(decodedCategory));
+    }
+
+    Page<Item> items = itemRepository.findAll(spec, pageable);
+
+    return items.map(item ->
+      new ItemDto(
+        item.getId(),
+        item.getName(),
+        item.getCategory().getName(),
+        item.getTotalQuantity(),
+        item.getTotalPrice(),
+        item.getUpdatedAt()
       )
-      .toList();
+    );
   }
 
   @CacheEvict(value = "items", allEntries = true)

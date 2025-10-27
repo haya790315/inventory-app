@@ -251,9 +251,9 @@
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">キャンセル</button>
-                    <form th:action="@{/items/{id}/delete(id=${item.id})}" method="post" style="display: inline;">
+                    <a th:href="@{/items/{id}/delete(id=${item.id})}"  style="display: inline;">
                         <button type="submit" class="btn btn-danger">削除</button>
-                    </form>
+                    </a>
                 </div>
             </div>
         </div>

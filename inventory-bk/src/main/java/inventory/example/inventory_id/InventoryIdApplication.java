@@ -1,14 +1,13 @@
 package inventory.example.inventory_id;
 
+import inventory.example.inventory_id.handler.RestTemplateHandler;
+import io.swagger.v3.oas.annotations.OpenAPIDefinition;
+import io.swagger.v3.oas.annotations.info.Info;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.context.annotation.Bean;
 import org.springframework.web.client.RestTemplate;
-
-import inventory.example.inventory_id.handler.RestTemplateHandler;
-import io.swagger.v3.oas.annotations.OpenAPIDefinition;
-import io.swagger.v3.oas.annotations.info.Info;
 
 @OpenAPIDefinition(
   info = @Info(
@@ -18,7 +17,7 @@ import io.swagger.v3.oas.annotations.info.Info;
   )
 )
 @SpringBootApplication
-@EnableCaching
+// @EnableCaching
 public class InventoryIdApplication {
 
   public static void main(String[] args) {
